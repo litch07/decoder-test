@@ -129,6 +129,115 @@
     return html;
   }
 
+  function splitTextToLines(text, maxChars = 26) {
+    if (!text || text.length <= maxChars) return [text || ""];
+    const words = text.split(" ");
+    const lines = [];
+    let currentLine = "";
+
+    for (const word of words) {
+      if (!currentLine) {
+        currentLine = word;
+      } else if ((currentLine + " " + word).length <= maxChars) {
+        currentLine += " " + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    return lines;
+  }
+
+  function renderSvgTooltip(wrap, beforeText, matchText, afterText, data) {
+    wrap.textContent = "";
+
+    // Line 1: Header line with course code in bold accent orange
+    const headerLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+    headerLine.setAttribute("font-weight", "600");
+    headerLine.setAttribute("fill", "#0f172a");
+    headerLine.setAttribute("font-size", "12px");
+
+    if (beforeText) {
+      const beforeSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      beforeSpan.textContent = beforeText;
+      headerLine.appendChild(beforeSpan);
+    }
+
+    const codeSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+    codeSpan.setAttribute("fill", "#e67e22");
+    codeSpan.setAttribute("font-weight", "700");
+    codeSpan.textContent = matchText;
+    headerLine.appendChild(codeSpan);
+
+    if (afterText) {
+      const afterSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      afterSpan.textContent = afterText;
+      headerLine.appendChild(afterSpan);
+    }
+
+    wrap.appendChild(headerLine);
+
+    // Line 2: Full Course Name (wrapped into clean compact lines of max ~26 chars)
+    if (data.name) {
+      const nameLines = splitTextToLines(data.name, 26);
+      nameLines.forEach((line, idx) => {
+        const nameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+        nameSpan.setAttribute("x", "8");
+        nameSpan.setAttribute("dy", idx === 0 ? "1.35em" : "1.2em");
+        nameSpan.setAttribute("fill", "#334155");
+        nameSpan.setAttribute("font-weight", "600");
+        nameSpan.setAttribute("font-size", "11px");
+        nameSpan.textContent = line;
+        wrap.appendChild(nameSpan);
+      });
+    }
+
+    // Line 3: Exam Info (if present)
+    if (data.exam) {
+      const examLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      examLine.setAttribute("x", "8");
+      examLine.setAttribute("dy", "1.35em");
+      examLine.setAttribute("font-size", "11px");
+
+      const examLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      examLabel.setAttribute("fill", "#e67e22");
+      examLabel.setAttribute("font-weight", "700");
+      examLabel.textContent = "Exam: ";
+      examLine.appendChild(examLabel);
+
+      const examText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      examText.setAttribute("fill", "#475569");
+      examText.setAttribute("font-weight", "normal");
+      examText.textContent = data.exam;
+      examLine.appendChild(examText);
+
+      wrap.appendChild(examLine);
+    }
+
+    // Line 4: Prerequisites (if present)
+    if (data.prereq) {
+      const prereqLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      prereqLine.setAttribute("x", "8");
+      prereqLine.setAttribute("dy", "1.3em");
+      prereqLine.setAttribute("font-size", "11px");
+
+      const prereqLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      prereqLabel.setAttribute("fill", "#d35400");
+      prereqLabel.setAttribute("font-weight", "700");
+      prereqLabel.textContent = "Prereq: ";
+      prereqLine.appendChild(prereqLabel);
+
+      const prereqText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      prereqText.setAttribute("fill", "#475569");
+      prereqText.setAttribute("font-weight", "normal");
+      prereqText.textContent = data.prereq;
+      prereqLine.appendChild(prereqText);
+
+      wrap.appendChild(prereqLine);
+    }
+  }
+
   function renderSvgInline(wrap, matchText, data) {
     wrap.textContent = "";
 
@@ -337,6 +446,21 @@
       .cce-inline-prereq {
         color: #d35400;
       }
+      /* Highcharts chart tooltip and container overflow fixes */
+      .highcharts-container,
+      .highcharts-container svg,
+      svg.highcharts-root {
+        overflow: visible !important;
+      }
+      .highcharts-tooltip .highcharts-label-box {
+        display: none !important;
+      }
+      .highcharts-tooltip {
+        pointer-events: none;
+      }
+      .cce-custom-tooltip-group {
+        pointer-events: none;
+      }
     `;
     (document.head || document.documentElement).appendChild(style);
 
@@ -363,6 +487,17 @@
         globalTooltip.classList.remove("cce-visible");
       }
     });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!enabled) return;
+      const chartContainer = e.target.closest ? e.target.closest(".highcharts-container") : null;
+      if (chartContainer) {
+        const tg = chartContainer.querySelector(".highcharts-tooltip");
+        if (tg) {
+          adjustHighchartsTooltipBackground(tg);
+        }
+      }
+    }, { passive: true });
   }
 
   // Tags whose text we shouldn't mess with
@@ -518,8 +653,8 @@
         break;
       }
 
-      // Add the normal text before the matched course
-      if (match.index > lastIndex) {
+      // Add the normal text before the matched course (for tooltips, beforeText is handled inside renderSvgTooltip)
+      if (!isTooltip && match.index > lastIndex) {
         frag.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
       }
 
@@ -530,7 +665,15 @@
         wrap.dataset.cceMatch = match[0];
         const data = buildExtendedData(resolved);
 
-        if (effectiveMode === "inline") {
+        if (isTooltip) {
+          wrap.setAttribute("font-weight", "bold");
+          const beforeText = text.slice(lastIndex, match.index);
+          const afterText = text.slice(match.index + match[0].length);
+          renderSvgTooltip(wrap, beforeText, match[0], afterText, data);
+          frag.appendChild(wrap);
+          lastIndex = text.length;
+          break;
+        } else if (effectiveMode === "inline") {
           wrap.setAttribute("font-weight", "bold");
           renderSvgInline(wrap, match[0], data);
         } else {
@@ -576,7 +719,7 @@
 
     if (!replaced) return null;
 
-    if (!isHighchartsTruncated && lastIndex < text.length) {
+    if (!isTooltip && !isHighchartsTruncated && lastIndex < text.length) {
       frag.appendChild(document.createTextNode(text.slice(lastIndex)));
     }
 
@@ -619,46 +762,79 @@
     }
 
     for (const { node: textNode, frag } of replacements) {
-      if (textNode.parentNode) textNode.parentNode.replaceChild(frag, textNode);
+      if (textNode.parentNode) {
+        const parent = textNode.parentNode;
+        parent.replaceChild(frag, textNode);
+
+        // If we just edited text inside a Highcharts tooltip, fix its background box immediately!
+        let tg = parent;
+        while (tg && tg !== document.documentElement) {
+          if (tg.classList && tg.classList.contains("highcharts-tooltip")) break;
+          tg = tg.parentNode;
+        }
+        if (tg && tg !== document.documentElement) {
+          adjustHighchartsTooltipBackground(tg);
+        }
+      }
     }
   }
 
   // Highcharts draws its tooltips perfectly wrapped to the original short text.
-  // Since we add the long course names, we have to stretch the background box manually!
+  // Since we add the decoded course info, we stretch and reposition the background box manually!
   function adjustHighchartsTooltipBackground(tooltipGroup) {
-    const origBox = tooltipGroup.querySelector(".highcharts-label-box");
-    if (!origBox) return;
+    if (!tooltipGroup) return;
 
-    origBox.style.display = "none";
-    setTimeout(() => {
+    const svgEl = tooltipGroup.ownerSVGElement;
+    if (svgEl) {
+      svgEl.style.overflow = "visible";
+      let p = svgEl.parentElement;
+      while (p && p !== document.body) {
+        if (p.classList && p.classList.contains("highcharts-container")) {
+          p.style.overflow = "visible";
+          break;
+        }
+        p = p.parentElement;
+      }
+    }
+
+    const origBox = tooltipGroup.querySelector(".highcharts-label-box");
+    if (origBox) {
+      origBox.style.display = "none";
+    }
+
+    const doAdjust = () => {
+      if (!tooltipGroup.isConnected) return;
       const textEl = tooltipGroup.querySelector("text");
       if (!textEl) return;
 
       const bbox = textEl.getBBox();
+      if (!bbox || bbox.width <= 0) return;
+
       let customBgGroup = tooltipGroup.querySelector(".cce-custom-tooltip-group");
 
       if (!customBgGroup) {
         customBgGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         customBgGroup.setAttribute("class", "cce-custom-tooltip-group");
+        customBgGroup.style.pointerEvents = "none";
 
-        let defs = tooltipGroup.ownerSVGElement.querySelector("defs");
-        if (!defs) {
+        let defs = svgEl ? svgEl.querySelector("defs") : null;
+        if (svgEl && !defs) {
           defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-          tooltipGroup.ownerSVGElement.prepend(defs);
+          svgEl.prepend(defs);
         }
 
-        let filter = defs.querySelector("#cce-shadow");
-        if (!filter) {
-          filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
-          filter.setAttribute("id", "cce-shadow");
-          filter.setAttribute("x", "-20%");
-          filter.setAttribute("y", "-20%");
-          filter.setAttribute("width", "140%");
-          filter.setAttribute("height", "140%");
-          filter.innerHTML = `
-            <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.1"/>
-          `;
-          defs.appendChild(filter);
+        if (defs) {
+          let filter = defs.querySelector("#cce-shadow");
+          if (!filter) {
+            filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
+            filter.setAttribute("id", "cce-shadow");
+            filter.setAttribute("x", "-20%");
+            filter.setAttribute("y", "-20%");
+            filter.setAttribute("width", "140%");
+            filter.setAttribute("height", "140%");
+            filter.innerHTML = `<feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.12"/>`;
+            defs.appendChild(filter);
+          }
         }
 
         const customBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -684,24 +860,58 @@
       const padY = 12;
       const boxX = bbox.x - padX;
       const boxY = bbox.y - padY;
-      const boxW = bbox.width + (padX * 2);
+      const boxW = Math.max(160, bbox.width + (padX * 2));
       const boxH = bbox.height + (padY * 2);
 
       const customBg = customBgGroup.querySelector(".cce-custom-tooltip-bg");
-      customBg.setAttribute("x", boxX);
-      customBg.setAttribute("y", boxY);
-      customBg.setAttribute("width", boxW);
-      customBg.setAttribute("height", boxH);
+      if (customBg) {
+        customBg.setAttribute("x", boxX);
+        customBg.setAttribute("y", boxY);
+        customBg.setAttribute("width", boxW);
+        customBg.setAttribute("height", boxH);
+      }
 
       const customTopBorder = customBgGroup.querySelector(".cce-custom-tooltip-border");
-      const radius = 8;
-      customTopBorder.setAttribute("d", `
-        M ${boxX} ${boxY + radius} 
-        Q ${boxX} ${boxY} ${boxX + radius} ${boxY} 
-        L ${boxX + boxW - radius} ${boxY} 
-        Q ${boxX + boxW} ${boxY} ${boxX + boxW} ${boxY + radius}
-      `);
-    }, 0);
+      if (customTopBorder) {
+        const radius = 8;
+        customTopBorder.setAttribute("d", `
+          M ${boxX} ${boxY + radius} 
+          Q ${boxX} ${boxY} ${boxX + radius} ${boxY} 
+          L ${boxX + boxW - radius} ${boxY} 
+          Q ${boxX + boxW} ${boxY} ${boxX + boxW} ${boxY + radius}
+        `);
+      }
+
+      // Keep tooltip inside chart boundaries (prevent clipping on right or bottom edges)
+      if (svgEl) {
+        const currentTransform = tooltipGroup.getAttribute("transform") || "";
+        const match = currentTransform.match(/translate\(([\d.-]+)[,\s]+([\d.-]+)\)/);
+        if (match) {
+          let tx = parseFloat(match[1]);
+          let ty = parseFloat(match[2]);
+          const svgW = svgEl.clientWidth || svgEl.getBoundingClientRect().width || 600;
+          const svgH = svgEl.clientHeight || svgEl.getBoundingClientRect().height || 300;
+
+          if (tx + boxX + boxW > svgW) {
+            tx = Math.max(8, svgW - boxW - boxX - 8);
+          }
+          if (tx + boxX < 4) {
+            tx = 4 - boxX;
+          }
+          if (ty + boxY + boxH > svgH) {
+            ty = Math.max(8, svgH - boxH - boxY - 8);
+          }
+          if (ty + boxY < 4) {
+            ty = 4 - boxY;
+          }
+
+          tooltipGroup.setAttribute("transform", `translate(${tx}, ${ty})`);
+        }
+      }
+    };
+
+    doAdjust();
+    requestAnimationFrame(doAdjust);
   }
 
   // We queue up DOM changes and process them in batches every 100ms
@@ -750,9 +960,55 @@
     if (observer) observer.disconnect();
     observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
-            scheduleProcess(node);
+        if (mutation.type === "childList") {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+              const isTooltip = (node.nodeType === Node.ELEMENT_NODE && node.classList && node.classList.contains("highcharts-tooltip")) ||
+                (node.parentElement && node.parentElement.closest && node.parentElement.closest(".highcharts-tooltip"));
+              if (isTooltip) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                  const frag = processTextNode(node);
+                  if (frag && node.parentNode) {
+                    const parent = node.parentNode;
+                    parent.replaceChild(frag, node);
+                    let tg = parent;
+                    while (tg && tg !== document.documentElement) {
+                      if (tg.classList && tg.classList.contains("highcharts-tooltip")) break;
+                      tg = tg.parentNode;
+                    }
+                    if (tg && tg !== document.documentElement) {
+                      adjustHighchartsTooltipBackground(tg);
+                    }
+                  }
+                } else {
+                  processNode(node);
+                }
+              } else {
+                scheduleProcess(node);
+              }
+            }
+          }
+        } else if (mutation.type === "characterData") {
+          const target = mutation.target;
+          if (target && target.nodeType === Node.TEXT_NODE) {
+            const isTooltip = target.parentElement && target.parentElement.closest && target.parentElement.closest(".highcharts-tooltip");
+            if (isTooltip) {
+              const frag = processTextNode(target);
+              if (frag && target.parentNode) {
+                const parent = target.parentNode;
+                parent.replaceChild(frag, target);
+                let tg = parent;
+                while (tg && tg !== document.documentElement) {
+                  if (tg.classList && tg.classList.contains("highcharts-tooltip")) break;
+                  tg = tg.parentNode;
+                }
+                if (tg && tg !== document.documentElement) {
+                  adjustHighchartsTooltipBackground(tg);
+                }
+              }
+            } else {
+              scheduleProcess(target);
+            }
           }
         }
       }
@@ -760,6 +1016,7 @@
     observer.observe(document.body || document.documentElement, {
       childList: true,
       subtree: true,
+      characterData: true,
     });
   }
 
