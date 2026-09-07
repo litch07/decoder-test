@@ -197,8 +197,10 @@
     const isOverdue = !!(lastSyncedAt && (Date.now() - lastSyncedAt > SYNC_OVERDUE_MS));
     const banner = document.getElementById("syncReminderBanner");
     const homeAlert = document.getElementById("homeSyncAlert");
+    const badge = document.getElementById("settingsBadge");
     if (banner) banner.style.display = isOverdue ? "flex" : "none";
     if (homeAlert) homeAlert.style.display = isOverdue ? "flex" : "none";
+    if (badge) badge.style.display = isOverdue ? "block" : "none";
   }
 
   function setupUI() {
