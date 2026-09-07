@@ -1323,7 +1323,10 @@
 
     els.resetDefaultsBtn?.addEventListener("click", () => {
       pendingAction = "reset-defaults";
-      els.modalText.textContent = "Are you sure you want to restore the official catalog to default? All official course mappings will be un-deleted, while your custom user-added courses remain intact.";
+      els.modalText.innerHTML = `
+        <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-main); margin-bottom: 5px;">Reset Official Catalog?</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">This will restore all default course mappings and exam schedules. Your custom added courses will remain untouched.</div>
+      `;
       els.confirmModal.classList.add("show");
     });
   }
