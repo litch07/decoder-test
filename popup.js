@@ -759,10 +759,12 @@
                 if (previewSpan) previewSpan.style.display = "none";
                 fullSpan.style.display = "inline";
                 btn.textContent = "Show less";
+                btn.classList.add("is-expanded");
               } else if (fullSpan) {
                 fullSpan.style.display = "none";
                 if (previewSpan) previewSpan.style.display = "inline";
                 btn.textContent = `+${moreCount} more`;
+                btn.classList.remove("is-expanded");
               }
             });
           });
