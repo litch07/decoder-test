@@ -937,6 +937,17 @@
       gap: 8px;
     }
 
+    .courses-view .course-table-card {
+      flex: 1 1 0px;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
     .courses-view .course-scroll {
       flex: 1 1 0px;
       min-height: 0;
@@ -944,6 +955,9 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      background: transparent;
+      border: none;
+      border-radius: 0;
     }
 
     .courses-view #openImportBtn {
@@ -1045,13 +1059,23 @@
     /* Scrollable course list */
     .course-scroll {
       overflow-y: auto;
-      max-height: 380px;
       display: flex;
       flex-direction: column;
       gap: 0;
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
+    }
+
+    .course-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .course-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .course-scroll::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 99px;
+    }
+    .course-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
     }
 
     .empty-state {
@@ -1103,10 +1127,9 @@
       letter-spacing: 0.5px;
       border-bottom: 1px solid var(--border-color);
       gap: 12px;
-      position: sticky;
-      top: 0;
-      background: #f8fafc;
-      z-index: 10;
+      background: #f1f5f9;
+      flex-shrink: 0;
+      user-select: none;
     }
 
     .course-grid-row {
@@ -1861,11 +1884,18 @@
           </button>
         </div>
 
-        <!-- Course list -->
-        <div class="course-scroll" id="courseList">
-          <div class="empty-state">
-            <div class="empty-icon">📚</div>
-            No courses loaded yet. Import from JSON below.
+        <!-- Course list card with fixed header -->
+        <div class="course-table-card">
+          <div class="course-grid-header" id="courseListHeader" style="display: none;">
+            <div>Code</div>
+            <div>Name</div>
+            <div style="text-align: right;">Type</div>
+          </div>
+          <div class="course-scroll" id="courseList">
+            <div class="empty-state">
+              <div class="empty-icon">📚</div>
+              No courses loaded yet. Import from JSON below.
+            </div>
           </div>
         </div>
 

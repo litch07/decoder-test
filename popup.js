@@ -33,6 +33,7 @@
     restoreAllBtn: document.getElementById("restoreAllBtn"),
     emptyTrashBtn: document.getElementById("emptyTrashBtn"),
     courseList: document.getElementById("courseList"),
+    courseListHeader: document.getElementById("courseListHeader"),
     courseSearch: document.getElementById("courseSearch"),
     courseFilterRow: document.getElementById("courseFilterRow"),
     filterBtns: document.querySelectorAll("#courseFilterRow .filter-btn"),
@@ -360,6 +361,7 @@
   }
 
   function renderTrashList(filter = "") {
+    if (els.courseListHeader) els.courseListHeader.style.display = "none";
     const lc = filter.toLowerCase().trim();
     const entries = softDeletedCourses
       .map(code => ({ code, data: getSoftDeletedCourseData(code) }))
@@ -507,21 +509,14 @@
         emptyState.appendChild(document.createTextNode("No courses loaded yet. Import from JSON below."));
       }
 
+      if (els.courseListHeader) els.courseListHeader.style.display = "none";
       els.courseList.textContent = "";
       els.courseList.appendChild(emptyState);
       return;
     }
 
+    if (els.courseListHeader) els.courseListHeader.style.display = "grid";
     els.courseList.textContent = "";
-
-    const headerRow = document.createElement("div");
-    headerRow.className = "course-grid-header";
-    headerRow.innerHTML = `
-      <div>Code</div>
-      <div>Name</div>
-      <div style="text-align: right;">Type</div>
-    `;
-    els.courseList.appendChild(headerRow);
 
     const frag = document.createDocumentFragment();
     entries.forEach(([code, courseData]) => {
