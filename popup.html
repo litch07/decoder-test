@@ -524,10 +524,121 @@
       color: var(--danger) !important;
     }
 
-    /* Smooth animated reveal for result box */
-    #syncResultBox.show {
+    /* ── SYNC STATUS CARD ── */
+    .sync-card {
+      display: none;
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      transition: all 0.25s ease;
+    }
+
+    .sync-card.show {
       display: block !important;
-      animation: syncSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: syncSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .sync-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .sync-card-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .sync-card-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    .sync-card-dot.has-updates {
+      background: var(--accent);
+      box-shadow: 0 0 0 2px rgba(242, 101, 34, 0.2);
+    }
+
+    .sync-card-time {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .sync-card-desc {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+
+    .sync-metrics-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    .sync-metric-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.62rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .sync-metric-chip.add {
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+    }
+
+    .sync-metric-chip.update {
+      background: #f0f9ff;
+      color: #0284c7;
+      border: 1px solid #bae6fd;
+    }
+
+    .sync-metric-chip.remove {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .sync-diff-section {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sync-diff-row {
+      font-size: 0.64rem;
+      line-height: 1.4;
+      color: var(--text-muted);
+      word-break: break-word;
+    }
+
+    .sync-diff-row strong {
+      color: var(--text-main);
+      font-weight: 600;
     }
 
     @keyframes syncSlideDown {
@@ -1380,19 +1491,17 @@
           Never synced</div>
 
         <!-- Sync result diff summary box -->
-        <div id="syncResultBox"
-          style="display: none; margin-top: 6px; padding: 8px 10px; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.68rem; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div id="syncResultTitle"
-              style="font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px;">
-              <span>✓ Database is up to date</span>
+        <div id="syncResultBox" class="sync-card">
+          <div class="sync-card-header">
+            <div class="sync-card-status">
+              <span id="syncResultDot" class="sync-card-dot"></span>
+              <span id="syncResultTitle">Database is up to date</span>
             </div>
-            <span id="syncResultTime" style="font-size: 0.62rem; color: var(--text-muted);"></span>
+            <span id="syncResultTime" class="sync-card-time"></span>
           </div>
-          <div id="syncResultBadges" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px;"></div>
-          <div id="syncResultDetails"
-            style="display: none; margin-top: 5px; padding-top: 5px; border-top: 1px dashed var(--border-color); font-size: 0.64rem; color: var(--text-muted); line-height: 1.35; word-break: break-word;">
-          </div>
+          <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.</div>
+          <div id="syncResultBadges" class="sync-metrics-row" style="display: none;"></div>
+          <div id="syncResultDetails" class="sync-diff-section" style="display: none;"></div>
         </div>
 
         <div

@@ -57,8 +57,10 @@
     resetDefaultsBtn: document.getElementById("resetDefaultsBtn"),
     resetDefaultsBtnText: document.getElementById("resetDefaultsBtnText"),
     syncResultBox: document.getElementById("syncResultBox"),
+    syncResultDot: document.getElementById("syncResultDot"),
     syncResultTitle: document.getElementById("syncResultTitle"),
     syncResultTime: document.getElementById("syncResultTime"),
+    syncResultDesc: document.getElementById("syncResultDesc"),
     syncResultBadges: document.getElementById("syncResultBadges"),
     syncResultDetails: document.getElementById("syncResultDetails"),
   };
@@ -677,47 +679,69 @@
       els.syncResultTime.textContent = formatTimeAgo(timestamp);
     }
 
+    const dot = els.syncResultDot || document.getElementById("syncResultDot");
+    const desc = els.syncResultDesc || document.getElementById("syncResultDesc");
+
     if (!hasChanges) {
-      els.syncResultTitle.innerHTML = `<span style="color: #059669;">✓ Database is up to date</span>`;
-      els.syncResultBadges.innerHTML = `
-        <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.62rem;">No new changes</span>
-      `;
-      els.syncResultDetails.style.display = "block";
-      els.syncResultDetails.textContent = "Your local course database matches the official GitHub repository.";
+      if (dot) dot.className = "sync-card-dot";
+      els.syncResultTitle.textContent = "Database is up to date";
+      if (desc) {
+        desc.style.display = "block";
+        desc.textContent = "Your local catalog matches the latest official GitHub repository.";
+      }
+      if (els.syncResultBadges) {
+        els.syncResultBadges.style.display = "none";
+        els.syncResultBadges.innerHTML = "";
+      }
+      if (els.syncResultDetails) {
+        els.syncResultDetails.style.display = "none";
+        els.syncResultDetails.innerHTML = "";
+      }
     } else {
-      els.syncResultTitle.innerHTML = `<span style="color: var(--accent);">✨ Sync complete</span>`;
+      if (dot) dot.className = "sync-card-dot has-updates";
+      els.syncResultTitle.textContent = "Sync Complete";
+      if (desc) {
+        desc.style.display = "block";
+        desc.textContent = "Successfully applied changes from the repository:";
+      }
 
       let badgesHtml = "";
       if (added > 0) {
-        badgesHtml += `<span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.62rem;">+${added} new course${added !== 1 ? 's' : ''}</span>`;
+        badgesHtml += `<span class="sync-metric-chip add">+${added} new</span>`;
       }
       if (updated > 0) {
-        badgesHtml += `<span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.62rem;">${updated} updated</span>`;
+        badgesHtml += `<span class="sync-metric-chip update">${updated} updated</span>`;
       }
       if (removed > 0) {
-        badgesHtml += `<span style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.62rem;">${removed} removed</span>`;
+        badgesHtml += `<span class="sync-metric-chip remove">${removed} removed</span>`;
       }
-      els.syncResultBadges.innerHTML = badgesHtml;
+      if (els.syncResultBadges) {
+        els.syncResultBadges.style.display = "flex";
+        els.syncResultBadges.innerHTML = badgesHtml;
+      }
 
-      const details = [];
+      const diffRows = [];
       if (addedCodes.length > 0) {
-        const preview = addedCodes.slice(0, 5).join(", ") + (addedCodes.length > 5 ? ` +${addedCodes.length - 5} more` : "");
-        details.push(`<strong>Added:</strong> ${escapeHtml(preview)}`);
+        const preview = addedCodes.slice(0, 6).join(", ") + (addedCodes.length > 6 ? ` +${addedCodes.length - 6} more` : "");
+        diffRows.push(`<div class="sync-diff-row"><strong>Added:</strong> ${escapeHtml(preview)}</div>`);
       }
       if (updatedCodes.length > 0) {
-        const preview = updatedCodes.slice(0, 5).join(", ") + (updatedCodes.length > 5 ? ` +${updatedCodes.length - 5} more` : "");
-        details.push(`<strong>Updated:</strong> ${escapeHtml(preview)}`);
+        const preview = updatedCodes.slice(0, 6).join(", ") + (updatedCodes.length > 6 ? ` +${updatedCodes.length - 6} more` : "");
+        diffRows.push(`<div class="sync-diff-row"><strong>Updated:</strong> ${escapeHtml(preview)}</div>`);
       }
       if (removedCodes.length > 0) {
-        const preview = removedCodes.slice(0, 5).join(", ") + (removedCodes.length > 5 ? ` +${removedCodes.length - 5} more` : "");
-        details.push(`<strong>Removed:</strong> ${escapeHtml(preview)}`);
+        const preview = removedCodes.slice(0, 6).join(", ") + (removedCodes.length > 6 ? ` +${removedCodes.length - 6} more` : "");
+        diffRows.push(`<div class="sync-diff-row"><strong>Removed:</strong> ${escapeHtml(preview)}</div>`);
       }
 
-      if (details.length > 0) {
-        els.syncResultDetails.style.display = "block";
-        els.syncResultDetails.innerHTML = details.join("<br/>");
-      } else {
-        els.syncResultDetails.style.display = "none";
+      if (els.syncResultDetails) {
+        if (diffRows.length > 0) {
+          els.syncResultDetails.style.display = "flex";
+          els.syncResultDetails.innerHTML = diffRows.join("");
+        } else {
+          els.syncResultDetails.style.display = "none";
+          els.syncResultDetails.innerHTML = "";
+        }
       }
     }
   }
