@@ -254,7 +254,7 @@
       if (versionEl && manifest?.version) {
         versionEl.textContent = `v${manifest.version}`;
       }
-    } catch (_) {}
+    } catch (_) { }
   }
 
   function updateCourseCount() {
@@ -1120,7 +1120,7 @@
       // If the values do not differ from the course's current state, do not mark as edited
       const currentData = courses[currentEditingCode];
       if (areCourseDataEqual(newVal, currentData)) {
-        showToast(`No modifications detected — ${currentEditingCode} is already up to date.`, "info");
+        showToast("No changes made to course details.", "info");
         els.viewWrapper.classList.remove("show-details");
         els.viewWrapper.classList.add("show-courses");
         return;
@@ -1269,7 +1269,7 @@
             }
           }
           userCourses = cleanedUserCourses;
-          
+
           // Allow the loading animation and spinner to render smoothly
           await Promise.all([
             chrome.storage.local.set({ userCourses, softDeletedCourses, hardDeletedCourses }),

@@ -1166,6 +1166,7 @@
       background: #f1f5f9;
       flex-shrink: 0;
       user-select: none;
+      text-align: left;
     }
 
     .course-grid-row {
@@ -1207,7 +1208,8 @@
 
     .course-grid-row .course-row-type {
       display: flex;
-      justify-content: flex-end;
+      justify-content: flex-start;
+      align-items: center;
     }
 
     .course-grid-row .origin-badge {
@@ -2075,7 +2077,7 @@
           <div class="course-grid-header" id="courseListHeader" style="display: none;">
             <div>Code</div>
             <div>Name</div>
-            <div style="text-align: right;">Type</div>
+            <div>Type</div>
           </div>
           <div class="course-scroll" id="courseList">
             <div class="empty-state">
