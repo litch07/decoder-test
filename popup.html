@@ -1399,12 +1399,15 @@
     .btn-reset-danger .reset-icon {
       transition: transform 0.25s ease;
       fill: currentColor;
+      transform-origin: center center;
+      display: inline-block;
+      flex-shrink: 0;
     }
 
     .btn-reset-danger:hover {
-      background: #fee2e2 !important;
-      border-color: #ef4444 !important;
-      color: #b91c1c !important;
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #b91c1c;
       box-shadow: 0 3px 10px rgba(239, 68, 68, 0.18);
       transform: translateY(-1px);
     }
@@ -1412,16 +1415,19 @@
     .btn-reset-danger:active {
       transform: scale(0.98);
       box-shadow: none;
-      background: #fecaca !important;
+      background: #fecaca;
     }
 
     /* Reset button loading state */
-    .btn-reset-danger.is-loading {
+    .btn-reset-danger.is-loading,
+    .btn-reset-danger.is-loading:hover {
       background: #fef2f2 !important;
       border-color: #f87171 !important;
       color: #dc2626 !important;
-      cursor: wait;
-      pointer-events: none;
+      cursor: wait !important;
+      pointer-events: none !important;
+      transform: none !important;
+      box-shadow: none !important;
       opacity: 0.92;
     }
 
@@ -1430,11 +1436,13 @@
     }
 
     /* Reset button success state */
-    .btn-reset-danger.is-success {
+    .btn-reset-danger.is-success,
+    .btn-reset-danger.is-success:hover {
       background: #f0fdf4 !important;
       border-color: #22c55e !important;
       color: #15803d !important;
-      box-shadow: 0 3px 10px rgba(34, 197, 94, 0.18);
+      box-shadow: 0 3px 10px rgba(34, 197, 94, 0.18) !important;
+      transform: none !important;
     }
 
     .btn-reset-danger.is-success .reset-icon {

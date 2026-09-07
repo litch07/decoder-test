@@ -1018,7 +1018,7 @@
         const resetText = els.resetDefaultsBtnText || resetBtn;
 
         if (resetBtn) {
-          resetBtn.classList.remove("is-success");
+          resetBtn.classList.remove("is-success", "is-error");
           resetBtn.classList.add("is-loading");
           if (resetText) resetText.textContent = "Restoring official catalog…";
           resetBtn.disabled = true;
@@ -1027,10 +1027,17 @@
         try {
           softDeletedCourses = [];
           hardDeletedCourses = [];
-          await chrome.storage.local.set({ softDeletedCourses, hardDeletedCourses });
+          
+          // Allow the loading animation and spinner to render smoothly
+          await Promise.all([
+            chrome.storage.local.set({ softDeletedCourses, hardDeletedCourses }),
+            new Promise(resolve => setTimeout(resolve, 600))
+          ]);
+
           await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
           await reloadLocalCoursesState();
           updateCourseCount();
+
           if (isTrashMode) {
             els.coursesPanelCount.textContent = `0 courses`;
             renderTrashList(searchQuery);
@@ -1047,16 +1054,17 @@
           console.error("Reset defaults failed:", err);
           if (resetBtn) {
             resetBtn.classList.remove("is-loading");
+            resetBtn.classList.add("is-error");
             if (resetText) resetText.textContent = "Could not reset catalog";
           }
         } finally {
           setTimeout(() => {
             if (resetBtn) {
-              resetBtn.classList.remove("is-loading", "is-success");
+              resetBtn.classList.remove("is-loading", "is-success", "is-error");
               if (resetText) resetText.textContent = "Reset Official Catalog to Default";
               resetBtn.disabled = false;
             }
-          }, 2400);
+          }, 2600);
         }
       }
 
