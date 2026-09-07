@@ -938,7 +938,7 @@
         if (resetBtn) {
           resetBtn.classList.remove("is-success");
           resetBtn.classList.add("is-loading");
-          if (resetText) resetText.textContent = "Restoring default catalog…";
+          if (resetText) resetText.textContent = "Restoring official courses…";
           resetBtn.disabled = true;
         }
 
@@ -959,16 +959,14 @@
           if (resetBtn) {
             resetBtn.classList.remove("is-loading");
             resetBtn.classList.add("is-success");
-            if (resetText) resetText.textContent = "✓ Default courses restored";
+            if (resetText) resetText.textContent = "✓ Restored to default catalog";
           }
-
-          showToast("Official courses restored to default catalog.", "success");
         } catch (err) {
           console.error("Reset defaults failed:", err);
           if (resetBtn) {
             resetBtn.classList.remove("is-loading");
+            if (resetText) resetText.textContent = "⚠️ Could not reset courses";
           }
-          showToast("Failed to reset courses. Please try again.", "error");
         } finally {
           setTimeout(() => {
             if (resetBtn) {
@@ -976,7 +974,7 @@
               if (resetText) resetText.textContent = "Reset Official Courses to Default";
               resetBtn.disabled = false;
             }
-          }, 2400);
+          }, 2200);
         }
       }
 
