@@ -40,9 +40,11 @@
       background: var(--bg);
       color: var(--text-main);
       width: 360px;
+      height: 500px;
+      max-height: 500px;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     ::-webkit-scrollbar {
@@ -66,6 +68,7 @@
     .view-wrapper {
       display: flex;
       width: 500%;
+      height: 100%;
       transform: translateX(0);
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -88,13 +91,17 @@
 
     .view {
       width: 20%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
       flex-shrink: 0;
+      overflow: hidden;
     }
 
     /* ── HEADER ── */
     .header {
       background: linear-gradient(135deg, #FF7A00 0%, var(--accent) 100%);
-      padding: 18px 16px 14px;
+      padding: 13px 16px 11px;
       display: flex;
       align-items: center;
       gap: 12px;
@@ -102,6 +109,7 @@
       box-shadow: var(--shadow-md);
       position: relative;
       z-index: 10;
+      flex-shrink: 0;
     }
 
     .header-back {
@@ -142,26 +150,26 @@
     }
 
     .header-icon {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       background: #ffffff;
-      border-radius: 9px;
+      border-radius: 8px;
       display: grid;
       place-items: center;
-      font-size: 20px;
+      font-size: 18px;
       flex-shrink: 0;
       box-shadow: var(--shadow-sm);
     }
 
     .header-text h1 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
       letter-spacing: 0.01em;
       line-height: 1.2;
     }
 
     .header-text p {
-      font-size: 0.72rem;
+      font-size: 0.69rem;
       opacity: 0.88;
       margin-top: 2px;
       font-weight: 500;
@@ -169,33 +177,42 @@
 
     /* ── BODY ── */
     .body {
-      padding: 14px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      flex: 1;
       overflow-y: auto;
-      max-height: 440px;
+      overflow-x: hidden;
+      min-height: 0;
+    }
+
+    .main-view .body {
+      overflow-y: hidden;
+      padding: 10px 14px 8px;
+      gap: 9px;
     }
 
     .stat-pill {
       background: var(--surface);
       border: 1px solid var(--border-color);
       border-radius: 999px;
-      padding: 9px 16px;
+      padding: 7px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
     }
 
     .stat-label {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       color: var(--text-muted);
       font-weight: 600;
     }
 
     .stat-value {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 700;
       color: var(--accent);
     }
@@ -204,11 +221,12 @@
       background: var(--surface);
       border: 1px solid var(--border-color);
       border-radius: var(--radius);
-      padding: 14px;
+      padding: 11px 13px;
       display: flex;
       flex-direction: column;
-      gap: 11px;
+      gap: 9px;
       box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
     }
 
     .card-title {
@@ -229,7 +247,7 @@
     }
 
     .toggle-label {
-      font-size: 0.83rem;
+      font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-main);
     }
@@ -287,7 +305,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 9px 11px;
+      padding: 7px 11px;
       border-radius: 8px;
       font-size: 0.73rem;
       font-weight: 600;
@@ -413,8 +431,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px;
-      padding: 9px 4px;
+      gap: 3px;
+      padding: 7px 4px;
       border-radius: 8px;
       background: #f8fafc;
       border: 2px solid transparent;
@@ -473,13 +491,13 @@
 
     .btn-courses {
       width: 100%;
-      padding: 11px;
+      padding: 9px 12px;
       border: 2px solid var(--accent);
       border-radius: var(--radius);
       background: transparent;
       color: var(--accent);
       font-family: inherit;
-      font-size: 0.83rem;
+      font-size: 0.81rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
@@ -488,6 +506,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+      flex-shrink: 0;
     }
 
     .btn-courses:hover {
@@ -716,13 +735,15 @@
 
     /* ── FOOTER ── */
     .footer {
-      padding: 10px 16px;
+      padding: 7px 14px 8px;
       background: var(--surface);
       border-top: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      flex-shrink: 0;
+      margin-top: auto;
     }
 
     .credits {
@@ -730,10 +751,10 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      font-size: 0.72rem;
+      font-size: 0.69rem;
       color: var(--text-main);
       background: var(--bg);
-      padding: 5px 12px;
+      padding: 4px 12px;
       border-radius: 99px;
       border: 1px solid var(--border-color);
       width: 100%;
