@@ -652,8 +652,8 @@
     .sync-card-desc {
       font-size: 0.66rem;
       color: var(--text-muted);
-      line-height: 1.4;
-      margin-top: 4px;
+      line-height: 1.45;
+      margin-top: 10px;
     }
 
     .sync-metrics-row {
@@ -1376,37 +1376,45 @@
     .btn-reset-danger {
       margin-top: 8px;
       width: 100%;
-      min-height: 33px;
-      padding: 8px 12px;
-      background: transparent;
-      border: 1px solid var(--border-color);
+      min-height: 35px;
+      padding: 8px 14px;
+      background: #fff5f5;
+      border: 1px solid #fecaca;
       border-radius: 8px;
-      color: var(--text-muted);
-      font-size: 0.68rem;
+      color: #dc2626;
+      font-size: 0.72rem;
       font-weight: 600;
+      letter-spacing: 0.01em;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 7px;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .btn-reset-danger .reset-icon {
       transition: transform 0.25s ease;
+      fill: currentColor;
     }
 
     .btn-reset-danger:hover {
-      background: #fef2f2 !important;
+      background: #fee2e2 !important;
       border-color: #fca5a5 !important;
-      color: #dc2626 !important;
+      color: #b91c1c !important;
+      box-shadow: 0 2px 6px rgba(220, 38, 38, 0.12);
+    }
+
+    .btn-reset-danger:active {
+      transform: scale(0.98);
+      background: #fecaca !important;
     }
 
     /* Reset button loading state */
     .btn-reset-danger.is-loading {
-      background: var(--bg) !important;
-      border-color: var(--border-color) !important;
-      color: var(--text-main) !important;
+      background: #fff5f5 !important;
+      border-color: #fca5a5 !important;
+      color: #dc2626 !important;
       cursor: wait;
       pointer-events: none;
     }
@@ -1417,9 +1425,10 @@
 
     /* Reset button success state */
     .btn-reset-danger.is-success {
-      background: var(--bg) !important;
-      border-color: var(--border-color) !important;
-      color: var(--text-main) !important;
+      background: #f0fdf4 !important;
+      border-color: #86efac !important;
+      color: #16a34a !important;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.12);
     }
 
     .btn-edit-del:disabled {
@@ -1858,8 +1867,8 @@
             </svg>
             Reset Official Catalog
           </span>
-          <div style="font-size: 0.67rem; color: var(--text-muted); line-height: 1.35;">
-            Restore all official courses to their default catalog state. Your custom user-added courses are preserved.
+          <div style="font-size: 0.67rem; color: var(--text-muted); line-height: 1.4;">
+            Restore official course mappings and exam schedules to repository defaults. Your custom user-added courses are safely preserved.
           </div>
           <button class="btn-reset-danger" id="resetDefaultsBtn"
             title="Restore all official courses to their default catalog state">
@@ -1867,7 +1876,7 @@
               <path
                 d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
             </svg>
-            <span id="resetDefaultsBtnText">Reset Official Courses to Default</span>
+            <span id="resetDefaultsBtnText">Reset Official Catalog to Default</span>
           </button>
         </div>
 

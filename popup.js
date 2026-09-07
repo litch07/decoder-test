@@ -1012,7 +1012,7 @@
         if (resetBtn) {
           resetBtn.classList.remove("is-success");
           resetBtn.classList.add("is-loading");
-          if (resetText) resetText.textContent = "Restoring official courses…";
+          if (resetText) resetText.textContent = "Restoring official catalog…";
           resetBtn.disabled = true;
         }
 
@@ -1033,22 +1033,22 @@
           if (resetBtn) {
             resetBtn.classList.remove("is-loading");
             resetBtn.classList.add("is-success");
-            if (resetText) resetText.textContent = "✓ Restored to default catalog";
+            if (resetText) resetText.textContent = "Official Catalog Restored";
           }
         } catch (err) {
           console.error("Reset defaults failed:", err);
           if (resetBtn) {
             resetBtn.classList.remove("is-loading");
-            if (resetText) resetText.textContent = "⚠️ Could not reset courses";
+            if (resetText) resetText.textContent = "Could not reset catalog";
           }
         } finally {
           setTimeout(() => {
             if (resetBtn) {
               resetBtn.classList.remove("is-loading", "is-success");
-              if (resetText) resetText.textContent = "Reset Official Courses to Default";
+              if (resetText) resetText.textContent = "Reset Official Catalog to Default";
               resetBtn.disabled = false;
             }
-          }, 2200);
+          }, 2400);
         }
       }
 
@@ -1282,7 +1282,7 @@
 
             els.syncBtn.classList.remove("is-loading");
             els.syncBtn.classList.add("is-success");
-            syncText.textContent = `✓ ${btnText}`;
+            syncText.textContent = btnText;
             els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
 
             renderSyncResult(lastSyncResult);
@@ -1293,7 +1293,7 @@
           console.error("Course sync failed:", err);
           els.syncBtn.classList.remove("is-loading");
           els.syncBtn.classList.add("is-error");
-          syncText.textContent = "⚠️ Sync failed — Retry";
+          syncText.textContent = "Sync failed — Retry";
           els.syncTime.textContent = "Check your connection and try again.";
         } finally {
           setTimeout(() => {
@@ -1315,7 +1315,7 @@
 
     els.resetDefaultsBtn?.addEventListener("click", () => {
       pendingAction = "reset-defaults";
-      els.modalText.textContent = "Are you sure you want to reset all official courses to their default catalog? This will un-delete all official courses. (Your custom user-added courses will be preserved).";
+      els.modalText.textContent = "Are you sure you want to restore the official catalog to default? All official course mappings will be un-deleted, while your custom user-added courses remain intact.";
       els.confirmModal.classList.add("show");
     });
   }
