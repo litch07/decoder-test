@@ -169,6 +169,19 @@
     } catch (e) {
       console.warn("Failed to load bundled courses", e);
     }
+
+    // Prune any userCourses overrides that are identical to official data
+    let cleanedUserCourses = false;
+    for (const code in userCourses) {
+      const official = remoteCourses[code] || bundledCourses[code];
+      if (official && areCourseDataEqual(userCourses[code], official)) {
+        delete userCourses[code];
+        cleanedUserCourses = true;
+      }
+    }
+    if (cleanedUserCourses) {
+      await chrome.storage.local.set({ userCourses });
+    }
   }
 
   function formatRelativeTime(timestamp) {
@@ -328,6 +341,33 @@
     });
 
     els.allowlistContainer.appendChild(frag);
+  }
+
+  function normalizeCourseData(val) {
+    if (!val) return { name: "", examDay: "", examSlot: "", prerequisites: [] };
+    if (typeof val === "string") {
+      return { name: val.trim(), examDay: "", examSlot: "", prerequisites: [] };
+    }
+    const name = (val.name || "").trim();
+    const examDay = (val.examDay || "").trim();
+    const examSlot = (val.examSlot || "").trim();
+    const prerequisites = Array.isArray(val.prerequisites)
+      ? val.prerequisites.map(p => String(p).trim()).filter(Boolean).sort()
+      : [];
+    return { name, examDay, examSlot, prerequisites };
+  }
+
+  function areCourseDataEqual(val1, val2) {
+    const a = normalizeCourseData(val1);
+    const b = normalizeCourseData(val2);
+    if (a.name !== b.name) return false;
+    if (a.examDay !== b.examDay) return false;
+    if (a.examSlot !== b.examSlot) return false;
+    if (a.prerequisites.length !== b.prerequisites.length) return false;
+    for (let i = 0; i < a.prerequisites.length; i++) {
+      if (a.prerequisites[i] !== b.prerequisites[i]) return false;
+    }
+    return true;
   }
 
   function mergeCourseEntry(baseValue, overrideValue) {
@@ -608,7 +648,12 @@
   function commitCourseSave(code, newVal) {
     // This is the hook for the confirmation modal to call
     (async () => {
-      userCourses[code] = newVal;
+      const officialData = remoteCourses[code] || bundledCourses[code];
+      if (officialData && areCourseDataEqual(newVal, officialData)) {
+        delete userCourses[code];
+      } else {
+        userCourses[code] = newVal;
+      }
       if (softDeletedCourses.includes(code)) {
         softDeletedCourses = softDeletedCourses.filter(c => c !== code);
       }
@@ -916,6 +961,15 @@
         newVal = { name: newName, examDay: newDay, examSlot: newSlot, prerequisites: newPrereqs };
       } else {
         newVal = newName;
+      }
+
+      // If the values do not differ from the course's current state, do not mark as edited
+      const currentData = courses[currentEditingCode];
+      if (areCourseDataEqual(newVal, currentData)) {
+        showToast("No changes made to course details.", "info");
+        els.viewWrapper.classList.remove("show-details");
+        els.viewWrapper.classList.add("show-courses");
+        return;
       }
 
       pendingSaveVal = newVal;
