@@ -180,8 +180,8 @@
 
     if (data.name) {
       const prefixLength = (beforeText || "").length + (matchText || "").length + (afterText || "").length;
-      const maxLine1Chars = 32;
-      const maxNextLineChars = 28;
+      const maxLine1Chars = 37;
+      const maxNextLineChars = 33;
       const words = ("(" + data.name + ")").split(" ");
 
       let line1Name = "";
@@ -191,7 +191,7 @@
       while (wordIdx < words.length) {
         const word = words[wordIdx];
         const testLen = prefixLength + (line1Name ? line1Name.length + 1 : 1) + word.length;
-        if (testLen <= maxLine1Chars || (!line1Name && words.length === 1 && testLen <= 36)) {
+        if (testLen <= maxLine1Chars || (!line1Name && words.length === 1 && testLen <= 41)) {
           line1Name = line1Name ? line1Name + " " + word : word;
           wordIdx++;
         } else {
