@@ -152,7 +152,7 @@
   function renderSvgTooltip(wrap, beforeText, matchText, afterText, data) {
     wrap.textContent = "";
 
-    // Line 1: Header line with course code in bold accent orange
+    // Line 1: Header line with course code in bold accent orange and course name alongside it
     const headerLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
     headerLine.setAttribute("font-weight", "600");
     headerLine.setAttribute("fill", "#0f172a");
@@ -176,28 +176,21 @@
       headerLine.appendChild(afterSpan);
     }
 
-    wrap.appendChild(headerLine);
-
-    // Line 2: Full Course Name (wrapped into clean compact lines of max ~26 chars)
     if (data.name) {
-      const nameLines = splitTextToLines(data.name, 26);
-      nameLines.forEach((line, idx) => {
-        const nameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-        nameSpan.setAttribute("x", "8");
-        nameSpan.setAttribute("dy", idx === 0 ? "1.35em" : "1.2em");
-        nameSpan.setAttribute("fill", "#334155");
-        nameSpan.setAttribute("font-weight", "600");
-        nameSpan.setAttribute("font-size", "11px");
-        nameSpan.textContent = line;
-        wrap.appendChild(nameSpan);
-      });
+      const nameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      nameSpan.setAttribute("fill", "#334155");
+      nameSpan.setAttribute("font-weight", "600");
+      nameSpan.textContent = ` (${data.name})`;
+      headerLine.appendChild(nameSpan);
     }
 
-    // Line 3: Exam Info (if present)
+    wrap.appendChild(headerLine);
+
+    // Line 2: Exam Info (if present)
     if (data.exam) {
       const examLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       examLine.setAttribute("x", "8");
-      examLine.setAttribute("dy", "1.35em");
+      examLine.setAttribute("dy", "1.4em");
       examLine.setAttribute("font-size", "11px");
 
       const examLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
@@ -215,11 +208,11 @@
       wrap.appendChild(examLine);
     }
 
-    // Line 4: Prerequisites (if present)
+    // Line 3: Prerequisites (if present)
     if (data.prereq) {
       const prereqLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       prereqLine.setAttribute("x", "8");
-      prereqLine.setAttribute("dy", "1.3em");
+      prereqLine.setAttribute("dy", "1.35em");
       prereqLine.setAttribute("font-size", "11px");
 
       const prereqLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
