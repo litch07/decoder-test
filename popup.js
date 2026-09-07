@@ -1046,10 +1046,20 @@
         try {
           softDeletedCourses = [];
           hardDeletedCourses = [];
+
+          // Overwrite and clear edits to official courses, preserving custom user-added courses
+          const cleanedUserCourses = {};
+          for (const [code, val] of Object.entries(userCourses || {})) {
+            const isOfficial = !!(bundledCourses[code] || remoteCourses[code]);
+            if (!isOfficial) {
+              cleanedUserCourses[code] = val;
+            }
+          }
+          userCourses = cleanedUserCourses;
           
           // Allow the loading animation and spinner to render smoothly
           await Promise.all([
-            chrome.storage.local.set({ softDeletedCourses, hardDeletedCourses }),
+            chrome.storage.local.set({ userCourses, softDeletedCourses, hardDeletedCourses }),
             new Promise(resolve => setTimeout(resolve, 600))
           ]);
 
@@ -1354,7 +1364,7 @@
       pendingAction = "reset-defaults";
       els.modalText.innerHTML = `
         <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-main); margin-bottom: 5px;">Reset Official Catalog?</div>
-        <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">This will restore all default course mappings and exam schedules. Your custom added courses will remain untouched.</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">This will restore all default course mappings and exam schedules. All edits made to official courses will be overwritten, while your custom user-added courses remain untouched.</div>
       `;
       els.confirmModal.classList.add("show");
     });
