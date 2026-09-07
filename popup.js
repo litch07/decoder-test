@@ -202,7 +202,6 @@
     els.showExamInfoToggle.checked = showExamInfo;
     els.showPrerequisitesToggle.checked = showPrerequisites;
     els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
-    renderSyncResult(lastSyncResult);
   }
 
   function updateCourseCount() {
@@ -1242,6 +1241,10 @@
         syncText.textContent = "Syncing with GitHub…";
         els.syncBtn.disabled = true;
         els.syncTime.textContent = "Fetching latest course data…";
+        if (els.syncResultBox) {
+          els.syncResultBox.classList.remove("show");
+          els.syncResultBox.style.display = "none";
+        }
 
         try {
           const response = await chrome.runtime.sendMessage({ type: "SYNC_COURSES" });
@@ -1286,6 +1289,10 @@
           els.syncBtn.classList.add("is-error");
           syncText.textContent = "⚠️ Sync failed — Retry";
           els.syncTime.textContent = "Check your connection and try again.";
+          if (els.syncResultBox) {
+            els.syncResultBox.classList.remove("show");
+            els.syncResultBox.style.display = "none";
+          }
         } finally {
           setTimeout(() => {
             els.syncBtn.classList.remove("is-loading", "is-success", "is-error");
