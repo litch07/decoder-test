@@ -920,7 +920,7 @@
 
       pendingSaveVal = newVal;
       pendingAction = "save";
-      els.modalText.textContent = "Are you sure you want to save these changes? This will update the course locally on your device.";
+      els.modalText.textContent = "Save changes to this course? Updated details will be stored locally on this device and applied immediately.";
       els.confirmModal.classList.add("show");
     });
 
@@ -928,7 +928,7 @@
       if (!currentEditingCode || els.detailDelBtn.disabled) return;
 
       pendingAction = "delete";
-      els.modalText.textContent = "Are you sure you want to delete this course? This will soft-delete it locally on your device and move it to Trash. It can be restored at any time.";
+      els.modalText.textContent = "Move this course to Trash? It will be removed from active decoding, but can be restored from the Trash Bin at any time.";
       els.confirmModal.classList.add("show");
     });
 
