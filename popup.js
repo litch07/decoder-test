@@ -76,10 +76,10 @@
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
     if (type === 'default') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:white;");
+      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
       path.setAttribute("d", "M12 2v4c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8V2zm1.88 3.88L17.76 9.76l-1.41 1.41L12.46 7.29 8.59 11.17l-1.41-1.41 5.29-5.29 1.41 1.41z");
     } else if (type === 'spinner') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:white;animation:spin 1s linear infinite;");
+      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;animation:spin 1s linear infinite;");
       path.setAttribute("d", "M12 4V2C6.48 2 2 6.48 2 12h2c0-4.41 3.59-8 8-8z");
       if (!document.getElementById('spin-style')) {
         const style = document.createElement('style');
@@ -88,10 +88,10 @@
         document.head.appendChild(style);
       }
     } else if (type === 'success') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:white;");
+      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
       path.setAttribute("d", "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z");
     } else if (type === 'error') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:white;");
+      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
       path.setAttribute("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
     } else if (type === 'delete') {
       svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
@@ -1160,7 +1160,8 @@
           els.syncBtn.textContent = "";
           els.syncBtn.appendChild(createIcon('success'));
           els.syncBtn.appendChild(document.createTextNode(btnText));
-          els.syncBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+          els.syncBtn.style.background = "var(--accent-light)";
+          els.syncBtn.style.color = "var(--accent)";
           els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
 
           renderSyncResult(lastSyncResult);
@@ -1172,13 +1173,15 @@
         els.syncBtn.textContent = "";
         els.syncBtn.appendChild(createIcon('error'));
         els.syncBtn.appendChild(document.createTextNode(" Sync failed"));
-        els.syncBtn.style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
+        els.syncBtn.style.background = "#fef2f2";
+        els.syncBtn.style.color = "var(--danger)";
+        els.syncBtn.style.borderColor = "var(--danger)";
         els.syncTime.textContent = "Check your connection and try again.";
       } finally {
         setTimeout(() => {
           els.syncBtn.textContent = "";
           const defaultIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-          defaultIcon.setAttribute("style", "width:14px;height:14px;fill:white;");
+          defaultIcon.setAttribute("style", "width:14px;height:14px;fill:currentColor;");
           defaultIcon.setAttribute("viewBox", "0 0 24 24");
           const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
           path.setAttribute("d", "M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z");
@@ -1186,6 +1189,8 @@
           els.syncBtn.appendChild(defaultIcon);
           els.syncBtn.appendChild(document.createTextNode(" Sync Course Database"));
           els.syncBtn.style.background = "";
+          els.syncBtn.style.color = "";
+          els.syncBtn.style.borderColor = "";
           els.syncBtn.disabled = false;
           if (lastSyncedAt) {
             els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
