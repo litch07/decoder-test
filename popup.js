@@ -11,7 +11,6 @@
     toggleLabel: document.getElementById("toggleLabel"),
     statusDot: document.getElementById("statusDot"),
     statusText: document.getElementById("statusText"),
-    reloadBtn: document.getElementById("reloadBtn"),
     syncBtn: document.getElementById("syncBtn"),
     syncTime: document.getElementById("syncTime"),
     openCoursesBtn: document.getElementById("openCoursesBtn"),
@@ -1120,44 +1119,8 @@
       // content.js has a storage.onChanged listener that will dynamically update the DOM!
     });
 
-    // Talk to the background script to reload courses from our JSON file
-    els.reloadBtn.addEventListener("click", async () => {
-      els.reloadBtn.textContent = "";
-      els.reloadBtn.appendChild(createIcon('spinner'));
-      els.reloadBtn.appendChild(document.createTextNode(" Reloading Database…"));
-      els.reloadBtn.disabled = true;
-
-      try {
-        await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
-        const data = await chrome.storage.local.get(["courses", "softDeletedCourses", "hardDeletedCourses"]);
-        courses = data.courses || {};
-        softDeletedCourses = data.softDeletedCourses || [];
-        hardDeletedCourses = data.hardDeletedCourses || [];
-        updateCourseCount();
-
-        const count = Object.keys(courses).length;
-        els.reloadBtn.textContent = "";
-        els.reloadBtn.appendChild(createIcon('success'));
-        els.reloadBtn.appendChild(document.createTextNode(` Loaded ${count} Courses`));
-        els.reloadBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
-      } catch (err) {
-        console.error("Course reload failed:", err);
-        els.reloadBtn.textContent = "";
-        els.reloadBtn.appendChild(createIcon('error'));
-        els.reloadBtn.appendChild(document.createTextNode(" Update Failed"));
-        els.reloadBtn.style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
-      } finally {
-        setTimeout(() => {
-          els.reloadBtn.textContent = "";
-          els.reloadBtn.appendChild(createIcon('default'));
-          els.reloadBtn.appendChild(document.createTextNode(" Reload Courses from File"));
-          els.reloadBtn.style.background = "";
-          els.reloadBtn.disabled = false;
-        }, 2500);
-      }
-    });
-
-    els.syncBtn.addEventListener("click", async () => {
+    if (els.syncBtn) {
+      els.syncBtn.addEventListener("click", async () => {
       els.syncBtn.textContent = "";
       els.syncBtn.appendChild(createIcon('spinner'));
       els.syncBtn.appendChild(document.createTextNode(" Syncing…"));
@@ -1232,6 +1195,7 @@
         }, 3000);
       }
     });
+  }
 
     if (els.resetDefaultsBtn) {
       els.resetDefaultsBtn.addEventListener("click", () => {
