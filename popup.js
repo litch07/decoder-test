@@ -18,6 +18,7 @@
     allowlistInput: document.getElementById("allowlistInput"),
     allowlistBtn: document.getElementById("allowlistBtn"),
     allowlistContainer: document.getElementById("allowlistContainer"),
+    displaySettingsCard: document.getElementById("displaySettingsCard"),
     modeRadios: document.querySelectorAll('input[name="mode"]'),
     showExamInfoToggle: document.getElementById("showExamInfoToggle"),
     showPrerequisitesToggle: document.getElementById("showPrerequisitesToggle"),
@@ -296,10 +297,12 @@
       els.statusDot.className = "status-dot active";
       els.statusText.textContent = "Active on this page";
       els.statusText.style.color = "var(--success)";
+      if (els.displaySettingsCard) els.displaySettingsCard.style.display = "";
     } else {
       els.statusDot.className = "status-dot inactive";
       els.statusText.textContent = "Disabled on this site";
       els.statusText.style.color = "var(--text-muted)";
+      if (els.displaySettingsCard) els.displaySettingsCard.style.display = "none";
     }
   }
 
