@@ -1,0 +1,87 @@
+Category/Trimester,Course Code,Title,Credits (Cr),Prerequisite,Exam Day,Exam Slot
+Trimester 1,ENG 1011,English I,3,X,Day 1,T1
+Trimester 1,BDS 1201,History of the Emergence of Bangladesh,2,X,Day 6,T1
+Trimester 1,CSE 1110,Introduction to Computer Systems,1,X,N/A,N/A
+Trimester 1,MATH 1151,Fundamental Calculus,3,X,Day 2,T2
+Trimester 2,ENG 1013,English II,3,ENG 1011,Day 1,T2
+Trimester 2,CSE 1111,Structured Programming Language,3,CSE 1110,Day 4,T2
+Trimester 2,CSE 1112,Structured Programming Language Laboratory,1,CSE 1110,N/A,N/A
+Trimester 2,CSE 2213,Discrete Mathematics,3,X,Day 3,T2
+Trimester 3,MATH 2183,Calculus and Linear Algebra,3,MATH 1151,Day 1,T3
+Trimester 3,PHY 2105,Physics,3,X,Day 7,T3
+Trimester 3,PHY 2106,Physics Lab,1,X,N/A,N/A
+Trimester 3,CSE 2215,Data Structure and Algorithms I,3,CSE 1111,Day 4,T2
+Trimester 3,CSE 2216,Data Structure and Algorithms I Laboratory,1,CSE 1112,N/A,N/A
+Trimester 4,MATH 2201,Coordinate Geometry and Vector Analysis,3,MATH 1151,Day 5,T1
+Trimester 4,CSE 1325,Digital Logic Design,3,X,Day 3,T3
+Trimester 4,CSE 1326,Digital Logic Design Lab,1,X,N/A,N/A
+Trimester 4,CSE 1115,Object Oriented Programming,3,CSE 2215,Day 6,T2
+Trimester 4,CSE 1116,Object Oriented Programming Lab,1,CSE 2216,N/A,N/A
+Trimester 5,MATH 2205,Probability and Statistics,3,MATH 1151,Day 2,T3
+Trimester 5,SOC 2101,"Society, Technology and Engineering Ethics",3,X,Day 1,T3
+Trimester 5,CSE 2217,Data Structure and Algorithms II,3,CSE 2215,Day 5,T2
+Trimester 5,CSE 2218,Data Structure and Algorithms II Laboratory,1,CSE 2216,N/A,N/A
+Trimester 5,EEE 2113,Electrical Circuits,3,X,Day 6,T3
+Trimester 6,CSE 3521,Database Management Systems,3,CSE 2215,Day 2,T1
+Trimester 6,CSE 3522,Database Management Systems Lab,1,CSE 2216,N/A,N/A
+Trimester 6,EEE 2123,Electronics,3,EEE 2113,Day 6,T3
+Trimester 6,EEE 2124,Electronics Lab,1,X,N/A,N/A
+Trimester 6,CSE 4165,Web Programming,3,"CSE 1115, CSE 1116",Day 7,T1
+Trimester 7,CSE 3313,Computer Architecture,3,CSE 1325,Day 1,T3
+Trimester 7,CSE 2118,Advanced Object Oriented Programming Lab,1,CSE 1116,N/A,N/A
+Trimester 7,BIO 3105,Biology for Engineers,3,X,Day 3,T3
+Trimester 7,CSE 3411,System Analysis and Design,3,CSE 3521,Day 5,T1
+Trimester 7,CSE 3412,System Analysis and Design Lab,1,CSE 3522,N/A,N/A
+Trimester 8,CSE 4325,Microprocessors and Microcontrollers,3,CSE 3313,Day 2,T2
+Trimester 8,CSE 4326,Microprocessors and Microcontrollers Lab,1,EEE 2124,N/A,N/A
+Trimester 8,CSE 3421,Software Engineering,3,CSE 3411,Day 5,T3
+Trimester 8,CSE 3422,Software Engineering Lab,1,CSE 3412,N/A,N/A
+Trimester 8,CSE 3811,Artificial Intelligence,3,"MATH 2205, CSE 2217",Day 3,T1
+Trimester 8,CSE 3812,Artificial Intelligence Lab,1,"MATH 2205, CSE 2218",N/A,N/A
+Trimester 9,CSE 2233,Theory of Computation,3,X,Day 7,T2
+Trimester 9,GED OPT1,General Education Optional-I,3,X,-,-
+Trimester 9,PMG 4101,Project Management,3,CSE 3411,Day 3,T2
+Trimester 9,CSE 3711,Computer Networks,3,CSE 2217,Day 4,T3
+Trimester 9,CSE 3712,Computer Networks Lab,1,X,N/A,N/A
+Trimester 10,GED OPT2,General Education Optional-II,3,X,-,-
+Trimester 10,CSE 4000 A,Final Year Design Project - I,2,minimum 85 credits,-,-
+Trimester 10,CSE ****,Elective - I,3,X,-,-
+Trimester 10,CSE 4509,Operating Systems,3,"CSE 2217, CSE 3313",Day 1,T1
+Trimester 10,CSE 4510,Operating Systems Laboratory,1,CSE 2218,N/A,N/A
+Trimester 11,GED OPT3,General Education Optional - III,3,-,-,-
+Trimester 11,CSE ****,Elective - II,3,-,-,-
+Trimester 11,CSE ****,Elective - III,3,-,-,-
+Trimester 11,CSE 4000 B,Final Year Design Project - II,2,CSE 4000 A,N/A,N/A
+Trimester 11,CSE 4531,Computer Security,3,"CSE 3711, CSE 4509",Day 6,T3
+Trimester 12,CSE 4000 C,Final Year Design Project - III,2,CSE 4000 A & B,-,-
+Trimester 12,EEE 4261,Green Computing,3,X,Day 5,T1
+Trimester 12,CSE ****,Elective-IV,3,-,-,-
+Trimester 12,CSE ****,Elective - V,3,-,-,-
+General Education,GED 1005,AI Literacy and Prompt Engineering,3,X,Day 1,T1
+General Education,ECO 4101,Economics,3,X,Day 6,T1
+General Education,ACT 2111,Financial and Managerial Accounting,3,X,Day 2,T3
+General Education,TEC 2499,Technology Entrepreneurship,3,X,Day 3,T2
+Major: Network and Cyber Security,CSE 4125,Ethical Hacking and Network Defense,3,CSE 4531,Day 1,T3
+Major: Network and Cyber Security,CSE 4777,Network Security,3,CSE 4531,Day 3,T3
+Major: Software Engineering,CSE 4587,Cloud Computing,3,"CSE 4509, CSE 3711",Day 5,T3
+Major: Software Engineering,CSE 4611,Compiler Design,3,CSE 2233,Day 4,T1
+Major: Software Engineering,CSE 4621,Computer Graphics,3,"MATH 2201, MATH 2183",Day 2,T1
+Major: Software Engineering,CSE 4451,Human Computer Interaction,3,Minimum Completed Credit 70,Day 3,T1
+Major: Software Engineering,CSE 4435,Software Architecture,3,-,Day 4,T2
+Major: Software Engineering,CSE 4181,Mobile Application Development,3,CSE 4165,Day 6,T3
+Major: Software Engineering,CSE 4945,UI: Concepts and Design,3,-,Day 1,T2
+Major: Software Engineering,CSE 4495,Software Testing and Quality Assurance,3,CSE 3421,Day 7,T3
+Major: Embedded System/Hardware,CSE 4327,VLSI Design,3,CSE 4327,Day 4,T1
+Major: Embedded System/Hardware,CSE 4399,Embedded Machine Learning,3,"CSE 1111, CSE 4325",Day 7,T2
+Major: AI and Data Science,CSE 4889,Machine Learning,3,"CSE 3811, CSE 3812, MATH2183",Day 1,T3
+Major: AI and Data Science,CSE 4891,Data Mining,3,CSE 4889,Day 7,T1
+Major: AI and Data Science,CSE 4817,Big Data Analytics,3,CSE 4889,Day 5,T3
+Major: AI and Data Science,CSE 4883,Digital Image Processing,3,CSE 4889,Day 4,T1
+Major: AI and Data Science,CSE 4811,Natural Language Processing,-,CSE 4889,Day 4,T1
+Major: AI and Data Science,CSE 4813,Deep Learning,3,CSE 4889,Day 1,T3
+Major: AI and Data Science,CSE 4893,Introduction to Bioinformatics,3,CSE 4889,Day 4,T3
+Major: Business System Engineering,CSE 4451,Human Computer Interaction,3,Minimum Completed Credit 70,Day 3,T1
+Major: Business System Engineering,CSE 4891,Data Mining,3,CSE 4889,Day 7,T1
+Major: Business System Engineering,CSE 4817,Big Data Analytics,3,CSE 4889,Day 5,T3
+Major: Business System Engineering,CSE 4945,UI: Concepts and Design,3,-,Day 1,T2
+Major: Business System Engineering,CSE 4133,Business Intelligence,3,CSE 3411,Day 6,T3

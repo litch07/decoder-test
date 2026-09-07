@@ -1,0 +1,59 @@
+Trimester,Course Code,Title,Credits,Prerequisite,Exam Day,Exam Slot
+1st Trimester,DS 1501,Programming for Data Science,3,X,Day 4,T2
+1st Trimester,DS 1502,Programming for Data Science Laboratory,1,X,N/A,N/A
+1st Trimester,ENG 1011,English 1,3,X,Day 1,T1
+1st Trimester,BDS 1201,History of the Emergence of Bangladesh,2,X,Day 6,T1
+2nd Trimester,ENG 1013,English - II,3,ENG 1011,Day 1,T2
+2nd Trimester,MATH 1151,Fundamental Calculus,3,X,Day 2,T2
+2nd Trimester,DS 1115,Object Oriented Programming for Data,3,"DS 1501, DS 1502",Day 6,T2
+2nd Trimester,DS 1116,Object Oriented Programming for Data,1,"DS 1501, DS 1502",N/A,N/A
+3rd Trimester,DS 1101,Fundamentals of Data Science,3,"DS 1115, DS 1116",Day 5,T2
+3rd Trimester,BIO 3107,Biology,3,X,Day 3,T3
+3rd Trimester,MATH 2107,Linear Algebra,3,MATH 1151,Day 1,T3
+3rd Trimester,PHY 2105,Physics,3,X,Day 7,T3
+3rd Trimester,PHY 2106,Physics Lab,1,X,N/A,N/A
+4th Trimester,CSE 2215,Data Structures and Algorithms I,3,"DS 1115, DS 1116",Day 4,T2
+4th Trimester,CSE 2216,Data Structures and Algorithms - I,1,"DS 1115, DS 1116",N/A,N/A
+4th Trimester,MATH 1153,Advanced Calculus,3,MATH 1151,Day 5,T1
+4th Trimester,CSE 2213,Discrete Mathematics,3,X,Day 3,T2
+4th Trimester,-,Humanities Optional - I (any one below),3,-,-,-
+4th Trimester,ACT 2111,Financial and Managerial Accounting,-,X,Day 2,T3
+4th Trimester,ECO 4101,Economics,-,X,Day 6,T1
+4th Trimester,SOC 2102,"Society, Environment and Computing Ethics",-,X,Day 1,T3
+4th Trimester,GED 1005,Al Literacy and Prompt Engineering,-,X,Day 1,T1
+4th Trimester,TEC 2499,Technology Entrepreneurship,-,X,Day 3,T2
+5th Trimester,CSE 2217,Data Structures and Algorithms II,3,"CSE 2215, CSE 2216",Day 5,T2
+5th Trimester,CSE 2218,Data Structures and Algorithms - II Laboratory,1,"CSE 2215, CSE 2216",N/A,N/A
+5th Trimester,MATH 2205,Probability and Statistics,3,MATH 1151,Day 2,T3
+5th Trimester,DS 3885,Data Wrangling,3,DS 1101,Day 1,T2
+6th Trimester,CSE 3521,Database Management Systems,3,CSE 2215,Day 2,T1
+6th Trimester,CSE 3522,Database Management Systems Laboratory,1,CSE 2216,N/A,N/A
+6th Trimester,DS 3101,Advanced Probability and Statistics,3,"MATH 2205, MATH 2107",Day 4,T3
+6th Trimester,DS 3521,Data Visualization,3,DS 3885,Day 6,T1
+6th Trimester,DS 3522,Data Visualization Lab,1,DS 3885,N/A,N/A
+7th Trimester,DS 4889,Machine Learning,3,"MATH 1151, MATH 2107, MATH 2205",Day 1,T3
+7th Trimester,DS 4523,Simulation and Modeling,3,"MATH 2107, MATH 2205",Day 4,T3
+7th Trimester,DS 4891,Data Analytics,3,DS 3885,Day 7,T1
+7th Trimester,DS 4892,Data Analytics Laboratory,1,DS 3885,N/A,N/A
+7th Trimester,DS 3120,Technical Report Writing and Presentation,2,Minimum Completed Credit 55,Day 5,T3
+8th Trimester,DS 4491,Machine Learning Systems Design,3,DS 4889,Day 1,T1
+8th Trimester,DS 2251,Bayesian Statistics,3,"DS 1101, MATH 1151",Day 4,T2
+8th Trimester,CSE ****,Systems and Development Optional - 1,3,-,-,-
+8th Trimester,CSE 4511,Operating Systems and Scripting,-,CSE 2217,Day 5,T1
+8th Trimester,CSE 3411,System Analysis and Design,-,CSE 3521,Day 5,T1
+8th Trimester,DS 3881,Regression and Multivariate Analysis,3,"DS 1101, MATH 1151",Day 7,T3
+9th Trimester,DS 4211,Deep Learning,3,DS 4889,Day 1,T3
+9th Trimester,CSE ****,Systems and Development Optional - II,3,-,-,-
+9th Trimester,CSE 4587,Cloud Computing,-,CSE 4511,Day 5,T3
+9th Trimester,CSE 3421,Software Engineering,-,CSE 3411,Day 5,T3
+9th Trimester,DS ****,Option - I,3,-,-,-
+9th Trimester,DS 4229,Data Warehousing,-,CSE 3521,Day 7,T2
+9th Trimester,DS ****,Option - II,3,-,-,-
+9th Trimester,DS 4123,Human Computer Interaction,-,Minimum Completed Credit 70,Day 3,T1
+10th Trimester,DS 4000A,Capstone Project - I,2,Minimum Completed Credit 85,-,-
+10th Trimester,DS 4217,Data Privacy and Ethics,3,DS 3885,Day 1,T2
+10th Trimester,DS ****,Option - I,3,-,-,-
+10th Trimester,DS 4213,Natural Language Processing,-,DS 4889,Day 4,T1
+10th Trimester,DS ****,Option - II,3,-,-,-
+10th Trimester,DS 4115,Marketing Analysis,-,DS 4891,Day 7,T1
+10th Trimester,DS 4817,Big Data,3,CSE 3521,Day 5,T3
