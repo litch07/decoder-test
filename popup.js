@@ -55,6 +55,7 @@
     modalCancelBtn: document.getElementById("modalCancelBtn"),
     modalConfirmBtn: document.getElementById("modalConfirmBtn"),
     resetDefaultsBtn: document.getElementById("resetDefaultsBtn"),
+    resetDefaultsBtnText: document.getElementById("resetDefaultsBtnText"),
     syncResultBox: document.getElementById("syncResultBox"),
     syncResultTitle: document.getElementById("syncResultTitle"),
     syncResultTime: document.getElementById("syncResultTime"),
@@ -614,35 +615,48 @@
       toast.style.bottom = "16px";
       toast.style.left = "50%";
       toast.style.transform = "translateX(-50%) translateY(100px)";
-      toast.style.background = "#1e293b";
-      toast.style.color = "#ffffff";
-      toast.style.padding = "8px 14px";
-      toast.style.borderRadius = "8px";
+      toast.style.padding = "8px 16px";
+      toast.style.borderRadius = "99px";
       toast.style.fontSize = "0.72rem";
       toast.style.fontWeight = "600";
-      toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
       toast.style.zIndex = "9999";
-      toast.style.transition = "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease";
+      toast.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease";
       toast.style.opacity = "0";
       toast.style.pointerEvents = "none";
       toast.style.whiteSpace = "nowrap";
+      toast.style.display = "flex";
+      toast.style.alignItems = "center";
+      toast.style.gap = "8px";
+      toast.style.boxShadow = "0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.1)";
       document.body.appendChild(toast);
     }
-    toast.textContent = message;
+
+    let badgeHtml = "";
     if (type === "success") {
-      toast.style.background = "#059669";
+      toast.style.background = "#0f172a";
+      toast.style.color = "#ffffff";
+      toast.style.border = "1px solid rgba(16, 185, 129, 0.35)";
+      badgeHtml = '<span style="display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#10b981;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;">✓</span>';
     } else if (type === "error") {
-      toast.style.background = "#dc2626";
+      toast.style.background = "#0f172a";
+      toast.style.color = "#ffffff";
+      toast.style.border = "1px solid rgba(239, 68, 68, 0.35)";
+      badgeHtml = '<span style="display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;">✕</span>';
     } else {
-      toast.style.background = "#1e293b";
+      toast.style.background = "#0f172a";
+      toast.style.color = "#ffffff";
+      toast.style.border = "1px solid rgba(255, 255, 255, 0.15)";
+      badgeHtml = '<span style="display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#64748b;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;">ℹ</span>';
     }
+
+    toast.innerHTML = `${badgeHtml}<span>${escapeHtml(message)}</span>`;
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%) translateY(0)";
     clearTimeout(toast._timeout);
     toast._timeout = setTimeout(() => {
       toast.style.opacity = "0";
       toast.style.transform = "translateX(-50%) translateY(100px)";
-    }, 2500);
+    }, 2800);
   }
 
   function renderSyncResult(stats) {
@@ -918,19 +932,52 @@
           renderCourseList(searchQuery);
         }
       } else if (pendingAction === "reset-defaults") {
-        softDeletedCourses = [];
-        hardDeletedCourses = [];
-        await chrome.storage.local.set({ softDeletedCourses, hardDeletedCourses });
-        await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
-        await reloadLocalCoursesState();
-        updateCourseCount();
-        if (isTrashMode) {
-          els.coursesPanelCount.textContent = `0 courses`;
-          renderTrashList(searchQuery);
-        } else {
-          renderCourseList(searchQuery);
+        const resetBtn = els.resetDefaultsBtn;
+        const resetText = els.resetDefaultsBtnText || resetBtn;
+
+        if (resetBtn) {
+          resetBtn.classList.remove("is-success");
+          resetBtn.classList.add("is-loading");
+          if (resetText) resetText.textContent = "Restoring default catalog…";
+          resetBtn.disabled = true;
         }
-        showToast("✅ Official courses restored to default catalog.", "success");
+
+        try {
+          softDeletedCourses = [];
+          hardDeletedCourses = [];
+          await chrome.storage.local.set({ softDeletedCourses, hardDeletedCourses });
+          await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
+          await reloadLocalCoursesState();
+          updateCourseCount();
+          if (isTrashMode) {
+            els.coursesPanelCount.textContent = `0 courses`;
+            renderTrashList(searchQuery);
+          } else {
+            renderCourseList(searchQuery);
+          }
+
+          if (resetBtn) {
+            resetBtn.classList.remove("is-loading");
+            resetBtn.classList.add("is-success");
+            if (resetText) resetText.textContent = "✓ Default courses restored";
+          }
+
+          showToast("Official courses restored to default catalog.", "success");
+        } catch (err) {
+          console.error("Reset defaults failed:", err);
+          if (resetBtn) {
+            resetBtn.classList.remove("is-loading");
+          }
+          showToast("Failed to reset courses. Please try again.", "error");
+        } finally {
+          setTimeout(() => {
+            if (resetBtn) {
+              resetBtn.classList.remove("is-loading", "is-success");
+              if (resetText) resetText.textContent = "Reset Official Courses to Default";
+              resetBtn.disabled = false;
+            }
+          }, 2400);
+        }
       }
 
       pendingAction = null;
