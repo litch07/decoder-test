@@ -1777,18 +1777,21 @@
 
     .contribution-card {
       margin-top: 14px;
-      padding: 11px 13px;
+      padding: 12px 14px;
       background: linear-gradient(135deg, rgba(242, 101, 34, 0.05), rgba(242, 101, 34, 0.11));
       border: 1px solid rgba(242, 101, 34, 0.22);
       border-radius: 10px;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
     }
 
     .contribution-card-header {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       color: var(--accent);
       font-size: 0.75rem;
@@ -1805,7 +1808,8 @@
     .contribution-card-body {
       font-size: 0.69rem;
       color: var(--text-muted);
-      line-height: 1.42;
+      line-height: 1.45;
+      text-align: center;
     }
 
     .contribution-btn {
@@ -1813,7 +1817,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 7px 11px;
+      padding: 8px 12px;
       margin-top: 2px;
       background: var(--surface);
       border: 1px solid rgba(242, 101, 34, 0.35);
@@ -1824,6 +1828,8 @@
       text-decoration: none;
       transition: all 0.2s ease;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .contribution-btn:hover {

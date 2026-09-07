@@ -471,7 +471,7 @@
         e.stopPropagation();
         pendingAction = "restore";
         pendingTarget = code;
-        els.modalText.textContent = `Are you sure you want to restore ${code}? It will become visible again.`;
+        els.modalText.textContent = `Restore ${code} from Trash? It will be returned to the active course catalog.`;
         els.confirmModal.classList.add("show");
       });
 
@@ -947,14 +947,20 @@
     els.restoreAllBtn?.addEventListener("click", () => {
       if (softDeletedCourses.length === 0) return;
       pendingAction = "restore-all";
-      els.modalText.textContent = `Are you sure you want to restore all ${softDeletedCourses.length} courses?`;
+      const count = softDeletedCourses.length;
+      els.modalText.textContent = count === 1
+        ? "Restore this course from Trash? It will be returned to the active course catalog."
+        : `Restore all ${count} courses from Trash? They will be returned to the active course catalog.`;
       els.confirmModal.classList.add("show");
     });
 
     els.emptyTrashBtn?.addEventListener("click", () => {
       if (softDeletedCourses.length === 0) return;
       pendingAction = "empty-trash";
-      els.modalText.textContent = `Are you sure you want to permanently delete all ${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''} in the Trash? This cannot be undone.`;
+      const count = softDeletedCourses.length;
+      els.modalText.textContent = count === 1
+        ? "Permanently delete this course from Trash? This action cannot be undone."
+        : `Permanently delete all ${count} courses from Trash? This action cannot be undone.`;
       els.confirmModal.classList.add("show");
     });
 
