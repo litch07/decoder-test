@@ -123,10 +123,9 @@
   }
 
   function buildInlineHtml(matchText, data) {
-    let html = `${escapeHtml(matchText)} (${escapeHtml(data.name)}`;
-    if (data.exam) html += `<span class="cce-inline-sep">|</span><span class="cce-inline-label cce-inline-exam">Exam:</span> ${escapeHtml(data.exam)}`;
-    if (data.prereq) html += `<span class="cce-inline-sep">|</span><span class="cce-inline-label cce-inline-prereq">Prereq:</span> ${escapeHtml(data.prereq)}`;
-    html += `)`;
+    let html = `${escapeHtml(matchText)} (${escapeHtml(data.name)})`;
+    if (data.exam) html += `<br/><span class="cce-inline-label cce-inline-exam">Exam:</span> ${escapeHtml(data.exam)}`;
+    if (data.prereq) html += `<br/><span class="cce-inline-label cce-inline-prereq">Prereq:</span> ${escapeHtml(data.prereq)}`;
     return html;
   }
 
@@ -321,6 +320,9 @@
         font-weight: 600;
         color: #e67e22;
         margin-right: 3px;
+      }
+      .cce-inline {
+        line-height: 1.4;
       }
       .cce-inline-sep {
         color: #cbd5e1;
