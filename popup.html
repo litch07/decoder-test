@@ -492,32 +492,40 @@
       justify-content: center;
       gap: 8px;
       font-size: 0.72rem;
-      color: var(--text-main);
-      background: var(--bg);
-      padding: 5px 12px;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      padding: 6px 14px;
       border-radius: 99px;
-      border: 1px solid var(--border-color);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 2px 6px rgba(242, 101, 34, 0.22);
       width: 100%;
     }
 
     .credits span {
       font-weight: 500;
+      color: #ffffff;
     }
 
     .credits strong {
-      color: var(--accent);
+      color: #ffffff;
       font-weight: 700;
+    }
+
+    .credits-sep {
+      color: rgba(255, 255, 255, 0.5);
     }
 
     .github-link {
       display: flex;
       align-items: center;
-      color: var(--text-main);
-      transition: color 0.2s;
+      color: #ffffff;
+      transition: transform 0.2s, opacity 0.2s;
     }
 
     .github-link:hover {
-      color: var(--accent);
+      opacity: 0.85;
+      transform: scale(1.08);
+      color: #ffffff;
     }
 
     .github-link svg {
@@ -1304,7 +1312,7 @@
       <div class="footer">
         <div class="credits">
           <span>Developed by <strong>Sadid Ahmed</strong></span>
-          <span style="color:var(--border-color)">|</span>
+          <span class="credits-sep">|</span>
           <a href="https://github.com/litch07/uiu-course-decoder" target="_blank" title="View Source on GitHub"
             class="github-link" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24">
