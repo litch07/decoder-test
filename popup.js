@@ -1364,7 +1364,7 @@
       pendingAction = "reset-defaults";
       els.modalText.innerHTML = `
         <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 6px;">Reset Official Catalog?</div>
-        <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.5; text-align: justify; text-justify: inter-word;">This will restore all default course mappings and exam schedules. All edits made to official courses will be overwritten, while your custom user-added courses remain untouched.</div>
+        <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.5; text-align: justify; text-justify: inter-word;">This will restore all official course mappings and exam schedules to standard repository defaults, discarding any local modifications. Custom user-added courses will remain unaffected.</div>
       `;
       els.confirmModal.classList.add("show");
     });
