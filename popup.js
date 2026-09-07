@@ -625,6 +625,31 @@
   function openCourseDetails(code, courseData) {
     currentEditingCode = code;
     els.detailsCourseCode.textContent = code;
+    const heroCode = document.getElementById("detailsHeroCode");
+    if (heroCode) heroCode.textContent = code;
+
+    const inBundled = !!bundledCourses[code];
+    const inRemote = !!remoteCourses[code];
+    const inUser = !!userCourses[code];
+
+    let originClass = "";
+    let originLabel = "";
+    if (!inBundled && !inRemote && inUser) {
+      originClass = "user-added";
+      originLabel = "User Added";
+    } else if ((inBundled || inRemote) && inUser) {
+      originClass = "edited";
+      originLabel = "Edited";
+    } else {
+      originClass = "official";
+      originLabel = "Official";
+    }
+
+    const badgeEl = document.getElementById("detailsOriginBadge");
+    if (badgeEl) {
+      badgeEl.className = `origin-badge ${originClass}`;
+      badgeEl.textContent = originLabel;
+    }
 
     const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
     const examDay = typeof courseData === "object" && courseData !== null ? (courseData.examDay || "") : "";
