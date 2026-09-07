@@ -192,16 +192,16 @@
   }
 
   function checkSyncReminder() {
-    // TEST PURPOSE: 20 seconds threshold (Production: 60 * 24 * 60 * 60 * 1000 for 2 months)
-    const SYNC_OVERDUE_MS = 20 * 1000;
-    const isOverdue = !!(lastSyncedAt && (Date.now() - lastSyncedAt > SYNC_OVERDUE_MS));
+    // 2 months in milliseconds (~60 days)
+    const TWO_MONTHS_MS = 60 * 24 * 60 * 60 * 1000;
+    const isOverdue = !!(lastSyncedAt && (Date.now() - lastSyncedAt > TWO_MONTHS_MS));
     const banner = document.getElementById("syncReminderBanner");
     const badge = document.getElementById("settingsBadge");
     if (banner) banner.style.display = isOverdue ? "flex" : "none";
     if (badge) badge.style.display = isOverdue ? "block" : "none";
     if (els.openSettingsBtn) {
       els.openSettingsBtn.title = isOverdue
-        ? "Settings & Preferences — Catalog sync overdue"
+        ? "Settings & Preferences — Catalog sync overdue (>2 months)"
         : "Settings & Preferences";
     }
   }
@@ -228,7 +228,7 @@
     els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
     renderSyncResult(lastSyncResult);
     checkSyncReminder();
-    setInterval(checkSyncReminder, 2500);
+    setInterval(checkSyncReminder, 30000);
 
     try {
       const manifest = chrome.runtime.getManifest();
