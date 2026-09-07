@@ -1259,38 +1259,6 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
-    .details-hero {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      background: linear-gradient(135deg, rgba(242, 101, 34, 0.08), rgba(242, 101, 34, 0.03));
-      border: 1px solid rgba(242, 101, 34, 0.2);
-      border-radius: 8px;
-    }
-
-    .details-hero-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .details-hero-label {
-      font-size: 0.62rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .details-hero-code {
-      font-size: 1.08rem;
-      font-weight: 800;
-      color: var(--accent);
-      letter-spacing: 0.02em;
-      line-height: 1.1;
-    }
-
     .form-group {
       display: flex;
       flex-direction: column;
@@ -2101,17 +2069,6 @@
 
       <div class="body">
         <div class="details-card">
-          <!-- Course Code Hero Card -->
-          <div class="details-hero">
-            <div class="details-hero-info">
-              <span class="details-hero-label">Course Code</span>
-              <span class="details-hero-code" id="detailsHeroCode">—</span>
-            </div>
-            <svg style="width:20px;height:20px;fill:var(--accent);opacity:0.85;" viewBox="0 0 24 24">
-              <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
-            </svg>
-          </div>
-
           <div class="form-group">
             <label class="form-label" for="detailName">Course Name <span class="required">*</span></label>
             <input type="text" id="detailName" class="form-input" placeholder="Course Name (Required)" />

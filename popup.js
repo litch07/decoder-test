@@ -629,8 +629,6 @@
   function openCourseDetails(code, courseData) {
     currentEditingCode = code;
     els.detailsCourseCode.textContent = code;
-    const heroCode = document.getElementById("detailsHeroCode");
-    if (heroCode) heroCode.textContent = code;
 
     const inBundled = !!bundledCourses[code];
     const inRemote = !!remoteCourses[code];
