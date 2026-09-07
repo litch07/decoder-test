@@ -152,7 +152,7 @@
   function renderSvgTooltip(wrap, beforeText, matchText, afterText, data) {
     wrap.textContent = "";
 
-    // Line 1: Header line with course code in bold accent orange and course name alongside it
+    // Line 1: Header line with course code in bold accent orange
     const headerLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
     headerLine.setAttribute("font-weight", "600");
     headerLine.setAttribute("fill", "#0f172a");
@@ -176,17 +176,73 @@
       headerLine.appendChild(afterSpan);
     }
 
+    const remainingNameLines = [];
+
     if (data.name) {
-      const nameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      nameSpan.setAttribute("fill", "#334155");
-      nameSpan.setAttribute("font-weight", "600");
-      nameSpan.textContent = ` (${data.name})`;
-      headerLine.appendChild(nameSpan);
+      const prefixLength = (beforeText || "").length + (matchText || "").length + (afterText || "").length;
+      const maxLine1Chars = 32;
+      const maxNextLineChars = 28;
+      const words = ("(" + data.name + ")").split(" ");
+
+      let line1Name = "";
+      let wordIdx = 0;
+
+      // Fit initial word(s) on Line 1 alongside the course code
+      while (wordIdx < words.length) {
+        const word = words[wordIdx];
+        const testLen = prefixLength + (line1Name ? line1Name.length + 1 : 1) + word.length;
+        if (testLen <= maxLine1Chars || (!line1Name && words.length === 1 && testLen <= 36)) {
+          line1Name = line1Name ? line1Name + " " + word : word;
+          wordIdx++;
+        } else {
+          break;
+        }
+      }
+
+      if (line1Name) {
+        const nameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+        nameSpan.setAttribute("fill", "#334155");
+        nameSpan.setAttribute("font-weight", "600");
+        nameSpan.textContent = " " + line1Name;
+        headerLine.appendChild(nameSpan);
+      }
+
+      // If the name is long, let remaining words go into second line (prevents popup box from becoming too broad)
+      if (wordIdx < words.length) {
+        let currentLine = "";
+        while (wordIdx < words.length) {
+          const word = words[wordIdx];
+          if (!currentLine) {
+            currentLine = word;
+          } else if ((currentLine + " " + word).length <= maxNextLineChars) {
+            currentLine += " " + word;
+          } else {
+            remainingNameLines.push(currentLine);
+            currentLine = word;
+          }
+          wordIdx++;
+        }
+        if (currentLine) {
+          remainingNameLines.push(currentLine);
+        }
+      }
     }
 
     wrap.appendChild(headerLine);
 
-    // Line 2: Exam Info (if present)
+    // Second line(s) for wrapped course name when needed
+    remainingNameLines.forEach((line) => {
+      const extraNameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      extraNameSpan.setAttribute("x", "8");
+      extraNameSpan.setAttribute("dy", "1.25em");
+      extraNameSpan.setAttribute("fill", "#334155");
+      extraNameSpan.setAttribute("font-weight", "600");
+      extraNameSpan.setAttribute("font-size", "11px");
+      extraNameSpan.textContent = line;
+      wrap.appendChild(extraNameSpan);
+    });
+
+    // Exam Info (if present)
     if (data.exam) {
       const examLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       examLine.setAttribute("x", "8");
@@ -208,7 +264,7 @@
       wrap.appendChild(examLine);
     }
 
-    // Line 3: Prerequisites (if present)
+    // Prerequisites (if present)
     if (data.prereq) {
       const prereqLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       prereqLine.setAttribute("x", "8");
