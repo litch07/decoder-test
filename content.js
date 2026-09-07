@@ -123,9 +123,9 @@
   }
 
   function buildInlineHtml(matchText, data) {
-    let html = `${escapeHtml(matchText)} (${escapeHtml(data.name)})`;
-    if (data.exam) html += `<br/><span class="cce-inline-label cce-inline-exam">Exam:</span> ${escapeHtml(data.exam)}`;
-    if (data.prereq) html += `<br/><span class="cce-inline-label cce-inline-prereq">Prereq:</span> ${escapeHtml(data.prereq)}`;
+    let html = `<span class="cce-inline-title">${escapeHtml(matchText)} (${escapeHtml(data.name)})</span>`;
+    if (data.exam) html += `<br/><span class="cce-inline-row"><span class="cce-inline-label cce-inline-exam">Exam:</span> ${escapeHtml(data.exam)}</span>`;
+    if (data.prereq) html += `<br/><span class="cce-inline-row"><span class="cce-inline-label cce-inline-prereq">Prereq:</span> ${escapeHtml(data.prereq)}</span>`;
     return html;
   }
 
@@ -298,12 +298,23 @@
       const data = buildExtendedData(resolved);
       const matchText = wrap.dataset.cceMatch;
 
-      if (wrap.dataset.cceName !== undefined) {
+      if (wrap.dataset.cceName !== undefined || wrap.classList.contains("cce-inline")) {
         wrap.dataset.cceName = buildTooltipHtml(data);
+        wrap.title = `${matchText}: ${data.name}${data.exam ? ' | Exam: ' + data.exam : ''}${data.prereq ? ' | Prereq: ' + data.prereq : ''}`;
       }
 
       if (wrap.classList.contains("cce-inline")) {
         wrap.innerHTML = buildInlineHtml(matchText, data);
+        let cell = wrap.closest ? wrap.closest("td, th, [role='cell'], [role='gridcell'], .grid-cell") : null;
+        if (cell) {
+          cell.style.setProperty("white-space", "normal", "important");
+          cell.style.setProperty("overflow", "visible", "important");
+          cell.style.setProperty("word-break", "break-word", "important");
+          cell.style.setProperty("overflow-wrap", "break-word", "important");
+          cell.style.setProperty("height", "auto", "important");
+          cell.style.setProperty("max-height", "none", "important");
+          if (cell.hasAttribute("nowrap")) cell.removeAttribute("nowrap");
+        }
       } else if (wrap.tagName.toUpperCase() === "TSPAN" && !wrap.classList.contains("cce-highlight") && !wrap.classList.contains("cce-tooltip-wrap") && !wrap.dataset.cceName) {
         renderSvgInline(wrap, matchText, data);
       }
@@ -382,14 +393,16 @@
         border-radius: 8px;
         border: 1px solid #e2e8f0;
         border-top: 3px solid #e67e22; /* University branding orange accent */
-        max-width: 320px;
+        max-width: 360px;
+        width: max-content;
+        box-sizing: border-box;
         text-align: center;
         word-wrap: break-word;
         position: fixed;
         z-index: 2147483647;
         transform: translateX(-50%) translateY(8px) scale(0.96);
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s;
+        transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
         pointer-events: none;
       }
       .cce-global-tooltip.cce-visible {
@@ -431,7 +444,23 @@
         margin-right: 3px;
       }
       .cce-inline {
-        line-height: 1.4;
+        display: inline;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.35;
+        cursor: help;
+      }
+      .cce-inline-title {
+        font-weight: 600;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+      }
+      .cce-inline-row {
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
       }
       .cce-inline-sep {
         color: #cbd5e1;
@@ -445,6 +474,19 @@
       }
       .cce-inline-prereq {
         color: #d35400;
+      }
+      /* Prevent table cells, grid cells, and popup containers from clipping inline decoded courses */
+      td:has(.cce-inline),
+      th:has(.cce-inline),
+      [role="cell"]:has(.cce-inline),
+      [role="gridcell"]:has(.cce-inline),
+      .grid-cell:has(.cce-inline) {
+        white-space: normal !important;
+        overflow: visible !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        height: auto !important;
+        max-height: none !important;
       }
       /* Highcharts chart tooltip and container overflow fixes */
       .highcharts-container,
@@ -471,19 +513,37 @@
 
     document.addEventListener("mouseover", (e) => {
       const target = e.target.closest
-        ? e.target.closest(".cce-tooltip-wrap, .cce-highlight")
+        ? e.target.closest(".cce-tooltip-wrap, .cce-highlight, .cce-inline")
         : null;
       if (target && target.dataset.cceName) {
         globalTooltip.innerHTML = target.dataset.cceName;
-        const rect = target.getBoundingClientRect();
-        globalTooltip.style.left = rect.left + rect.width / 2 + "px";
-        globalTooltip.style.bottom = window.innerHeight - rect.top + 8 + "px";
         globalTooltip.classList.add("cce-visible");
+        const rect = target.getBoundingClientRect();
+        const tipRect = globalTooltip.getBoundingClientRect();
+        const tipWidth = tipRect.width || 280;
+        const tipHeight = tipRect.height || 100;
+
+        let left = rect.left + rect.width / 2;
+        const halfW = tipWidth / 2;
+        if (left - halfW < 12) {
+          left = halfW + 12;
+        } else if (left + halfW > window.innerWidth - 12) {
+          left = window.innerWidth - halfW - 12;
+        }
+        globalTooltip.style.left = left + "px";
+
+        if (rect.top >= tipHeight + 16) {
+          globalTooltip.style.top = "auto";
+          globalTooltip.style.bottom = (window.innerHeight - rect.top + 8) + "px";
+        } else {
+          globalTooltip.style.bottom = "auto";
+          globalTooltip.style.top = (rect.bottom + 8) + "px";
+        }
       }
     });
 
     document.addEventListener("mouseout", (e) => {
-      if (e.target.closest && e.target.closest(".cce-tooltip-wrap, .cce-highlight")) {
+      if (e.target.closest && e.target.closest(".cce-tooltip-wrap, .cce-highlight, .cce-inline")) {
         globalTooltip.classList.remove("cce-visible");
       }
     });
@@ -629,6 +689,7 @@
     let lastIndex = 0;
     let match;
     let replaced = false;
+    let lastMatchHadDetails = false;
 
     courseRegex.lastIndex = 0;
     while ((match = courseRegex.exec(matchText)) !== null) {
@@ -655,7 +716,15 @@
 
       // Add the normal text before the matched course (for tooltips, beforeText is handled inside renderSvgTooltip)
       if (!isTooltip && match.index > lastIndex) {
-        frag.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+        const interText = text.slice(lastIndex, match.index);
+        if (effectiveMode === "inline" && lastMatchHadDetails) {
+          frag.appendChild(document.createElement("br"));
+          if (interText.trim()) {
+            frag.appendChild(document.createTextNode(interText.trim() + " "));
+          }
+        } else {
+          frag.appendChild(document.createTextNode(interText));
+        }
       }
 
       if (isSvg) {
@@ -709,7 +778,10 @@
           wrap.textContent = match[0];
         } else {
           wrap.className = "cce-inline";
+          wrap.dataset.cceName = buildTooltipHtml(data);
+          wrap.title = `${match[0]}: ${data.name}${data.exam ? ' | Exam: ' + data.exam : ''}${data.prereq ? ' | Prereq: ' + data.prereq : ''}`;
           wrap.innerHTML = buildInlineHtml(match[0], data);
+          lastMatchHadDetails = !!(data.exam || data.prereq);
         }
         frag.appendChild(wrap);
       }
@@ -721,6 +793,20 @@
 
     if (!isTooltip && !isHighchartsTruncated && lastIndex < text.length) {
       frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+
+    // If inline courses were added inside a table cell, prevent clipping
+    if (replaced && effectiveMode === "inline") {
+      let cell = textNode.parentElement ? textNode.parentElement.closest("td, th, [role='cell'], [role='gridcell'], .grid-cell") : null;
+      if (cell) {
+        cell.style.setProperty("white-space", "normal", "important");
+        cell.style.setProperty("overflow", "visible", "important");
+        cell.style.setProperty("word-break", "break-word", "important");
+        cell.style.setProperty("overflow-wrap", "break-word", "important");
+        cell.style.setProperty("height", "auto", "important");
+        cell.style.setProperty("max-height", "none", "important");
+        if (cell.hasAttribute("nowrap")) cell.removeAttribute("nowrap");
+      }
     }
 
     // Remove old <title> attributes so they don't block our custom tooltip
