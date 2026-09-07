@@ -590,9 +590,9 @@
 
     .sync-card-header {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      gap: 6px;
+      gap: 8px;
     }
 
     .sync-card-status {
@@ -602,6 +602,12 @@
       font-size: 0.73rem;
       font-weight: 600;
       color: var(--text-main);
+      white-space: nowrap;
+      padding-top: 1px;
+    }
+
+    .sync-card-status #syncResultTitle {
+      white-space: nowrap;
     }
 
     .sync-card-dot {
@@ -618,10 +624,29 @@
       box-shadow: 0 0 0 2px rgba(242, 101, 34, 0.2);
     }
 
-    .sync-card-time {
-      font-size: 0.62rem;
+    .sync-card-time-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+      flex-shrink: 0;
+      line-height: 1.25;
+    }
+
+    .sync-card-time-label {
+      font-size: 0.58rem;
       color: var(--text-muted);
-      font-weight: 500;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .sync-card-time {
+      font-size: 0.65rem;
+      color: var(--text-main);
+      font-weight: 600;
+      white-space: nowrap;
     }
 
     .sync-card-desc {
@@ -1814,7 +1839,10 @@
                 <span id="syncResultDot" class="sync-card-dot"></span>
                 <span id="syncResultTitle">Database is up to date</span>
               </div>
-              <span id="syncResultTime" class="sync-card-time"></span>
+              <div class="sync-card-time-group">
+                <span class="sync-card-time-label">Last synced</span>
+                <span id="syncResultTime" class="sync-card-time"></span>
+              </div>
             </div>
             <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.</div>
             <div id="syncResultBadges" class="sync-metrics-row" style="display: none;"></div>

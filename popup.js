@@ -170,16 +170,23 @@
     }
   }
 
-  function formatTimeAgo(timestamp) {
-    if (!timestamp) return "Never synced";
+  function formatRelativeTime(timestamp) {
+    if (!timestamp) return "Never";
     const seconds = Math.floor((new Date() - timestamp) / 1000);
     if (seconds < 60) return "Just now";
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `Last synced: ${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    if (minutes < 60) return `${minutes} min${minutes !== 1 ? 's' : ''} ago`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `Last synced: ${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
     const days = Math.floor(hours / 24);
-    return `Last synced: ${days} day${days !== 1 ? 's' : ''} ago`;
+    return `${days} day${days !== 1 ? 's' : ''} ago`;
+  }
+
+  function formatTimeAgo(timestamp) {
+    if (!timestamp) return "Never synced";
+    const rel = formatRelativeTime(timestamp);
+    if (rel === "Just now") return "Just now";
+    return `Last synced: ${rel}`;
   }
 
   function setupUI() {
@@ -669,6 +676,7 @@
         els.syncResultBox.classList.remove("show");
         els.syncResultBox.style.display = "none";
       }
+      if (els.syncTime) els.syncTime.style.display = "block";
       return;
     }
 
@@ -676,9 +684,10 @@
     const hasChanges = added > 0 || updated > 0 || removed > 0;
 
     els.syncResultBox.classList.add("show");
+    if (els.syncTime) els.syncTime.style.display = "none";
 
     if (els.syncResultTime && timestamp) {
-      els.syncResultTime.textContent = formatTimeAgo(timestamp);
+      els.syncResultTime.textContent = formatRelativeTime(timestamp);
     }
 
     const dot = els.syncResultDot || document.getElementById("syncResultDot");
@@ -1295,6 +1304,9 @@
               els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
             } else {
               els.syncTime.textContent = "Never synced";
+            }
+            if (els.syncResultBox && els.syncResultBox.classList.contains("show")) {
+              els.syncTime.style.display = "none";
             }
           }, 2600);
         }
