@@ -1363,8 +1363,8 @@
     els.resetDefaultsBtn?.addEventListener("click", () => {
       pendingAction = "reset-defaults";
       els.modalText.innerHTML = `
-        <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-main); margin-bottom: 5px;">Reset Official Catalog?</div>
-        <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.45;">This will restore all default course mappings and exam schedules. All edits made to official courses will be overwritten, while your custom user-added courses remain untouched.</div>
+        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 6px;">Reset Official Catalog?</div>
+        <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.5; text-align: justify; text-justify: inter-word;">This will restore all default course mappings and exam schedules. All edits made to official courses will be overwritten, while your custom user-added courses remain untouched.</div>
       `;
       els.confirmModal.classList.add("show");
     });
