@@ -95,7 +95,7 @@ async function loadAndStoreCourses() {
 async function syncCourses() {
   try {
     const url = "https://raw.githubusercontent.com/litch07/uiu-course-decoder/main/courses.json";
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: "no-cache" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const text = await response.text();
@@ -186,8 +186,8 @@ async function syncCourses() {
     
     return { success: true, lastSyncedAt: timestamp, stats: lastSyncResult };
   } catch (err) {
-    console.error("[CourseDecoder] Sync failed:", err);
-    return { success: false, error: err.message };
+    console.warn("[CourseDecoder] Sync failed:", err.message || err);
+    return { success: false, error: err.message || "Failed to fetch remote courses" };
   }
 }
 

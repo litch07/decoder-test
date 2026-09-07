@@ -210,6 +210,14 @@
     els.showPrerequisitesToggle.checked = showPrerequisites;
     els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
     renderSyncResult(lastSyncResult);
+
+    try {
+      const manifest = chrome.runtime.getManifest();
+      const versionEl = document.getElementById("extVersion");
+      if (versionEl && manifest?.version) {
+        versionEl.textContent = `v${manifest.version}`;
+      }
+    } catch (_) {}
   }
 
   function updateCourseCount() {
