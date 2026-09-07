@@ -60,7 +60,13 @@
     modalConfirmBtn: document.getElementById("modalConfirmBtn"),
     resetDefaultsBtn: document.getElementById("resetDefaultsBtn"),
     resetDefaultsBtnText: document.getElementById("resetDefaultsBtnText"),
-    resetResultMsg: document.getElementById("resetResultMsg"),
+    resetResultBox: document.getElementById("resetResultBox"),
+    resetResultDot: document.getElementById("resetResultDot"),
+    resetResultTitle: document.getElementById("resetResultTitle"),
+    resetResultTime: document.getElementById("resetResultTime"),
+    resetResultDesc: document.getElementById("resetResultDesc"),
+    resetResultBadges: document.getElementById("resetResultBadges"),
+    resetResultDetails: document.getElementById("resetResultDetails"),
     syncResultBox: document.getElementById("syncResultBox"),
     syncResultDot: document.getElementById("syncResultDot"),
     syncResultTitle: document.getElementById("syncResultTitle"),
@@ -877,6 +883,121 @@
     }
   }
 
+  function renderResetResult(stats) {
+    if (!els.resetResultBox || !stats) {
+      if (els.resetResultBox) {
+        els.resetResultBox.classList.remove("show");
+        els.resetResultBox.style.display = "none";
+      }
+      return;
+    }
+
+    const {
+      totalChanges = 0,
+      restoredCodes = [],
+      revertedCodes = [],
+      timestamp = Date.now()
+    } = stats;
+
+    const hasChanges = totalChanges > 0;
+
+    els.resetResultBox.classList.add("show");
+
+    if (els.resetResultTime) {
+      els.resetResultTime.textContent = formatRelativeTime(timestamp);
+    }
+
+    const dot = els.resetResultDot;
+    const desc = els.resetResultDesc;
+
+    if (!hasChanges) {
+      if (dot) dot.className = "sync-card-dot";
+      if (els.resetResultTitle) els.resetResultTitle.textContent = "Catalog is already at default";
+      if (desc) {
+        desc.style.display = "block";
+        desc.textContent = "No deleted courses or local modifications found. All official courses and schedules match standard defaults.";
+      }
+      if (els.resetResultBadges) {
+        els.resetResultBadges.style.display = "none";
+        els.resetResultBadges.innerHTML = "";
+      }
+      if (els.resetResultDetails) {
+        els.resetResultDetails.style.display = "none";
+        els.resetResultDetails.innerHTML = "";
+      }
+    } else {
+      if (dot) dot.className = "sync-card-dot has-updates";
+      if (els.resetResultTitle) els.resetResultTitle.textContent = "Catalog Reset Complete";
+      if (desc) {
+        desc.style.display = "block";
+        desc.textContent = "Successfully restored official course mappings and discarded local modifications:";
+      }
+
+      let badgesHtml = "";
+      if (restoredCodes.length > 0) {
+        badgesHtml += `<span class="sync-metric-chip add">+${restoredCodes.length} restored</span>`;
+      }
+      if (revertedCodes.length > 0) {
+        badgesHtml += `<span class="sync-metric-chip update">${revertedCodes.length} reverted</span>`;
+      }
+      if (els.resetResultBadges) {
+        els.resetResultBadges.style.display = "flex";
+        els.resetResultBadges.innerHTML = badgesHtml;
+      }
+
+      function formatDiffRow(label, codes) {
+        if (!codes || codes.length === 0) return "";
+        if (codes.length <= 6) {
+          return `<div class="sync-diff-row"><strong>${label}:</strong> ${escapeHtml(codes.join(", "))}</div>`;
+        }
+        const preview = escapeHtml(codes.slice(0, 6).join(", "));
+        const full = escapeHtml(codes.join(", "));
+        const moreCount = codes.length - 6;
+        return `<div class="sync-diff-row"><strong>${label}:</strong> <span class="sync-codes-preview">${preview}</span><span class="sync-codes-full" style="display:none;">${full}</span><button class="btn-more-codes" type="button" data-more-count="${moreCount}">+${moreCount} more</button></div>`;
+      }
+
+      const diffRows = [];
+      if (restoredCodes.length > 0) {
+        diffRows.push(formatDiffRow("Restored", restoredCodes));
+      }
+      if (revertedCodes.length > 0) {
+        diffRows.push(formatDiffRow("Reverted", revertedCodes));
+      }
+
+      if (els.resetResultDetails) {
+        if (diffRows.length > 0) {
+          els.resetResultDetails.style.display = "flex";
+          els.resetResultDetails.innerHTML = diffRows.join("");
+
+          els.resetResultDetails.querySelectorAll(".btn-more-codes").forEach(btn => {
+            btn.addEventListener("click", () => {
+              const row = btn.closest(".sync-diff-row");
+              if (!row) return;
+              const previewSpan = row.querySelector(".sync-codes-preview");
+              const fullSpan = row.querySelector(".sync-codes-full");
+              const moreCount = btn.getAttribute("data-more-count");
+
+              if (fullSpan && fullSpan.style.display === "none") {
+                if (previewSpan) previewSpan.style.display = "none";
+                fullSpan.style.display = "inline";
+                btn.textContent = "Show less";
+                btn.classList.add("is-expanded");
+              } else if (fullSpan) {
+                fullSpan.style.display = "none";
+                if (previewSpan) previewSpan.style.display = "inline";
+                btn.textContent = `+${moreCount} more`;
+                btn.classList.remove("is-expanded");
+              }
+            });
+          });
+        } else {
+          els.resetResultDetails.style.display = "none";
+          els.resetResultDetails.innerHTML = "";
+        }
+      }
+    }
+  }
+
   function attachEventListeners() {
 
     // Panel sliding animations
@@ -1125,14 +1246,9 @@
 
         try {
           // Track all unique course codes affected by resetting to repository defaults
-          const affectedCodes = new Set();
-          for (const code of (softDeletedCourses || [])) affectedCodes.add(code);
-          for (const code of (hardDeletedCourses || [])) affectedCodes.add(code);
-          for (const [code, _val] of Object.entries(userCourses || {})) {
-            if (bundledCourses[code] || remoteCourses[code]) {
-              affectedCodes.add(code);
-            }
-          }
+          const restoredCodes = [...new Set([...(softDeletedCourses || []), ...(hardDeletedCourses || [])])].sort();
+          const revertedCodes = Object.keys(userCourses || {}).filter(code => bundledCourses[code] || remoteCourses[code]).sort();
+          const affectedCodes = new Set([...restoredCodes, ...revertedCodes]);
           const changeCount = affectedCodes.size;
 
           softDeletedCourses = [];
@@ -1174,18 +1290,12 @@
             if (resetText) resetText.textContent = btnMsg;
           }
 
-          if (els.resetResultMsg) {
-            els.resetResultMsg.style.display = "block";
-            els.resetResultMsg.textContent = changeCount > 0
-              ? `Applied ${changeCount} course ${changeCount === 1 ? "change" : "changes"} to restore repository defaults.`
-              : "Official catalog is already at repository default state.";
-          }
-
-          if (changeCount > 0) {
-            showToast(`Official catalog restored: ${changeCount} course ${changeCount === 1 ? "change" : "changes"} applied.`, "success");
-          } else {
-            showToast("Official catalog is already at default (0 changes).", "info");
-          }
+          renderResetResult({
+            totalChanges: changeCount,
+            restoredCodes,
+            revertedCodes,
+            timestamp: Date.now()
+          });
         } catch (err) {
           console.error("Reset defaults failed:", err);
           if (resetBtn) {
@@ -1200,10 +1310,7 @@
               if (resetText) resetText.textContent = "Reset Official Catalog to Default";
               resetBtn.disabled = false;
             }
-            if (els.resetResultMsg) {
-              els.resetResultMsg.style.display = "none";
-            }
-          }, 3200);
+          }, 2600);
         }
       }
 
