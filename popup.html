@@ -844,14 +844,34 @@
        COURSES VIEW (second panel)
     ════════════════════════════════════ */
     .courses-view .body {
-      max-height: 500px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow-y: hidden;
+      padding: 10px 14px 12px;
+      gap: 8px;
+    }
+
+    .courses-view .course-scroll {
+      flex: 1 1 0px;
+      min-height: 0;
+      max-height: none;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .courses-view #openImportBtn {
+      flex-shrink: 0;
+      margin-top: auto;
     }
 
     /* Filter */
     .filter-row {
       display: flex;
       gap: 5px;
-      margin-top: 8px;
+      margin-top: 0;
     }
 
     .filter-btn {
@@ -948,6 +968,25 @@
       background: #f8fafc;
       border: 1px solid var(--border-color);
       border-radius: 10px;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      min-height: 140px;
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.73rem;
+      line-height: 1.4;
+    }
+
+    .empty-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
     }
 
     .course-row {
@@ -1730,7 +1769,7 @@
           </div>
         </div>
 
-        <button class="btn-courses" id="openImportBtn" style="margin-top: 8px;">
+        <button class="btn-courses" id="openImportBtn">
           <svg style="width:15px;height:15px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
           </svg>
