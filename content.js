@@ -124,8 +124,8 @@
 
   function buildInlineHtml(matchText, data) {
     let html = `${escapeHtml(matchText)} (${escapeHtml(data.name)}`;
-    if (data.exam) html += `<span class="cce-inline-sep">|</span>Exam: <span class="cce-inline-exam">${escapeHtml(data.exam)}</span>`;
-    if (data.prereq) html += `<span class="cce-inline-sep">|</span>Prereq: <span class="cce-inline-prereq">${escapeHtml(data.prereq)}</span>`;
+    if (data.exam) html += `<span class="cce-inline-sep">|</span><span class="cce-inline-label cce-inline-exam">Exam:</span> ${escapeHtml(data.exam)}`;
+    if (data.prereq) html += `<span class="cce-inline-sep">|</span><span class="cce-inline-label cce-inline-prereq">Prereq:</span> ${escapeHtml(data.prereq)}`;
     html += `)`;
     return html;
   }
@@ -165,7 +165,7 @@
       prereqLine.setAttribute("dy", "1.4em");
 
       const prereqLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      prereqLabel.setAttribute("fill", "#e67e22");
+      prereqLabel.setAttribute("fill", "#d35400");
       prereqLabel.setAttribute("font-weight", "600");
       prereqLabel.textContent = "Prereq: ";
       prereqLine.appendChild(prereqLabel);
@@ -325,6 +325,9 @@
       .cce-inline-sep {
         color: #cbd5e1;
         margin: 0 4px;
+      }
+      .cce-inline-label {
+        font-weight: 600;
       }
       .cce-inline-exam {
         color: #e67e22;
