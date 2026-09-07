@@ -1556,12 +1556,6 @@
 
             renderSyncResult(lastSyncResult);
             checkSyncReminder();
-
-            if (totalChanges > 0) {
-              showToast(`Catalog sync complete: ${totalChanges} course ${totalChanges === 1 ? "change" : "changes"} applied.`, "success");
-            } else {
-              showToast("Course database is already up to date.", "info");
-            }
           } else {
             throw new Error(response.error || "Unknown error");
           }
