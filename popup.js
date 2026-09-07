@@ -720,24 +720,52 @@
         els.syncResultBadges.innerHTML = badgesHtml;
       }
 
+      function formatDiffRow(label, codes) {
+        if (!codes || codes.length === 0) return "";
+        if (codes.length <= 6) {
+          return `<div class="sync-diff-row"><strong>${label}:</strong> ${escapeHtml(codes.join(", "))}</div>`;
+        }
+        const preview = escapeHtml(codes.slice(0, 6).join(", "));
+        const full = escapeHtml(codes.join(", "));
+        const moreCount = codes.length - 6;
+        return `<div class="sync-diff-row"><strong>${label}:</strong> <span class="sync-codes-preview">${preview}</span><span class="sync-codes-full" style="display:none;">${full}</span><button class="btn-more-codes" type="button" data-more-count="${moreCount}">+${moreCount} more</button></div>`;
+      }
+
       const diffRows = [];
       if (addedCodes.length > 0) {
-        const preview = addedCodes.slice(0, 6).join(", ") + (addedCodes.length > 6 ? ` +${addedCodes.length - 6} more` : "");
-        diffRows.push(`<div class="sync-diff-row"><strong>Added:</strong> ${escapeHtml(preview)}</div>`);
+        diffRows.push(formatDiffRow("Added", addedCodes));
       }
       if (updatedCodes.length > 0) {
-        const preview = updatedCodes.slice(0, 6).join(", ") + (updatedCodes.length > 6 ? ` +${updatedCodes.length - 6} more` : "");
-        diffRows.push(`<div class="sync-diff-row"><strong>Updated:</strong> ${escapeHtml(preview)}</div>`);
+        diffRows.push(formatDiffRow("Updated", updatedCodes));
       }
       if (removedCodes.length > 0) {
-        const preview = removedCodes.slice(0, 6).join(", ") + (removedCodes.length > 6 ? ` +${removedCodes.length - 6} more` : "");
-        diffRows.push(`<div class="sync-diff-row"><strong>Removed:</strong> ${escapeHtml(preview)}</div>`);
+        diffRows.push(formatDiffRow("Removed", removedCodes));
       }
 
       if (els.syncResultDetails) {
         if (diffRows.length > 0) {
           els.syncResultDetails.style.display = "flex";
           els.syncResultDetails.innerHTML = diffRows.join("");
+
+          els.syncResultDetails.querySelectorAll(".btn-more-codes").forEach(btn => {
+            btn.addEventListener("click", () => {
+              const row = btn.closest(".sync-diff-row");
+              if (!row) return;
+              const previewSpan = row.querySelector(".sync-codes-preview");
+              const fullSpan = row.querySelector(".sync-codes-full");
+              const moreCount = btn.getAttribute("data-more-count");
+
+              if (fullSpan && fullSpan.style.display === "none") {
+                if (previewSpan) previewSpan.style.display = "none";
+                fullSpan.style.display = "inline";
+                btn.textContent = "Show less";
+              } else if (fullSpan) {
+                fullSpan.style.display = "none";
+                if (previewSpan) previewSpan.style.display = "inline";
+                btn.textContent = `+${moreCount} more`;
+              }
+            });
+          });
         } else {
           els.syncResultDetails.style.display = "none";
           els.syncResultDetails.innerHTML = "";
