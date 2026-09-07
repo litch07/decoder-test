@@ -192,8 +192,7 @@
   }
 
   function checkSyncReminder() {
-    // TEST PURPOSE: 10 seconds threshold (Production: 60 * 24 * 60 * 60 * 1000 for 2 months)
-    const SYNC_OVERDUE_MS = 10 * 1000;
+    const SYNC_OVERDUE_MS = 60 * 24 * 60 * 60 * 1000; // 2 months (60 days)
     const isOverdue = !!(lastSyncedAt && (Date.now() - lastSyncedAt > SYNC_OVERDUE_MS));
     const banner = document.getElementById("syncReminderBanner");
     const homeAlert = document.getElementById("homeSyncAlert");
