@@ -118,28 +118,6 @@
       background: rgba(255, 255, 255, 0.35);
     }
 
-    .header-guide-btn {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      border-radius: 8px;
-      width: 32px;
-      height: 32px;
-      display: grid;
-      place-items: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      color: white;
-      transition: background 0.2s, transform 0.15s;
-    }
-
-    .header-guide-btn:hover {
-      background: rgba(255, 255, 255, 0.35);
-    }
-
-    .header-guide-btn:active {
-      transform: scale(0.95);
-    }
-
     .header-icon {
       width: 36px;
       height: 36px;
@@ -497,16 +475,6 @@
       transform: scale(0.98);
     }
 
-    .btn-guide {
-      background: var(--surface2);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .btn-guide:hover {
-      background: var(--accent-light);
-    }
-
     /* ── SYNC BUTTON PROFESSIONAL STATES ── */
     .btn-sync {
       min-height: 42px;
@@ -534,8 +502,13 @@
     }
 
     @keyframes syncRotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     /* Success state */
@@ -711,6 +684,7 @@
         opacity: 0;
         transform: translateY(-4px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -1450,15 +1424,10 @@
         <div class="header-icon">
           <img src="icons/icon.png" alt="Logo" style="width:22px;height:22px;object-fit:contain;" />
         </div>
-        <div class="header-text" style="flex:1;">
+        <div class="header-text">
           <h1>UIU Course Code Decoder</h1>
           <p>Never guess a course code again</p>
         </div>
-        <button class="header-guide-btn" id="headerGuideBtn" title="User Guide &amp; Documentation" aria-label="Open User Guide">
-          <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
-          </svg>
-        </button>
       </div>
 
       <div class="body">
@@ -1550,13 +1519,6 @@
           Manage Course Database
         </button>
 
-        <button class="btn-courses btn-guide" id="openGuideBtn" style="margin-top: 4px;">
-          <svg style="width:15px;height:15px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
-            <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
-          </svg>
-          User Guide &amp; Documentation
-        </button>
-
         <button class="btn-courses btn-sync" id="syncBtn" style="margin-top: 4px;">
           <svg class="sync-icon" style="width:14px;height:14px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
             <path
@@ -1576,7 +1538,8 @@
             </div>
             <span id="syncResultTime" class="sync-card-time"></span>
           </div>
-          <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.</div>
+          <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.
+          </div>
           <div id="syncResultBadges" class="sync-metrics-row" style="display: none;"></div>
           <div id="syncResultDetails" class="sync-diff-section" style="display: none;"></div>
         </div>

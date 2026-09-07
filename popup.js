@@ -63,8 +63,6 @@
     syncResultDesc: document.getElementById("syncResultDesc"),
     syncResultBadges: document.getElementById("syncResultBadges"),
     syncResultDetails: document.getElementById("syncResultDetails"),
-    headerGuideBtn: document.getElementById("headerGuideBtn"),
-    openGuideBtn: document.getElementById("openGuideBtn"),
   };
 
   let currentEditingCode = null;
@@ -1297,13 +1295,6 @@
       els.modalText.textContent = "Are you sure you want to reset all official courses to their default catalog? This will un-delete all official courses. (Your custom user-added courses will be preserved).";
       els.confirmModal.classList.add("show");
     });
-
-    const openGuideWindow = () => {
-      chrome.tabs.create({ url: chrome.runtime.getURL("guide.html") });
-    };
-
-    els.headerGuideBtn?.addEventListener("click", openGuideWindow);
-    els.openGuideBtn?.addEventListener("click", openGuideWindow);
   }
 
   init();
