@@ -12,6 +12,7 @@
     statusDot: document.getElementById("statusDot"),
     statusText: document.getElementById("statusText"),
     syncBtn: document.getElementById("syncBtn"),
+    syncBtnText: document.getElementById("syncBtnText"),
     syncTime: document.getElementById("syncTime"),
     openCoursesBtn: document.getElementById("openCoursesBtn"),
     allowlistInput: document.getElementById("allowlistInput"),
@@ -646,14 +647,17 @@
 
   function renderSyncResult(stats) {
     if (!els.syncResultBox || !stats) {
-      if (els.syncResultBox) els.syncResultBox.style.display = "none";
+      if (els.syncResultBox) {
+        els.syncResultBox.classList.remove("show");
+        els.syncResultBox.style.display = "none";
+      }
       return;
     }
 
     const { added = 0, updated = 0, removed = 0, addedCodes = [], updatedCodes = [], removedCodes = [], timestamp } = stats;
     const hasChanges = added > 0 || updated > 0 || removed > 0;
 
-    els.syncResultBox.style.display = "block";
+    els.syncResultBox.classList.add("show");
 
     if (els.syncResultTime && timestamp) {
       els.syncResultTime.textContent = formatTimeAgo(timestamp);
@@ -1121,86 +1125,71 @@
 
     if (els.syncBtn) {
       els.syncBtn.addEventListener("click", async () => {
-      els.syncBtn.textContent = "";
-      els.syncBtn.appendChild(createIcon('spinner'));
-      els.syncBtn.appendChild(document.createTextNode(" Syncing…"));
-      els.syncBtn.disabled = true;
-      els.syncTime.textContent = "Fetching latest data...";
+        const syncText = els.syncBtnText || els.syncBtn;
 
-      try {
-        const response = await chrome.runtime.sendMessage({ type: "SYNC_COURSES" });
-        if (response.success) {
-          lastSyncedAt = response.lastSyncedAt;
-          lastSyncResult = response.stats || null;
+        els.syncBtn.classList.remove("is-success", "is-error");
+        els.syncBtn.classList.add("is-loading");
+        syncText.textContent = "Syncing with GitHub…";
+        els.syncBtn.disabled = true;
+        els.syncTime.textContent = "Fetching latest course data…";
 
-          // Re-fetch courses locally
-          const data = await chrome.storage.local.get(["courses", "softDeletedCourses", "hardDeletedCourses", "remoteCourses"]);
-          courses = data.courses || {};
-          softDeletedCourses = data.softDeletedCourses || [];
-          hardDeletedCourses = data.hardDeletedCourses || [];
-          remoteCourses = data.remoteCourses || {};
-          updateCourseCount();
+        try {
+          const response = await chrome.runtime.sendMessage({ type: "SYNC_COURSES" });
+          if (response.success) {
+            lastSyncedAt = response.lastSyncedAt;
+            lastSyncResult = response.stats || null;
 
-          const stats = response.stats;
-          let btnText = " Synced successfully";
-          if (stats) {
-            if (stats.added > 0 && stats.updated > 0) {
-              btnText = ` Synced (+${stats.added}, ${stats.updated} upd)`;
-            } else if (stats.added > 0) {
-              btnText = ` Synced (+${stats.added} new)`;
-            } else if (stats.updated > 0) {
-              btnText = ` Synced (${stats.updated} updated)`;
-            } else if (stats.removed > 0) {
-              btnText = ` Synced (${stats.removed} removed)`;
-            } else {
-              btnText = " Up to date";
+            // Re-fetch courses locally
+            const data = await chrome.storage.local.get(["courses", "softDeletedCourses", "hardDeletedCourses", "remoteCourses"]);
+            courses = data.courses || {};
+            softDeletedCourses = data.softDeletedCourses || [];
+            hardDeletedCourses = data.hardDeletedCourses || [];
+            remoteCourses = data.remoteCourses || {};
+            updateCourseCount();
+
+            const stats = response.stats;
+            let btnText = "Database is up to date";
+            if (stats) {
+              if (stats.added > 0 && stats.updated > 0) {
+                btnText = `Synced (+${stats.added}, ${stats.updated} upd)`;
+              } else if (stats.added > 0) {
+                btnText = `Synced (+${stats.added} new)`;
+              } else if (stats.updated > 0) {
+                btnText = `Synced (${stats.updated} updated)`;
+              } else if (stats.removed > 0) {
+                btnText = `Synced (${stats.removed} removed)`;
+              }
             }
-          }
 
-          els.syncBtn.textContent = "";
-          els.syncBtn.appendChild(createIcon('success'));
-          els.syncBtn.appendChild(document.createTextNode(btnText));
-          els.syncBtn.style.background = "var(--accent-light)";
-          els.syncBtn.style.color = "var(--accent)";
-          els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
-
-          renderSyncResult(lastSyncResult);
-        } else {
-          throw new Error(response.error || "Unknown error");
-        }
-      } catch (err) {
-        console.error("Course sync failed:", err);
-        els.syncBtn.textContent = "";
-        els.syncBtn.appendChild(createIcon('error'));
-        els.syncBtn.appendChild(document.createTextNode(" Sync failed"));
-        els.syncBtn.style.background = "#fef2f2";
-        els.syncBtn.style.color = "var(--danger)";
-        els.syncBtn.style.borderColor = "var(--danger)";
-        els.syncTime.textContent = "Check your connection and try again.";
-      } finally {
-        setTimeout(() => {
-          els.syncBtn.textContent = "";
-          const defaultIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-          defaultIcon.setAttribute("style", "width:14px;height:14px;fill:currentColor;");
-          defaultIcon.setAttribute("viewBox", "0 0 24 24");
-          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          path.setAttribute("d", "M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z");
-          defaultIcon.appendChild(path);
-          els.syncBtn.appendChild(defaultIcon);
-          els.syncBtn.appendChild(document.createTextNode(" Sync Course Database"));
-          els.syncBtn.style.background = "";
-          els.syncBtn.style.color = "";
-          els.syncBtn.style.borderColor = "";
-          els.syncBtn.disabled = false;
-          if (lastSyncedAt) {
+            els.syncBtn.classList.remove("is-loading");
+            els.syncBtn.classList.add("is-success");
+            syncText.textContent = `✓ ${btnText}`;
             els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
+
+            renderSyncResult(lastSyncResult);
           } else {
-            els.syncTime.textContent = "Never synced";
+            throw new Error(response.error || "Unknown error");
           }
-        }, 3000);
-      }
-    });
-  }
+        } catch (err) {
+          console.error("Course sync failed:", err);
+          els.syncBtn.classList.remove("is-loading");
+          els.syncBtn.classList.add("is-error");
+          syncText.textContent = "⚠️ Sync failed — Retry";
+          els.syncTime.textContent = "Check your connection and try again.";
+        } finally {
+          setTimeout(() => {
+            els.syncBtn.classList.remove("is-loading", "is-success", "is-error");
+            syncText.textContent = "Sync Course Database";
+            els.syncBtn.disabled = false;
+            if (lastSyncedAt) {
+              els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
+            } else {
+              els.syncTime.textContent = "Never synced";
+            }
+          }, 2600);
+        }
+      });
+    }
 
     if (els.resetDefaultsBtn) {
       els.resetDefaultsBtn.addEventListener("click", () => {

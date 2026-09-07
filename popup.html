@@ -475,6 +475,72 @@
       transform: scale(0.98);
     }
 
+    /* ── SYNC BUTTON PROFESSIONAL STATES ── */
+    .btn-sync {
+      min-height: 42px;
+      position: relative;
+      user-select: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-sync .sync-icon {
+      transition: transform 0.25s ease;
+    }
+
+    /* Loading state */
+    .btn-sync.is-loading {
+      background: var(--surface2) !important;
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+      cursor: wait;
+      pointer-events: none;
+      opacity: 0.92;
+    }
+
+    .btn-sync.is-loading .sync-icon {
+      animation: syncRotate 0.85s linear infinite;
+    }
+
+    @keyframes syncRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Success state */
+    .btn-sync.is-success {
+      background: var(--surface2) !important;
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+    }
+
+    .btn-sync.is-success .sync-icon {
+      transform: scale(1.15);
+    }
+
+    /* Error state */
+    .btn-sync.is-error {
+      background: #fef2f2 !important;
+      border-color: var(--danger) !important;
+      color: var(--danger) !important;
+    }
+
+    /* Smooth animated reveal for result box */
+    #syncResultBox.show {
+      display: block !important;
+      animation: syncSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes syncSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     /* ── FOOTER ── */
     .footer {
       padding: 10px 16px;
@@ -1260,12 +1326,12 @@
           Manage Course Database
         </button>
 
-        <button class="btn-courses" id="syncBtn" style="margin-top: 4px;">
-          <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
+        <button class="btn-courses btn-sync" id="syncBtn" style="margin-top: 4px;">
+          <svg class="sync-icon" style="width:14px;height:14px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
             <path
               d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
           </svg>
-          Sync Course Database
+          <span id="syncBtnText">Sync Course Database</span>
         </button>
         <div id="syncTime" style="font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: -2px;">
           Never synced</div>
