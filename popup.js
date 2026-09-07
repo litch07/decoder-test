@@ -60,6 +60,7 @@
     modalConfirmBtn: document.getElementById("modalConfirmBtn"),
     resetDefaultsBtn: document.getElementById("resetDefaultsBtn"),
     resetDefaultsBtnText: document.getElementById("resetDefaultsBtnText"),
+    resetResultMsg: document.getElementById("resetResultMsg"),
     syncResultBox: document.getElementById("syncResultBox"),
     syncResultDot: document.getElementById("syncResultDot"),
     syncResultTitle: document.getElementById("syncResultTitle"),
@@ -1125,6 +1126,17 @@
         }
 
         try {
+          // Track all unique course codes affected by resetting to repository defaults
+          const affectedCodes = new Set();
+          for (const code of (softDeletedCourses || [])) affectedCodes.add(code);
+          for (const code of (hardDeletedCourses || [])) affectedCodes.add(code);
+          for (const [code, _val] of Object.entries(userCourses || {})) {
+            if (bundledCourses[code] || remoteCourses[code]) {
+              affectedCodes.add(code);
+            }
+          }
+          const changeCount = affectedCodes.size;
+
           softDeletedCourses = [];
           hardDeletedCourses = [];
 
@@ -1158,7 +1170,23 @@
           if (resetBtn) {
             resetBtn.classList.remove("is-loading");
             resetBtn.classList.add("is-success");
-            if (resetText) resetText.textContent = "Official Catalog Restored";
+            const btnMsg = changeCount === 0
+              ? "Already at Default (0 changes)"
+              : `Restored (${changeCount} ${changeCount === 1 ? "change" : "changes"} applied)`;
+            if (resetText) resetText.textContent = btnMsg;
+          }
+
+          if (els.resetResultMsg) {
+            els.resetResultMsg.style.display = "block";
+            els.resetResultMsg.textContent = changeCount > 0
+              ? `Applied ${changeCount} course ${changeCount === 1 ? "change" : "changes"} to restore repository defaults.`
+              : "Official catalog is already at repository default state.";
+          }
+
+          if (changeCount > 0) {
+            showToast(`Official catalog restored: ${changeCount} course ${changeCount === 1 ? "change" : "changes"} applied.`, "success");
+          } else {
+            showToast("Official catalog is already at default (0 changes).", "info");
           }
         } catch (err) {
           console.error("Reset defaults failed:", err);
@@ -1174,7 +1202,10 @@
               if (resetText) resetText.textContent = "Reset Official Catalog to Default";
               resetBtn.disabled = false;
             }
-          }, 2600);
+            if (els.resetResultMsg) {
+              els.resetResultMsg.style.display = "none";
+            }
+          }, 3200);
         }
       }
 
@@ -1393,17 +1424,18 @@
             updateCourseCount();
 
             const stats = response.stats;
+            const added = stats?.added || 0;
+            const updated = stats?.updated || 0;
+            const removed = stats?.removed || 0;
+            const totalChanges = added + updated + removed;
+
             let btnText = "Database is up to date";
-            if (stats) {
-              if (stats.added > 0 && stats.updated > 0) {
-                btnText = `Synced (+${stats.added}, ${stats.updated} upd)`;
-              } else if (stats.added > 0) {
-                btnText = `Synced (+${stats.added} new)`;
-              } else if (stats.updated > 0) {
-                btnText = `Synced (${stats.updated} updated)`;
-              } else if (stats.removed > 0) {
-                btnText = `Synced (${stats.removed} removed)`;
-              }
+            if (totalChanges > 0) {
+              const parts = [];
+              if (added > 0) parts.push(`+${added} new`);
+              if (updated > 0) parts.push(`${updated} upd`);
+              if (removed > 0) parts.push(`${removed} rem`);
+              btnText = `Synced (${parts.join(", ")})`;
             }
 
             els.syncBtn.classList.remove("is-loading");
@@ -1413,6 +1445,12 @@
 
             renderSyncResult(lastSyncResult);
             checkSyncReminder();
+
+            if (totalChanges > 0) {
+              showToast(`Catalog sync complete: ${totalChanges} course ${totalChanges === 1 ? "change" : "changes"} applied.`, "success");
+            } else {
+              showToast("Course database is already up to date.", "info");
+            }
           } else {
             throw new Error(response.error || "Unknown error");
           }

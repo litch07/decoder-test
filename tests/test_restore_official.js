@@ -80,7 +80,17 @@ async function loadAndStoreCourses() {
 
 // Logic under test: Reset Official Courses to Default
 async function resetOfficialCoursesToDefault() {
-  const { userCourses } = await chrome.storage.local.get(["userCourses"]);
+  const { userCourses, softDeletedCourses, hardDeletedCourses } = await chrome.storage.local.get(["userCourses", "softDeletedCourses", "hardDeletedCourses"]);
+  const affectedCodes = new Set();
+  for (const code of (softDeletedCourses || [])) affectedCodes.add(code);
+  for (const code of (hardDeletedCourses || [])) affectedCodes.add(code);
+  for (const [code, _val] of Object.entries(userCourses || {})) {
+    if (bundledCourses[code] || remoteCourses[code]) {
+      affectedCodes.add(code);
+    }
+  }
+  const changeCount = affectedCodes.size;
+
   const cleanedUserCourses = {};
   for (const [code, val] of Object.entries(userCourses || {})) {
     const isOfficial = !!(bundledCourses[code] || remoteCourses[code]);
@@ -97,6 +107,7 @@ async function resetOfficialCoursesToDefault() {
     hardDeletedCourses: []
   });
   await loadAndStoreCourses();
+  return changeCount;
 }
 
 async function runTest() {
@@ -124,7 +135,8 @@ async function runTest() {
   assert.ok(storageData.courses["CUSTOM 101"], "CUSTOM 101 must be active");
 
   console.log("--- TEST 3: Execute Reset Official Courses to Default ---");
-  await resetOfficialCoursesToDefault();
+  const changes = await resetOfficialCoursesToDefault();
+  assert.strictEqual(changes, 3, "changeCount must be exactly 3 (CSE 2222 soft, CSE 4444 hard, CSE 1111 edit)");
 
   assert.strictEqual(storageData.softDeletedCourses.length, 0, "softDeletedCourses must be empty");
   assert.strictEqual(storageData.hardDeletedCourses.length, 0, "hardDeletedCourses must be empty");
@@ -141,6 +153,10 @@ async function runTest() {
   // User course must be preserved
   assert.ok(storageData.courses["CUSTOM 101"], "CUSTOM 101 user-added course must be preserved");
   assert.strictEqual(storageData.courses["CUSTOM 101"].name, "My Custom Course");
+
+  console.log("--- TEST 4: Execute Reset Official Courses when already at default ---");
+  const secondResetChanges = await resetOfficialCoursesToDefault();
+  assert.strictEqual(secondResetChanges, 0, "changeCount must be 0 when already at default");
 
   console.log("All reset official courses to default tests passed successfully!");
 }
