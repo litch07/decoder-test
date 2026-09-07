@@ -196,14 +196,9 @@
     const SYNC_OVERDUE_MS = 10 * 1000;
     const isOverdue = !!(lastSyncedAt && (Date.now() - lastSyncedAt > SYNC_OVERDUE_MS));
     const banner = document.getElementById("syncReminderBanner");
-    const badge = document.getElementById("settingsBadge");
+    const homeAlert = document.getElementById("homeSyncAlert");
     if (banner) banner.style.display = isOverdue ? "flex" : "none";
-    if (badge) badge.style.display = isOverdue ? "block" : "none";
-    if (els.openSettingsBtn) {
-      els.openSettingsBtn.title = isOverdue
-        ? "Settings & Preferences — Catalog sync overdue"
-        : "Settings & Preferences";
-    }
+    if (homeAlert) homeAlert.style.display = isOverdue ? "flex" : "none";
   }
 
   function setupUI() {
@@ -828,10 +823,12 @@
       els.viewWrapper.classList.add("show-courses");
     });
 
-    els.openSettingsBtn?.addEventListener("click", () => {
+    const openSettings = () => {
       els.viewWrapper.classList.remove("show-courses", "show-details", "show-import");
       els.viewWrapper.classList.add("show-settings");
-    });
+    };
+    els.openSettingsBtn?.addEventListener("click", openSettings);
+    document.getElementById("homeSyncAlert")?.addEventListener("click", openSettings);
 
     els.settingsBackBtn?.addEventListener("click", () => {
       els.viewWrapper.classList.remove("show-settings");
