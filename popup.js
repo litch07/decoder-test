@@ -1128,7 +1128,10 @@
 
       pendingSaveVal = newVal;
       pendingAction = "save";
-      els.modalText.textContent = `Save changes to ${currentEditingCode}? Your modifications will be saved locally and take effect immediately.`;
+      els.modalText.innerHTML = `
+        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 6px;">Save Changes to ${escapeHtml(currentEditingCode)}?</div>
+        <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.5; text-align: justify; text-justify: inter-word;">Updated course title, prerequisites, and exam schedules will be stored locally on this device and applied immediately across all active pages.</div>
+      `;
       els.confirmModal.classList.add("show");
     });
 
@@ -1136,7 +1139,10 @@
       if (!currentEditingCode || els.detailDelBtn.disabled) return;
 
       pendingAction = "delete";
-      els.modalText.textContent = "Move this course to Trash? It will be removed from active decoding, but can be restored from the Trash Bin at any time.";
+      els.modalText.innerHTML = `
+        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 6px;">Move ${escapeHtml(currentEditingCode)} to Trash?</div>
+        <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.5; text-align: justify; text-justify: inter-word;">This course will be excluded from active decoding. You can review or restore it from the Trash Bin at any time.</div>
+      `;
       els.confirmModal.classList.add("show");
     });
 
