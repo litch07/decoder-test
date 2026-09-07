@@ -793,6 +793,7 @@
     });
 
     els.openSettingsBtn?.addEventListener("click", () => {
+      els.viewWrapper.classList.remove("show-courses", "show-details", "show-import");
       els.viewWrapper.classList.add("show-settings");
     });
 
