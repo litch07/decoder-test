@@ -1005,7 +1005,7 @@
 
       pendingSaveVal = newVal;
       pendingAction = "save";
-      els.modalText.textContent = "Save changes to this course? Updated details will be stored locally on this device and applied immediately.";
+      els.modalText.textContent = `Save changes to ${currentEditingCode}? Your modifications will be saved locally and take effect immediately.`;
       els.confirmModal.classList.add("show");
     });
 
