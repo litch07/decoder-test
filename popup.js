@@ -179,7 +179,9 @@
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
     const days = Math.floor(hours / 24);
-    return `${days} day${days !== 1 ? 's' : ''} ago`;
+    if (days < 30) return `${days} day${days !== 1 ? 's' : ''} ago`;
+    const months = Math.floor(days / 30);
+    return `${months} month${months !== 1 ? 's' : ''} ago`;
   }
 
   function formatTimeAgo(timestamp) {
@@ -187,6 +189,21 @@
     const rel = formatRelativeTime(timestamp);
     if (rel === "Just now") return "Just now";
     return `Last synced: ${rel}`;
+  }
+
+  function checkSyncReminder() {
+    // 2 months in milliseconds (~60 days)
+    const TWO_MONTHS_MS = 60 * 24 * 60 * 60 * 1000;
+    const isOverdue = !!(lastSyncedAt && (Date.now() - lastSyncedAt > TWO_MONTHS_MS));
+    const banner = document.getElementById("syncReminderBanner");
+    const badge = document.getElementById("settingsBadge");
+    if (banner) banner.style.display = isOverdue ? "flex" : "none";
+    if (badge) badge.style.display = isOverdue ? "block" : "none";
+    if (els.openSettingsBtn) {
+      els.openSettingsBtn.title = isOverdue
+        ? "Settings & Preferences — Catalog sync overdue (>2 months)"
+        : "Settings & Preferences";
+    }
   }
 
   function setupUI() {
@@ -210,6 +227,7 @@
     els.showPrerequisitesToggle.checked = showPrerequisites;
     els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
     renderSyncResult(lastSyncResult);
+    checkSyncReminder();
 
     try {
       const manifest = chrome.runtime.getManifest();
@@ -1302,6 +1320,7 @@
             els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
 
             renderSyncResult(lastSyncResult);
+            checkSyncReminder();
           } else {
             throw new Error(response.error || "Unknown error");
           }
@@ -1316,6 +1335,7 @@
             els.syncBtn.classList.remove("is-loading", "is-success", "is-error");
             syncText.textContent = "Sync Course Database";
             els.syncBtn.disabled = false;
+            checkSyncReminder();
             if (lastSyncedAt) {
               els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
             } else {
