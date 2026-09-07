@@ -711,7 +711,7 @@
   function attachEventListeners() {
 
     // Panel sliding animations
-    els.openCoursesBtn.addEventListener("click", () => {
+    els.openCoursesBtn?.addEventListener("click", () => {
       isTrashMode = false;
       els.coursesPanelTitle.textContent = "Course Database";
       updateCourseCount();
@@ -722,15 +722,15 @@
       els.viewWrapper.classList.add("show-courses");
     });
 
-    els.openImportBtn.addEventListener("click", () => {
+    els.openImportBtn?.addEventListener("click", () => {
       els.viewWrapper.classList.add("show-import");
     });
 
-    els.importBackBtn.addEventListener("click", () => {
+    els.importBackBtn?.addEventListener("click", () => {
       els.viewWrapper.classList.remove("show-import");
     });
 
-    els.viewTrashBtn.addEventListener("click", () => {
+    els.viewTrashBtn?.addEventListener("click", () => {
       isTrashMode = !isTrashMode;
       if (isTrashMode) {
         els.coursesPanelTitle.textContent = "Trash Bin";
@@ -751,7 +751,7 @@
       }
     });
 
-    els.backBtn.addEventListener("click", () => {
+    els.backBtn?.addEventListener("click", () => {
       if (isTrashMode) {
         isTrashMode = false;
         els.coursesPanelTitle.textContent = "Course Database";
@@ -766,26 +766,26 @@
       }
     });
 
-    els.restoreAllBtn.addEventListener("click", () => {
+    els.restoreAllBtn?.addEventListener("click", () => {
       if (softDeletedCourses.length === 0) return;
       pendingAction = "restore-all";
       els.modalText.textContent = `Are you sure you want to restore all ${softDeletedCourses.length} courses?`;
       els.confirmModal.classList.add("show");
     });
 
-    els.emptyTrashBtn.addEventListener("click", () => {
+    els.emptyTrashBtn?.addEventListener("click", () => {
       if (softDeletedCourses.length === 0) return;
       pendingAction = "empty-trash";
       els.modalText.textContent = `Are you sure you want to permanently delete all ${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''} in the Trash? This cannot be undone.`;
       els.confirmModal.classList.add("show");
     });
 
-    els.detailsBackBtn.addEventListener("click", () => {
+    els.detailsBackBtn?.addEventListener("click", () => {
       els.viewWrapper.classList.remove("show-details");
       els.viewWrapper.classList.add("show-courses");
     });
 
-    els.detailSaveBtn.addEventListener("click", () => {
+    els.detailSaveBtn?.addEventListener("click", () => {
       if (!currentEditingCode) return;
 
       const newName = els.detailName.value.trim();
@@ -816,7 +816,7 @@
       els.confirmModal.classList.add("show");
     });
 
-    els.detailDelBtn.addEventListener("click", () => {
+    els.detailDelBtn?.addEventListener("click", () => {
       if (!currentEditingCode || els.detailDelBtn.disabled) return;
 
       pendingAction = "delete";
@@ -824,13 +824,13 @@
       els.confirmModal.classList.add("show");
     });
 
-    els.modalCancelBtn.addEventListener("click", () => {
+    els.modalCancelBtn?.addEventListener("click", () => {
       els.confirmModal.classList.remove("show");
       pendingAction = null;
       pendingSaveVal = null;
     });
 
-    els.modalConfirmBtn.addEventListener("click", async () => {
+    els.modalConfirmBtn?.addEventListener("click", async () => {
       els.confirmModal.classList.remove("show");
 
       if (pendingAction === "save" && currentEditingCode) {
@@ -938,13 +938,13 @@
       pendingTarget = null;
     });
 
-    els.courseSearch.addEventListener("input", () => {
+    els.courseSearch?.addEventListener("input", () => {
       searchQuery = els.courseSearch.value;
       if (isTrashMode) renderTrashList(searchQuery);
       else renderCourseList(searchQuery);
     });
 
-    els.filterBtns.forEach(btn => {
+    els.filterBtns?.forEach(btn => {
       btn.addEventListener("click", () => {
         els.filterBtns.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
@@ -954,7 +954,7 @@
     });
 
     // Copy Sample button
-    els.copySampleBtn.addEventListener("click", async () => {
+    els.copySampleBtn?.addEventListener("click", async () => {
       const sample = `{
   "COURSE CODE": {
     "name": "Full Name of The Course",
@@ -979,7 +979,7 @@
     });
 
     // Handle user pasting in a new JSON course list
-    els.importBtn.addEventListener("click", async () => {
+    els.importBtn?.addEventListener("click", async () => {
       const raw = els.jsonInput.value.trim();
       if (!raw) {
         showImportMsg("error", "⚠️ Please paste some JSON first.");
@@ -1066,7 +1066,7 @@
     });
 
     // Wipe all courses clean
-    els.clearBtn.addEventListener("click", async () => {
+    els.clearBtn?.addEventListener("click", async () => {
       if (!confirm(`Delete ALL ${Object.keys(courses).length} courses from the database? This cannot be undone.`)) return;
       courses = {};
       userCourses = {};
@@ -1092,11 +1092,11 @@
         updateToggleAndStatus();
       }
     };
-    els.allowlistBtn.addEventListener("click", addSite);
-    els.allowlistInput.addEventListener("keypress", e => { if (e.key === "Enter") addSite(); });
+    els.allowlistBtn?.addEventListener("click", addSite);
+    els.allowlistInput?.addEventListener("keypress", e => { if (e.key === "Enter") addSite(); });
 
     // Enable/disable the extension on the current site
-    els.siteToggle.addEventListener("change", async () => {
+    els.siteToggle?.addEventListener("change", async () => {
       if (els.siteToggle.checked) {
         if (currentHost && !allowedSites.includes(currentHost)) allowedSites.push(currentHost);
       } else {
@@ -1107,18 +1107,18 @@
       updateToggleAndStatus();
     });
 
-    els.modeRadios.forEach(radio => {
+    els.modeRadios?.forEach(radio => {
       radio.addEventListener("change", async () => {
         await chrome.storage.local.set({ mode: radio.value });
       });
     });
 
-    els.showExamInfoToggle.addEventListener("change", async () => {
+    els.showExamInfoToggle?.addEventListener("change", async () => {
       await chrome.storage.local.set({ showExamInfo: els.showExamInfoToggle.checked });
       // content.js has a storage.onChanged listener that will dynamically update the DOM!
     });
 
-    els.showPrerequisitesToggle.addEventListener("change", async () => {
+    els.showPrerequisitesToggle?.addEventListener("change", async () => {
       await chrome.storage.local.set({ showPrerequisites: els.showPrerequisitesToggle.checked });
       // content.js has a storage.onChanged listener that will dynamically update the DOM!
     });
@@ -1191,13 +1191,11 @@
       });
     }
 
-    if (els.resetDefaultsBtn) {
-      els.resetDefaultsBtn.addEventListener("click", () => {
-        pendingAction = "reset-defaults";
-        els.modalText.textContent = "Are you sure you want to reset all official courses to their default catalog? This will un-delete all official courses. (Your custom user-added courses will be preserved).";
-        els.confirmModal.classList.add("show");
-      });
-    }
+    els.resetDefaultsBtn?.addEventListener("click", () => {
+      pendingAction = "reset-defaults";
+      els.modalText.textContent = "Are you sure you want to reset all official courses to their default catalog? This will un-delete all official courses. (Your custom user-added courses will be preserved).";
+      els.confirmModal.classList.add("show");
+    });
   }
 
   init();
