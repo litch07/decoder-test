@@ -65,25 +65,29 @@
     /* ── VIEW SYSTEM ── */
     .view-wrapper {
       display: flex;
-      width: 400%;
+      width: 500%;
       transform: translateX(0);
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .view-wrapper.show-courses {
-      transform: translateX(-25%);
+      transform: translateX(-20%);
     }
 
     .view-wrapper.show-details {
-      transform: translateX(-50%);
+      transform: translateX(-40%);
     }
 
     .view-wrapper.show-import {
-      transform: translateX(-75%);
+      transform: translateX(-60%);
+    }
+
+    .view-wrapper.show-settings {
+      transform: translateX(-80%);
     }
 
     .view {
-      width: 25%;
+      width: 20%;
       flex-shrink: 0;
     }
 
@@ -116,6 +120,25 @@
 
     .header-back:hover {
       background: rgba(255, 255, 255, 0.35);
+    }
+
+    .header-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      color: white;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: rotate(35deg);
     }
 
     .header-icon {
@@ -1424,10 +1447,15 @@
         <div class="header-icon">
           <img src="icons/icon.png" alt="Logo" style="width:22px;height:22px;object-fit:contain;" />
         </div>
-        <div class="header-text">
+        <div class="header-text" style="flex: 1;">
           <h1>UIU Course Code Decoder</h1>
           <p>Never guess a course code again</p>
         </div>
+        <button class="header-btn" id="openSettingsBtn" title="Settings &amp; Preferences">
+          <svg style="width:17px;height:17px;fill:white;" viewBox="0 0 24 24">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+        </button>
       </div>
 
       <div class="body">
@@ -1483,7 +1511,7 @@
 
           <div class="toggle-row">
             <div>
-              <div class="toggle-label">Show Exam Day & Slot</div>
+              <div class="toggle-label">Show Exam Day &amp; Slot</div>
             </div>
             <label class="switch">
               <input type="checkbox" id="showExamInfoToggle" />
@@ -1502,61 +1530,12 @@
           </div>
         </div>
 
-        <div class="card">
-          <span class="card-title">Allowed Domains (Supports *)</span>
-          <div class="allowlist-input-row">
-            <input type="text" id="allowlistInput" placeholder="e.g. ucam.uiu.ac.bd" />
-            <button id="allowlistBtn">Add</button>
-          </div>
-          <div id="allowlistContainer" class="allowlist-container"></div>
-        </div>
-
-        <button class="btn-courses" id="openCoursesBtn">
+        <button class="btn-courses" id="openCoursesBtn" style="margin-top: 2px;">
           <svg style="width:15px;height:15px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
             <path
               d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z" />
           </svg>
           Manage Course Database
-        </button>
-
-        <button class="btn-courses btn-sync" id="syncBtn" style="margin-top: 4px;">
-          <svg class="sync-icon" style="width:14px;height:14px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
-            <path
-              d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
-          </svg>
-          <span id="syncBtnText">Sync Course Database</span>
-        </button>
-        <div id="syncTime" style="font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: -2px;">
-          Never synced</div>
-
-        <!-- Sync result diff summary box -->
-        <div id="syncResultBox" class="sync-card">
-          <div class="sync-card-header">
-            <div class="sync-card-status">
-              <span id="syncResultDot" class="sync-card-dot"></span>
-              <span id="syncResultTitle">Database is up to date</span>
-            </div>
-            <span id="syncResultTime" class="sync-card-time"></span>
-          </div>
-          <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.
-          </div>
-          <div id="syncResultBadges" class="sync-metrics-row" style="display: none;"></div>
-          <div id="syncResultDetails" class="sync-diff-section" style="display: none;"></div>
-        </div>
-
-        <div
-          style="font-size: 0.65rem; color: var(--text-muted); text-align: center; line-height: 1.4; margin-top: 4px; padding: 8px; background: var(--surface2); border: 1px solid var(--accent-light); border-radius: 8px;">
-          This fetches the latest community-contributed course data from the project's GitHub repository. All other
-          extension features work fully offline.
-        </div>
-
-        <button class="btn-reset-danger" id="resetDefaultsBtn"
-          title="Restore all official courses to their default catalog state">
-          <svg class="reset-icon" style="width:12px;height:12px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
-            <path
-              d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
-          </svg>
-          <span id="resetDefaultsBtnText">Reset Official Courses to Default</span>
         </button>
       </div>
 
@@ -1750,6 +1729,116 @@
                 Clear All
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    <!-- View 5: Settings & Preferences panel -->
+    <div class="view settings-view">
+      <div class="header">
+        <button class="header-back" id="settingsBackBtn" title="Go back to Home">
+          <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+        </button>
+        <div class="header-text" style="flex:1;">
+          <h1>Settings &amp; Preferences</h1>
+          <p>Domains, database sync &amp; resets</p>
+        </div>
+      </div>
+
+      <div class="body">
+        <!-- Card 1: Allowed Domains -->
+        <div class="card">
+          <span class="card-title">
+            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            Allowed Domains (Supports *)
+          </span>
+          <div class="allowlist-input-row">
+            <input type="text" id="allowlistInput" placeholder="e.g. ucam.uiu.ac.bd" />
+            <button id="allowlistBtn">Add</button>
+          </div>
+          <div id="allowlistContainer" class="allowlist-container"></div>
+          <div style="font-size: 0.65rem; color: var(--text-muted); line-height: 1.35; margin-top: 2px;">
+            The extension only runs on websites in this list. Use <code>*</code> for wildcards (e.g. <code>*.uiu.ac.bd</code>).
+          </div>
+        </div>
+
+        <!-- Card 2: Database Sync & Cloud Updates -->
+        <div class="card">
+          <span class="card-title">
+            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+            </svg>
+            Official Catalog Sync
+          </span>
+
+          <button class="btn-courses btn-sync" id="syncBtn">
+            <svg class="sync-icon" style="width:14px;height:14px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
+              <path
+                d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
+            </svg>
+            <span id="syncBtnText">Sync Course Database</span>
+          </button>
+          <div id="syncTime" style="font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: -4px;">
+            Never synced</div>
+
+          <!-- Sync result diff summary box -->
+          <div id="syncResultBox" class="sync-card">
+            <div class="sync-card-header">
+              <div class="sync-card-status">
+                <span id="syncResultDot" class="sync-card-dot"></span>
+                <span id="syncResultTitle">Database is up to date</span>
+              </div>
+              <span id="syncResultTime" class="sync-card-time"></span>
+            </div>
+            <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.</div>
+            <div id="syncResultBadges" class="sync-metrics-row" style="display: none;"></div>
+            <div id="syncResultDetails" class="sync-diff-section" style="display: none;"></div>
+          </div>
+
+          <div
+            style="font-size: 0.65rem; color: var(--text-muted); text-align: center; line-height: 1.4; padding: 7px 9px; background: var(--surface2); border: 1px solid var(--accent-light); border-radius: 8px;">
+            Fetches latest official community course updates from GitHub. All decoding functions work 100% offline.
+          </div>
+        </div>
+
+        <!-- Card 3: Danger Zone / Catalog Reset -->
+        <div class="card" style="border-color: #fecaca; background: #fffbfb;">
+          <span class="card-title" style="color: #b91c1c;">
+            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+            </svg>
+            Reset Official Catalog
+          </span>
+          <div style="font-size: 0.67rem; color: var(--text-muted); line-height: 1.35;">
+            Restore all official courses to their default catalog state. Your custom user-added courses are preserved.
+          </div>
+          <button class="btn-reset-danger" id="resetDefaultsBtn"
+            title="Restore all official courses to their default catalog state">
+            <svg class="reset-icon" style="width:12px;height:12px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
+              <path
+                d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
+            </svg>
+            <span id="resetDefaultsBtnText">Reset Official Courses to Default</span>
+          </button>
+        </div>
+
+        <!-- Card 4: About & Project Info -->
+        <div class="card">
+          <span class="card-title">About Extension</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem;">
+            <span style="color: var(--text-muted); font-weight: 500;">Version</span>
+            <span style="font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 2px 7px; border-radius: 6px; font-size: 0.7rem;">v1.2.0</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; margin-top: 4px;">
+            <span style="color: var(--text-muted); font-weight: 500;">Developer</span>
+            <span style="font-weight: 600; color: var(--text-main);">Sadid Ahmed</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; margin-top: 4px;">
+            <span style="color: var(--text-muted); font-weight: 500;">Repository</span>
+            <a href="https://github.com/litch07/uiu-course-decoder" target="_blank" rel="noopener noreferrer" style="color: var(--accent); font-weight: 600; text-decoration: none; font-size: 0.72rem;">GitHub Project ↗</a>
           </div>
         </div>
       </div>

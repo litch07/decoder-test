@@ -22,6 +22,8 @@
     showExamInfoToggle: document.getElementById("showExamInfoToggle"),
     showPrerequisitesToggle: document.getElementById("showPrerequisitesToggle"),
     viewWrapper: document.getElementById("viewWrapper"),
+    openSettingsBtn: document.getElementById("openSettingsBtn"),
+    settingsBackBtn: document.getElementById("settingsBackBtn"),
     backBtn: document.getElementById("backBtn"),
     coursesPanelTitle: document.getElementById("coursesPanelTitle"),
     viewTrashBtn: document.getElementById("viewTrashBtn"),
@@ -788,6 +790,14 @@
       els.openImportBtn.style.display = "flex";
       renderCourseList(searchQuery);
       els.viewWrapper.classList.add("show-courses");
+    });
+
+    els.openSettingsBtn?.addEventListener("click", () => {
+      els.viewWrapper.classList.add("show-settings");
+    });
+
+    els.settingsBackBtn?.addEventListener("click", () => {
+      els.viewWrapper.classList.remove("show-settings");
     });
 
     els.openImportBtn?.addEventListener("click", () => {
