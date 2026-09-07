@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "UIU Course Code Decoder",
-  "version": "1.0.1",
+  "version": "2.0.1",
   "description": "Never guess a course code again – decodes UIU course codes into full names on any webpage.",
   "browser_specific_settings": {
     "gecko": {
