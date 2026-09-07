@@ -1082,80 +1082,6 @@
       background: var(--accent-hover);
     }
 
-    /* Restore Official Modal */
-    .restore-modal-content {
-      width: 90%;
-      max-width: 350px;
-      padding: 16px;
-    }
-
-    .restore-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .restore-row {
-      display: flex;
-      align-items: center;
-      padding: 7px 10px;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 0.72rem;
-      gap: 8px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .restore-row:last-child {
-      border-bottom: none;
-    }
-
-    .restore-row:hover {
-      background: var(--surface2);
-    }
-
-    .restore-row input[type="checkbox"] {
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    .restore-row-code {
-      font-weight: 700;
-      color: var(--accent);
-      font-size: 0.7rem;
-      white-space: nowrap;
-      background: var(--accent-light);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .restore-row-name {
-      flex: 1;
-      color: var(--text-main);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 0.7rem;
-    }
-
-    .restore-row-status {
-      font-size: 0.6rem;
-      padding: 1px 5px;
-      border-radius: 3px;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .restore-row-status.hard {
-      background: #fee2e2;
-      color: var(--danger);
-    }
-
-    .restore-row-status.soft {
-      background: #fef3c7;
-      color: #b45309;
-    }
-
     .btn-edit-del {
       width: 100%;
       padding: 7px;
@@ -1232,45 +1158,6 @@
       <div class="modal-actions">
         <button class="btn-modal-cancel" id="modalCancelBtn">Cancel</button>
         <button class="btn-modal-confirm" id="modalConfirmBtn">Confirm</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Restore Official Courses -->
-  <div class="modal-overlay" id="restoreOfficialModal">
-    <div class="modal-content restore-modal-content">
-      <div class="restore-modal-header">
-        <div>
-          <h2 style="font-size: 0.88rem; margin: 0; font-weight: 700; color: var(--text-main);">Restore Official Courses</h2>
-          <p style="font-size: 0.67rem; color: var(--text-muted); margin: 2px 0 0 0;">Select courses to restore back to your database.</p>
-        </div>
-        <button class="btn-icon" id="closeRestoreModalBtn" title="Close" style="color: var(--text-muted); padding: 4px;">
-          <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-          </svg>
-        </button>
-      </div>
-
-      <div class="restore-search-box" style="margin-top: 10px; position: relative;">
-        <input type="text" id="restoreSearchInput" placeholder="Search by code or name…" style="width: 100%; font-size: 0.72rem; padding: 7px 10px 7px 28px; border: 1px solid var(--border-color); border-radius: 6px; background: #f8fafc; color: var(--text-main); outline: none; box-sizing: border-box;" />
-        <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 0.72rem; color: var(--text-muted); pointer-events: none;">🔍</span>
-      </div>
-
-      <div class="restore-select-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 0.68rem; color: var(--text-muted); padding: 0 2px;">
-        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;">
-          <input type="checkbox" id="restoreSelectAllCheckbox" checked style="accent-color: var(--accent); cursor: pointer;" />
-          <span id="restoreSelectAllLabel">Select All</span>
-        </label>
-        <span id="restoreSelectedCount">0 selected</span>
-      </div>
-
-      <div class="restore-list" id="restoreCourseList" style="max-height: 190px; overflow-y: auto; margin-top: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff;">
-        <!-- Course rows injected dynamically -->
-      </div>
-
-      <div class="modal-actions" style="margin-top: 12px;">
-        <button class="btn-modal-cancel" id="cancelRestoreBtn">Cancel</button>
-        <button class="btn-modal-confirm" id="confirmRestoreSelectedBtn">Restore Selected (0)</button>
       </div>
     </div>
   </div>
@@ -1380,14 +1267,6 @@
           Manage Course Database
         </button>
 
-        <button class="btn-reload" id="reloadBtn">
-          <svg style="width:13px;height:13px;fill:white;" viewBox="0 0 24 24">
-            <path
-              d="M12 2v4c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8V2zm1.88 3.88L17.76 9.76l-1.41 1.41L12.46 7.29 8.59 11.17l-1.41-1.41 5.29-5.29 1.41 1.41z" />
-          </svg>
-          Reload Courses from File
-        </button>
-
         <button class="btn-courses" id="syncBtn" style="margin-top: 4px;">
           <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
             <path
@@ -1413,16 +1292,20 @@
           </div>
         </div>
 
-        <div id="syncRestoreNotice"
-          style="display: none; font-size: 0.68rem; color: var(--accent); text-align: center; margin-top: 5px; padding: 6px 10px; background: var(--accent-light); border: 1px solid var(--accent); border-radius: 6px; cursor: pointer; font-weight: 600; line-height: 1.35; transition: background 0.15s;">
-          <span id="syncRestoreNoticeText"></span>
-        </div>
-
         <div
           style="font-size: 0.65rem; color: var(--text-muted); text-align: center; line-height: 1.4; margin-top: 4px; padding: 8px; background: var(--surface2); border: 1px solid var(--accent-light); border-radius: 8px;">
           This fetches the latest community-contributed course data from the project's GitHub repository. All other
           extension features work fully offline.
         </div>
+
+        <button class="btn-reset-danger" id="resetDefaultsBtn"
+          style="margin-top: 8px; width: 100%; padding: 8px 12px; background: transparent; border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-muted); font-size: 0.68rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.2s;"
+          title="Restore all official courses to their default catalog state">
+          <svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24">
+            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
+          </svg>
+          Reset Official Courses to Default
+        </button>
       </div>
 
       <div class="footer">
@@ -1503,14 +1386,6 @@
               <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
             </svg>
             Empty Trash
-          </button>
-          <button class="filter-btn" id="openRestoreOfficialBtn"
-            style="color: var(--accent); border-color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 4px;"
-            title="Restore courses from official database">
-            <svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
-            </svg>
-            Official DB
           </button>
         </div>
 

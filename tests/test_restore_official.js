@@ -78,31 +78,13 @@ async function loadAndStoreCourses() {
   await chrome.storage.local.set({ courses: merged });
 }
 
-// Logic under test: getDeletedOfficialCourses
-function getDeletedOfficialCourses(softDeleted, hardDeleted) {
-  const official = { ...bundledCourses, ...remoteCourses };
-  const deleted = [];
-  for (const code of Object.keys(official)) {
-    const isHard = hardDeleted.includes(code);
-    const isSoft = softDeleted.includes(code);
-    if (isHard || isSoft) {
-      deleted.push({
-        code,
-        data: official[code],
-        status: isHard ? 'hard' : 'soft'
-      });
-    }
-  }
-  return deleted.sort((a, b) => a.code.localeCompare(b.code));
-}
-
-// Logic under test: executeRestoreSelected
-async function executeRestoreSelected(codesToRestore) {
-  storageData.softDeletedCourses = storageData.softDeletedCourses.filter(c => !codesToRestore.includes(c));
-  storageData.hardDeletedCourses = storageData.hardDeletedCourses.filter(c => !codesToRestore.includes(c));
+// Logic under test: Reset Official Courses to Default
+async function resetOfficialCoursesToDefault() {
+  storageData.softDeletedCourses = [];
+  storageData.hardDeletedCourses = [];
   await chrome.storage.local.set({
-    softDeletedCourses: storageData.softDeletedCourses,
-    hardDeletedCourses: storageData.hardDeletedCourses
+    softDeletedCourses: [],
+    hardDeletedCourses: []
   });
   await loadAndStoreCourses();
 }
@@ -116,55 +98,34 @@ async function runTest() {
   assert.ok(storageData.courses["CSE 2222"]);
   assert.ok(storageData.courses["CSE 3333"]);
   assert.ok(storageData.courses["CSE 4444"]);
-  let deleted = getDeletedOfficialCourses(storageData.softDeletedCourses, storageData.hardDeletedCourses);
-  assert.strictEqual(deleted.length, 0, "No official courses should be detected as deleted initially");
 
-  console.log("--- TEST 2: Soft delete CSE 2222 and hard delete CSE 4444 (remote) ---");
+  console.log("--- TEST 2: Soft-delete CSE 2222, hard-delete CSE 4444, and add user course ---");
   storageData.softDeletedCourses = ["CSE 2222"];
   storageData.hardDeletedCourses = ["CSE 4444"];
+  storageData.userCourses = { "CUSTOM 101": { name: "My Custom Course", examDay: "Day 5" } };
   await loadAndStoreCourses();
 
   assert.strictEqual(storageData.courses["CSE 2222"], undefined, "CSE 2222 should be excluded from active");
   assert.strictEqual(storageData.courses["CSE 4444"], undefined, "CSE 4444 should be excluded from active");
+  assert.ok(storageData.courses["CUSTOM 101"], "CUSTOM 101 must be active");
 
-  deleted = getDeletedOfficialCourses(storageData.softDeletedCourses, storageData.hardDeletedCourses);
-  assert.strictEqual(deleted.length, 2, "Should detect exactly 2 deleted official courses");
-  assert.deepStrictEqual(deleted.map(d => d.code), ["CSE 2222", "CSE 4444"]);
-  assert.strictEqual(deleted.find(d => d.code === "CSE 2222").status, "soft", "CSE 2222 should have 'soft' status");
-  assert.strictEqual(deleted.find(d => d.code === "CSE 4444").status, "hard", "CSE 4444 should have 'hard' status");
+  console.log("--- TEST 3: Execute Reset Official Courses to Default ---");
+  await resetOfficialCoursesToDefault();
 
-  console.log("--- TEST 3: Selective restore of CSE 4444 only ---");
-  await executeRestoreSelected(["CSE 4444"]);
-
-  assert.ok(storageData.courses["CSE 4444"], "CSE 4444 should be restored to active courses");
-  assert.strictEqual(storageData.courses["CSE 4444"].name, "Artificial Intelligence");
-  assert.strictEqual(storageData.courses["CSE 2222"], undefined, "CSE 2222 should remain deleted");
-  assert.strictEqual(storageData.hardDeletedCourses.includes("CSE 4444"), false, "CSE 4444 removed from hardDeletedCourses");
-  assert.strictEqual(storageData.softDeletedCourses.includes("CSE 2222"), true, "CSE 2222 remains in softDeletedCourses");
-
-  deleted = getDeletedOfficialCourses(storageData.softDeletedCourses, storageData.hardDeletedCourses);
-  assert.strictEqual(deleted.length, 1, "Only 1 deleted official course should remain");
-  assert.strictEqual(deleted[0].code, "CSE 2222");
-
-  console.log("--- TEST 4: Restore remaining deleted official course CSE 2222 ---");
-  await executeRestoreSelected(["CSE 2222"]);
-
-  assert.ok(storageData.courses["CSE 2222"], "CSE 2222 should now be restored to active courses");
-  assert.strictEqual(storageData.courses["CSE 2222"].name, "Data Structures");
   assert.strictEqual(storageData.softDeletedCourses.length, 0, "softDeletedCourses must be empty");
   assert.strictEqual(storageData.hardDeletedCourses.length, 0, "hardDeletedCourses must be empty");
 
-  deleted = getDeletedOfficialCourses(storageData.softDeletedCourses, storageData.hardDeletedCourses);
-  assert.strictEqual(deleted.length, 0, "Zero deleted official courses remain");
+  // All official courses must be active again
+  assert.ok(storageData.courses["CSE 1111"], "CSE 1111 active");
+  assert.ok(storageData.courses["CSE 2222"], "CSE 2222 restored to active");
+  assert.ok(storageData.courses["CSE 3333"], "CSE 3333 active");
+  assert.ok(storageData.courses["CSE 4444"], "CSE 4444 restored to active");
 
-  console.log("--- TEST 5: Verify all 4 courses are active with correct metadata ---");
-  assert.strictEqual(Object.keys(storageData.courses).length, 4);
-  assert.strictEqual(storageData.courses["CSE 1111"].examDay, "Day 1");
-  assert.strictEqual(storageData.courses["CSE 2222"].examDay, "Day 2");
-  assert.strictEqual(storageData.courses["CSE 3333"].examDay, "Day 3");
-  assert.strictEqual(storageData.courses["CSE 4444"].examDay, "Day 4");
+  // User course must be preserved
+  assert.ok(storageData.courses["CUSTOM 101"], "CUSTOM 101 user-added course must be preserved");
+  assert.strictEqual(storageData.courses["CUSTOM 101"].name, "My Custom Course");
 
-  console.log("All selective restore official courses tests passed successfully!");
+  console.log("All reset official courses to default tests passed successfully!");
 }
 
 runTest().catch((err) => {

@@ -54,18 +54,7 @@
     modalText: document.getElementById("modalText"),
     modalCancelBtn: document.getElementById("modalCancelBtn"),
     modalConfirmBtn: document.getElementById("modalConfirmBtn"),
-    restoreOfficialModal: document.getElementById("restoreOfficialModal"),
-    closeRestoreModalBtn: document.getElementById("closeRestoreModalBtn"),
-    cancelRestoreBtn: document.getElementById("cancelRestoreBtn"),
-    confirmRestoreSelectedBtn: document.getElementById("confirmRestoreSelectedBtn"),
-    restoreSearchInput: document.getElementById("restoreSearchInput"),
-    restoreSelectAllCheckbox: document.getElementById("restoreSelectAllCheckbox"),
-    restoreSelectAllLabel: document.getElementById("restoreSelectAllLabel"),
-    restoreSelectedCount: document.getElementById("restoreSelectedCount"),
-    restoreCourseList: document.getElementById("restoreCourseList"),
-    openRestoreOfficialBtn: document.getElementById("openRestoreOfficialBtn"),
-    syncRestoreNotice: document.getElementById("syncRestoreNotice"),
-    syncRestoreNoticeText: document.getElementById("syncRestoreNoticeText"),
+    resetDefaultsBtn: document.getElementById("resetDefaultsBtn"),
     syncResultBox: document.getElementById("syncResultBox"),
     syncResultTitle: document.getElementById("syncResultTitle"),
     syncResultTime: document.getElementById("syncResultTime"),
@@ -131,9 +120,6 @@
   let currentFilter = "all";
   let lastSyncedAt = null;
   let lastSyncResult = null;
-  let restoreItems = [];
-  let selectedRestoreCodes = new Set();
-  let restoreFilterQuery = "";
 
   async function init() {
     await fetchTabInfo();
@@ -212,7 +198,6 @@
     els.showPrerequisitesToggle.checked = showPrerequisites;
     els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
     renderSyncResult(lastSyncResult);
-    checkSyncRestoreNotice();
   }
 
   function updateCourseCount() {
@@ -242,8 +227,6 @@
         els.emptyTrashBtn.style.cursor = "not-allowed";
       }
     }
-
-    checkSyncRestoreNotice();
   }
 
   // Matches domains with wildcards. Duplicated from content.js so the popup
@@ -722,211 +705,6 @@
     }
   }
 
-  function getDeletedOfficialCourses() {
-    const official = { ...bundledCourses, ...remoteCourses };
-    const deleted = [];
-    for (const code of Object.keys(official)) {
-      const isHard = hardDeletedCourses.includes(code);
-      const isSoft = softDeletedCourses.includes(code);
-      if (isHard || isSoft) {
-        deleted.push({
-          code,
-          data: official[code],
-          status: isHard ? 'hard' : 'soft'
-        });
-      }
-    }
-    return deleted.sort((a, b) => a.code.localeCompare(b.code));
-  }
-
-  function checkSyncRestoreNotice() {
-    if (!els.syncRestoreNotice || !els.syncRestoreNoticeText) return;
-    const deleted = getDeletedOfficialCourses();
-    if (deleted.length > 0) {
-      els.syncRestoreNoticeText.textContent = `ℹ️ ${deleted.length} deleted official course${deleted.length !== 1 ? 's' : ''} available to restore. Review & Restore`;
-      els.syncRestoreNotice.style.display = "block";
-    } else {
-      els.syncRestoreNotice.style.display = "none";
-    }
-  }
-
-  function openRestoreOfficialModal() {
-    restoreItems = getDeletedOfficialCourses();
-    if (restoreItems.length === 0) {
-      showToast("All official courses are already active in your database.");
-      return;
-    }
-    restoreFilterQuery = "";
-    if (els.restoreSearchInput) els.restoreSearchInput.value = "";
-    selectedRestoreCodes = new Set(restoreItems.map(item => item.code));
-    if (els.restoreSelectAllCheckbox) els.restoreSelectAllCheckbox.checked = true;
-    renderRestoreModalList();
-    if (els.restoreOfficialModal) {
-      els.restoreOfficialModal.classList.add("show");
-    }
-  }
-
-  function closeRestoreOfficialModal() {
-    if (els.restoreOfficialModal) {
-      els.restoreOfficialModal.classList.remove("show");
-    }
-  }
-
-  function renderRestoreModalList() {
-    if (!els.restoreCourseList) return;
-    els.restoreCourseList.innerHTML = "";
-
-    const q = (restoreFilterQuery || "").toLowerCase().trim();
-    const visibleItems = restoreItems.filter(item => {
-      const name = typeof item.data === "object" && item.data !== null ? (item.data.name || "") : (item.data || "");
-      return !q || item.code.toLowerCase().includes(q) || String(name).toLowerCase().includes(q);
-    });
-
-    if (visibleItems.length === 0) {
-      const empty = document.createElement("div");
-      empty.style.padding = "16px";
-      empty.style.textAlign = "center";
-      empty.style.color = "var(--text-muted)";
-      empty.style.fontSize = "0.72rem";
-      empty.textContent = q ? `No matches found for "${restoreFilterQuery}"` : "No deleted official courses.";
-      els.restoreCourseList.appendChild(empty);
-    } else {
-      for (const item of visibleItems) {
-        const row = document.createElement("div");
-        row.className = "restore-row";
-
-        const cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.checked = selectedRestoreCodes.has(item.code);
-        cb.dataset.code = item.code;
-
-        cb.addEventListener("change", (e) => {
-          e.stopPropagation();
-          if (cb.checked) {
-            selectedRestoreCodes.add(item.code);
-          } else {
-            selectedRestoreCodes.delete(item.code);
-          }
-          updateRestoreSelectionUI(visibleItems);
-        });
-
-        const codeBadge = document.createElement("span");
-        codeBadge.className = "restore-row-code";
-        codeBadge.textContent = item.code;
-
-        const nameSpan = document.createElement("span");
-        nameSpan.className = "restore-row-name";
-        const name = typeof item.data === "object" && item.data !== null ? (item.data.name || "") : (item.data || "");
-        nameSpan.textContent = name;
-        nameSpan.title = name;
-
-        const statusBadge = document.createElement("span");
-        statusBadge.className = `restore-row-status ${item.status}`;
-        statusBadge.textContent = item.status === "hard" ? "Deleted" : "In Trash";
-
-        row.appendChild(cb);
-        row.appendChild(codeBadge);
-        row.appendChild(nameSpan);
-        row.appendChild(statusBadge);
-
-        row.addEventListener("click", () => {
-          cb.checked = !cb.checked;
-          if (cb.checked) {
-            selectedRestoreCodes.add(item.code);
-          } else {
-            selectedRestoreCodes.delete(item.code);
-          }
-          updateRestoreSelectionUI(visibleItems);
-        });
-
-        els.restoreCourseList.appendChild(row);
-      }
-    }
-
-    updateRestoreSelectionUI(visibleItems);
-  }
-
-  function updateRestoreSelectionUI(visibleItems = null) {
-    if (!visibleItems) {
-      const q = (restoreFilterQuery || "").toLowerCase().trim();
-      visibleItems = restoreItems.filter(item => {
-        const name = typeof item.data === "object" && item.data !== null ? (item.data.name || "") : (item.data || "");
-        return !q || item.code.toLowerCase().includes(q) || String(name).toLowerCase().includes(q);
-      });
-    }
-
-    const count = selectedRestoreCodes.size;
-    const totalVisible = visibleItems.length;
-    const visibleSelectedCount = visibleItems.filter(item => selectedRestoreCodes.has(item.code)).length;
-
-    if (els.restoreSelectedCount) {
-      els.restoreSelectedCount.textContent = `${count} of ${restoreItems.length} selected`;
-    }
-
-    if (els.restoreSelectAllCheckbox) {
-      els.restoreSelectAllCheckbox.checked = totalVisible > 0 && visibleSelectedCount === totalVisible;
-      els.restoreSelectAllCheckbox.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < totalVisible;
-    }
-
-    if (els.confirmRestoreSelectedBtn) {
-      els.confirmRestoreSelectedBtn.textContent = `Restore Selected (${count})`;
-      els.confirmRestoreSelectedBtn.disabled = count === 0;
-      els.confirmRestoreSelectedBtn.style.opacity = count === 0 ? "0.5" : "1";
-      els.confirmRestoreSelectedBtn.style.cursor = count === 0 ? "not-allowed" : "pointer";
-    }
-  }
-
-  function handleRestoreSelectAll() {
-    const q = (restoreFilterQuery || "").toLowerCase().trim();
-    const visibleItems = restoreItems.filter(item => {
-      const name = typeof item.data === "object" && item.data !== null ? (item.data.name || "") : (item.data || "");
-      return !q || item.code.toLowerCase().includes(q) || String(name).toLowerCase().includes(q);
-    });
-
-    if (els.restoreSelectAllCheckbox && els.restoreSelectAllCheckbox.checked) {
-      visibleItems.forEach(item => selectedRestoreCodes.add(item.code));
-    } else {
-      visibleItems.forEach(item => selectedRestoreCodes.delete(item.code));
-    }
-    renderRestoreModalList();
-  }
-
-  async function executeRestoreSelected() {
-    const codesToRestore = Array.from(selectedRestoreCodes);
-    if (codesToRestore.length === 0) return;
-
-    els.confirmRestoreSelectedBtn.disabled = true;
-    els.confirmRestoreSelectedBtn.textContent = "Restoring…";
-
-    try {
-      softDeletedCourses = softDeletedCourses.filter(c => !codesToRestore.includes(c));
-      hardDeletedCourses = hardDeletedCourses.filter(c => !codesToRestore.includes(c));
-
-      await chrome.storage.local.set({ softDeletedCourses, hardDeletedCourses });
-      await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
-      await reloadLocalCoursesState();
-
-      closeRestoreOfficialModal();
-      showToast(`✅ Restored ${codesToRestore.length} course${codesToRestore.length !== 1 ? 's' : ''} to database.`, "success");
-
-      if (isTrashMode) {
-        els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
-        renderTrashList(searchQuery);
-      } else {
-        renderCourseList(searchQuery);
-      }
-      updateCourseCount();
-      checkSyncRestoreNotice();
-    } catch (err) {
-      console.error("Failed to restore courses:", err);
-      showToast("Failed to restore courses.", "error");
-    } finally {
-      if (els.confirmRestoreSelectedBtn) {
-        els.confirmRestoreSelectedBtn.disabled = false;
-      }
-    }
-  }
-
   function attachEventListeners() {
 
     // Panel sliding animations
@@ -1136,6 +914,20 @@
         } else {
           renderCourseList(searchQuery);
         }
+      } else if (pendingAction === "reset-defaults") {
+        softDeletedCourses = [];
+        hardDeletedCourses = [];
+        await chrome.storage.local.set({ softDeletedCourses, hardDeletedCourses });
+        await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
+        await reloadLocalCoursesState();
+        updateCourseCount();
+        if (isTrashMode) {
+          els.coursesPanelCount.textContent = `0 courses`;
+          renderTrashList(searchQuery);
+        } else {
+          renderCourseList(searchQuery);
+        }
+        showToast("✅ Official courses restored to default catalog.", "success");
       }
 
       pendingAction = null;
@@ -1409,7 +1201,6 @@
           els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
 
           renderSyncResult(lastSyncResult);
-          checkSyncRestoreNotice();
         } else {
           throw new Error(response.error || "Unknown error");
         }
@@ -1442,35 +1233,12 @@
       }
     });
 
-    // Restore Official Modal listeners
-    if (els.openRestoreOfficialBtn) {
-      els.openRestoreOfficialBtn.addEventListener("click", openRestoreOfficialModal);
-    }
-    if (els.syncRestoreNotice) {
-      els.syncRestoreNotice.addEventListener("click", openRestoreOfficialModal);
-    }
-    if (els.closeRestoreModalBtn) {
-      els.closeRestoreModalBtn.addEventListener("click", closeRestoreOfficialModal);
-    }
-    if (els.cancelRestoreBtn) {
-      els.cancelRestoreBtn.addEventListener("click", closeRestoreOfficialModal);
-    }
-    if (els.restoreOfficialModal) {
-      els.restoreOfficialModal.addEventListener("click", (e) => {
-        if (e.target === els.restoreOfficialModal) closeRestoreOfficialModal();
+    if (els.resetDefaultsBtn) {
+      els.resetDefaultsBtn.addEventListener("click", () => {
+        pendingAction = "reset-defaults";
+        els.modalText.textContent = "Are you sure you want to reset all official courses to their default catalog? This will un-delete all official courses. (Your custom user-added courses will be preserved).";
+        els.confirmModal.classList.add("show");
       });
-    }
-    if (els.restoreSearchInput) {
-      els.restoreSearchInput.addEventListener("input", () => {
-        restoreFilterQuery = els.restoreSearchInput.value;
-        renderRestoreModalList();
-      });
-    }
-    if (els.restoreSelectAllCheckbox) {
-      els.restoreSelectAllCheckbox.addEventListener("change", handleRestoreSelectAll);
-    }
-    if (els.confirmRestoreSelectedBtn) {
-      els.confirmRestoreSelectedBtn.addEventListener("click", executeRestoreSelected);
     }
   }
 
