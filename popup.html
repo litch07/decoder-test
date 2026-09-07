@@ -1374,23 +1374,26 @@
     }
 
     .btn-reset-danger {
-      margin-top: 8px;
+      margin-top: 6px;
       width: 100%;
-      min-height: 35px;
-      padding: 8px 14px;
-      background: #fff5f5;
-      border: 1px solid #fecaca;
-      border-radius: 8px;
+      min-height: 42px;
+      padding: 10px 14px;
+      background: #fef2f2;
+      border: 2px solid #f87171;
+      border-radius: var(--radius);
       color: #dc2626;
-      font-size: 0.72rem;
+      font-family: inherit;
+      font-size: 0.81rem;
       font-weight: 600;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.02em;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
+      gap: 8px;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      user-select: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .btn-reset-danger .reset-icon {
@@ -1400,23 +1403,26 @@
 
     .btn-reset-danger:hover {
       background: #fee2e2 !important;
-      border-color: #fca5a5 !important;
+      border-color: #ef4444 !important;
       color: #b91c1c !important;
-      box-shadow: 0 2px 6px rgba(220, 38, 38, 0.12);
+      box-shadow: 0 3px 10px rgba(239, 68, 68, 0.18);
+      transform: translateY(-1px);
     }
 
     .btn-reset-danger:active {
       transform: scale(0.98);
+      box-shadow: none;
       background: #fecaca !important;
     }
 
     /* Reset button loading state */
     .btn-reset-danger.is-loading {
-      background: #fff5f5 !important;
-      border-color: #fca5a5 !important;
+      background: #fef2f2 !important;
+      border-color: #f87171 !important;
       color: #dc2626 !important;
       cursor: wait;
       pointer-events: none;
+      opacity: 0.92;
     }
 
     .btn-reset-danger.is-loading .reset-icon {
@@ -1426,9 +1432,13 @@
     /* Reset button success state */
     .btn-reset-danger.is-success {
       background: #f0fdf4 !important;
-      border-color: #86efac !important;
-      color: #16a34a !important;
-      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.12);
+      border-color: #22c55e !important;
+      color: #15803d !important;
+      box-shadow: 0 3px 10px rgba(34, 197, 94, 0.18);
+    }
+
+    .btn-reset-danger.is-success .reset-icon {
+      transform: scale(1.18);
     }
 
     .btn-edit-del:disabled {
@@ -1872,7 +1882,7 @@
           </div>
           <button class="btn-reset-danger" id="resetDefaultsBtn"
             title="Restore all official courses to their default catalog state">
-            <svg class="reset-icon" style="width:12px;height:12px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
+            <svg class="reset-icon" style="width:14px;height:14px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
               <path
                 d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
             </svg>
@@ -1885,7 +1895,7 @@
           <span class="card-title">About Extension</span>
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem;">
             <span style="color: var(--text-muted); font-weight: 500;">Version</span>
-            <span id="extVersion" style="font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 2px 7px; border-radius: 6px; font-size: 0.7rem;">v2.0.1</span>
+            <span id="extVersion" style="font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 2px 7px; border-radius: 6px; font-size: 0.7rem;">v2.0.0</span>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; margin-top: 4px;">
             <span style="color: var(--text-muted); font-weight: 500;">Developer</span>
