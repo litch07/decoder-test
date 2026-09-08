@@ -573,8 +573,8 @@
         pendingAction = "perm-delete";
         pendingTarget = code;
         els.modalText.innerHTML = `
-          <div style="font-weight:700; font-size:0.86rem; color:var(--danger); margin-bottom:4px;">Permanently delete ${escapeHtml(code)}?</div>
-          <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">This course will be permanently removed from storage and cannot be restored from Trash.</div>
+          <div style="font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;">Permanently delete ${escapeHtml(code)}?</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">This course will be permanently removed from storage and cannot be restored.</div>
         `;
         els.confirmModal.classList.add("show");
       });
@@ -1340,8 +1340,8 @@
       pendingAction = "empty-trash";
       const count = softDeletedCourses.length;
       els.modalText.innerHTML = `
-        <div style="font-weight:700; font-size:0.86rem; color:var(--danger); margin-bottom:4px;">Empty entire Trash bin?</div>
-        <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">All ${count} deleted course${count !== 1 ? 's' : ''} will be permanently removed. This action cannot be undone.</div>
+        <div style="font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;">Permanently delete ${count === 1 ? 'course' : `all ${count} courses`}?</div>
+        <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">${count === 1 ? 'This course' : 'All courses in Trash'} will be permanently removed from storage and cannot be restored.</div>
       `;
       els.confirmModal.classList.add("show");
     });
@@ -1483,6 +1483,7 @@
           renderCourseList(searchQuery);
         }
       } else if (pendingAction === "empty-trash") {
+        const count = softDeletedCourses.length;
         softDeletedCourses.forEach(c => {
           if (userCourses[c] !== undefined) {
             delete userCourses[c];
@@ -1496,7 +1497,7 @@
         await chrome.storage.local.set({ userCourses, softDeletedCourses, hardDeletedCourses });
         await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
         await reloadLocalCoursesState();
-        showToast("Trash bin emptied", "info");
+        showToast(count === 1 ? "Course permanently deleted" : `All ${count} courses permanently deleted`, "info");
 
         if (isTrashMode) {
           els.coursesPanelCount.textContent = `0 courses`;
