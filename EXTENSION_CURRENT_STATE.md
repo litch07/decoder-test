@@ -112,9 +112,12 @@ Previously, course imports were limited to a single raw JSON input box without d
 ---
 
 ### E. Navigation, Animation & Tactile Micro-Interactions
-- **Fluid Spring View Sliding**:
+- **Fluid Spring View Sliding & Settings Slide-Over**:
   - Upgraded `.view-wrapper` transition to an Apple/Spring curve: `0.28s cubic-bezier(0.25, 1, 0.5, 1)` with `will-change: transform`.
+  - **Single-Screen Settings Slide-Over**: Instead of translating the entire carousel across 4 intervening pages at supersonic speed, `.settings-view` now smoothly slides in as an overlay panel directly over the current view (`translateX(100%) -> translateX(0)` in 0.28s). No intermediate pages (Courses, Details, Import) flash past when entering or exiting Settings.
   - Resolved focus scroll conflicts where focusing off-screen textareas or inputs caused the browser popup container to violently shift or clip headers.
+- **Header Icon Interactivity**:
+  - Main extension logo (`.header-icon`) now displays `cursor: pointer` on hover with a subtle spring lift (`transform: scale(1.05)`) and tactile click depression (`scale(0.95)`).
 - **Tactile Button Press Feedback (`:active`)**:
   - Consistent spring-eased compressions across all controls:
     * Primary & action buttons (`.btn-courses`, `.btn-sync:active:not(.is-loading)`, `#allowlistBtn`, `.btn-copy-sample`, `.contribution-btn`): `scale(0.96)` to `scale(0.98)`.
