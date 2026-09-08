@@ -112,9 +112,12 @@ Previously, course imports were limited to a single raw JSON input box without d
 ---
 
 ### E. Navigation, Animation & Tactile Micro-Interactions
-- **Fluid Spring View Sliding & Settings Slide-Over**:
-  - Upgraded `.view-wrapper` transition to an Apple/Spring curve: `0.28s cubic-bezier(0.25, 1, 0.5, 1)` with `will-change: transform`.
-  - **Single-Screen Settings Slide-Over**: Instead of translating the entire carousel across 4 intervening pages at supersonic speed, `.settings-view` now smoothly slides in as an overlay panel directly over the current view (`translateX(100%) -> translateX(0)` in 0.28s). No intermediate pages (Courses, Details, Import) flash past when entering or exiting Settings.
+- **Native Stack-Based View Navigation**:
+  - Replaced the rigid 500% horizontal carousel strip with an iOS/Material-style layered navigation stack (`position: absolute; inset: 0;`).
+  - **Single-Screen Transitions with Depth Shadows**:
+    * Each child screen (`courses-view`, `details-view`, `import-view`, `settings-view`) slides in from the right (`translateX(100%) -> translateX(0)`) with a soft elevation shadow (`box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12)`).
+    * Underlying parent screens subtly parallax shift left (`translateX(-15%)`) and dim (`opacity: 0.85`), providing authentic physical depth.
+    * Eliminates all multi-screen skipping: Going Courses $\leftrightarrow$ Import never flashes Details in between; Home $\leftrightarrow$ Settings never flashes Courses or Import. Every transition travels exactly 1 screen width (360px) in 0.28s.
   - Resolved focus scroll conflicts where focusing off-screen textareas or inputs caused the browser popup container to violently shift or clip headers.
 - **Header Icon Interactivity**:
   - Main extension logo (`.header-icon`) now displays `cursor: pointer` on hover with a subtle spring lift (`transform: scale(1.05)`) and tactile click depression (`scale(0.95)`).
