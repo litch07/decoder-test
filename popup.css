@@ -387,29 +387,18 @@
       transform: translateX(19px);
     }
 
-    .status-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 11px;
-      border-radius: 8px;
-      font-size: 0.73rem;
-      font-weight: 600;
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-    }
-
     .status-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
       flex-shrink: 0;
       transition: background 0.3s, box-shadow 0.3s;
+      display: inline-block;
     }
 
     .status-dot.active {
       background: var(--success);
-      box-shadow: 0 0 7px rgba(16, 185, 129, 0.5);
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);
     }
 
     .status-dot.inactive {
@@ -417,97 +406,61 @@
       box-shadow: none;
     }
 
-    /* ── INACTIVE / PAUSED DOMAIN CARD ── */
-    .inactive-site-card {
+    /* ── UNIFIED SITE HERO CARD ── */
+    .site-card {
       background: var(--surface);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 13px 15px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      flex-shrink: 0;
+    }
+
+    .site-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .site-info {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      animation: fadeIn 0.22s ease-out;
+      gap: 3px;
+      min-width: 0;
+      flex: 1;
     }
 
-    .inactive-card-header {
+    .site-domain-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
+      min-width: 0;
     }
 
-    .inactive-icon-box {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: #f1f5f9;
-      border: 1px solid var(--border-color);
-      display: grid;
-      place-items: center;
-      color: var(--text-muted);
+    .site-icon {
+      width: 14px;
+      height: 14px;
+      fill: var(--text-muted);
       flex-shrink: 0;
     }
 
-    .inactive-icon-box svg {
-      width: 16px;
-      height: 16px;
-      fill: currentColor;
-    }
-
-    .inactive-title {
-      font-size: 0.80rem;
+    .site-domain {
+      font-size: 0.84rem;
       font-weight: 700;
       color: var(--text-main);
-      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .inactive-subtitle {
-      font-size: 0.69rem;
-      color: var(--text-muted);
-      margin-top: 1px;
-    }
-
-    .inactive-desc {
-      font-size: 0.70rem;
-      color: var(--text-muted);
-      line-height: 1.45;
-      text-align: justify;
-      text-justify: inter-word;
-    }
-
-    .inactive-action-row {
-      margin-top: 2px;
-    }
-
-    .btn-inactive-settings {
-      width: 100%;
+    .site-status {
       display: flex;
       align-items: center;
-      gap: 7px;
-      padding: 7px 11px;
-      background: var(--surface2);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      color: var(--text-main);
-      font-size: 0.71rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.18s ease;
-      box-sizing: border-box;
-    }
-
-    .btn-inactive-settings:hover {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
-      color: var(--accent);
-    }
-
-    .btn-inactive-settings svg {
-      width: 13px;
-      height: 13px;
-      fill: currentColor;
-      flex-shrink: 0;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text-muted);
     }
 
     .allowlist-input-row {

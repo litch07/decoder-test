@@ -117,13 +117,13 @@ Previously, course imports were limited to a single raw JSON input box without d
 
 ---
 
-### F. Main View (Home Screen) Inactive Domain State
-- **Eliminated 200px Empty Void**: When the extension is disabled on a site (e.g. non-UIU domains like `claude.ai`), replacing the hidden Display Settings with a styled `#inactiveSiteCard` maintains visual balance and eliminates dead white space.
-- **Contextual Inactive Card**:
-  - Displays a clean pause icon box with title `Course Detection Paused` and dynamic domain subtitle (`Inactive on ${currentHost}`).
-  - Explanatory copy: *"Decoder is paused on this domain. Turn on the switch above to automatically detect UIU course codes, prerequisites, and exam schedules on this page."*
-  - Interactive shortcut button `Manage Allowed Domains` with gear icon that navigates directly to Settings view (`#allowlistContainer`).
-- **De-escalated Status Dot**: Replaced the harsh red warning dot (`var(--danger)` with red glow) with a calm, neutral slate dot (`#94a3b8`, no glow) to indicate expected inactive state rather than an error condition.
+### F. Main View (Home Screen) Unified Site Card & Global Settings
+- **Zero Redundancy**: Eliminated duplicate status boxes and redundant paused notice cards. Merged the domain name, status indicator, and toggle switch into a single, clean `.site-card` hero.
+- **Global Settings Stability**: Display Mode (`Highlight`, `Tooltip`, `Inline`) and schedule toggles remain permanently accessible as global user preferences rather than collapsing when visiting non-whitelisted sites.
+- **Soft Status Indicator**:
+  - Active: Emerald green dot + `Active on this page`
+  - Inactive: Calm neutral slate dot (`#94a3b8`) + `Paused on this site` (no alarmist red error dot).
+- **Balanced Layout**: The combination of `Courses Indexed` pill, unified site hero card, global display settings, and `Manage Course Database` fills the 500px popup naturally without artificial gaps or layout bounce.
 
 ---
 

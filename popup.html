@@ -67,20 +67,25 @@
           <span class="stat-value" id="courseCount">—</span>
         </div>
 
-        <div class="card">
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-label">Enable on this site</div>
-              <div class="toggle-sub" id="currentSite">—</div>
+        <div class="card site-card">
+          <div class="site-card-header">
+            <div class="site-info">
+              <div class="site-domain-row">
+                <svg class="site-icon" viewBox="0 0 24 24">
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                </svg>
+                <span class="site-domain" id="currentSite">—</span>
+              </div>
+              <div class="site-status">
+                <span class="status-dot active" id="statusDot"></span>
+                <span id="statusText">Active on this page</span>
+              </div>
             </div>
-            <label class="switch" id="toggleLabel">
+            <label class="switch" id="toggleLabel" title="Toggle extension on this domain">
               <input type="checkbox" id="siteToggle" checked />
               <span class="switch-track"></span>
             </label>
-          </div>
-          <div class="status-bar">
-            <div class="status-dot active" id="statusDot"></div>
-            <span id="statusText">Active on this page</span>
           </div>
         </div>
 
@@ -130,34 +135,6 @@
               <input type="checkbox" id="showPrerequisitesToggle" />
               <span class="switch-track"></span>
             </label>
-          </div>
-        </div>
-
-        <div class="card inactive-site-card" id="inactiveSiteCard" style="display: none;">
-          <div class="inactive-card-header">
-            <div class="inactive-icon-box">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
-              </svg>
-            </div>
-            <div>
-              <div class="inactive-title">Course Detection Paused</div>
-              <div class="inactive-subtitle" id="inactiveHostLabel">Inactive on this domain</div>
-            </div>
-          </div>
-          <div class="inactive-desc">
-            Decoder is paused on this domain. Turn on the switch above to automatically detect UIU course codes, prerequisites, and exam schedules on this page.
-          </div>
-          <div class="inactive-action-row">
-            <button type="button" class="btn-inactive-settings" id="inactiveSettingsLink">
-              <svg viewBox="0 0 24 24">
-                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
-              </svg>
-              <span>Manage Allowed Domains</span>
-              <svg style="width:11px;height:11px;margin-left:auto;opacity:0.6;" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-              </svg>
-            </button>
           </div>
         </div>
 
