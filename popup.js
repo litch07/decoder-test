@@ -1593,7 +1593,7 @@
     const SAMPLE_TWO_COURSES = JSON.stringify({
       "CSE 3715": {
         "name": "Software Engineering",
-        "examDay": "Day 1",
+        "examDay": "D1",
         "examSlot": "T1",
         "prerequisites": ["CSE 2215", "CSE 2216"]
       },

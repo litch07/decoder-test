@@ -1897,51 +1897,6 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
-    .single-course-intro {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 8px 10px;
-      background: var(--surface2);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-    }
-
-    .single-course-intro .intro-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      background: var(--accent-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .single-course-intro .intro-icon svg {
-      width: 14px;
-      height: 14px;
-      fill: var(--accent);
-    }
-
-    .single-course-intro .intro-text {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-
-    .single-course-intro .intro-text strong {
-      font-size: 0.72rem;
-      color: var(--text-main);
-      font-weight: 700;
-    }
-
-    .single-course-intro .intro-text span {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      line-height: 1.35;
-    }
-
     .single-form-grid {
       display: flex;
       flex-direction: column;
@@ -2833,16 +2788,6 @@
 
         <!-- Section 1: Single Course Form -->
         <div class="single-course-card" id="singleCourseSection">
-          <div class="single-course-intro">
-            <div class="intro-icon">
-              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            </div>
-            <div class="intro-text">
-              <strong>Add Custom Course</strong>
-              <span>Course code &amp; title are required. Schedule &amp; prerequisites are optional.</span>
-            </div>
-          </div>
-
           <div class="single-form-grid">
             <!-- Section A: Identity -->
             <div class="form-section-header">
@@ -2884,7 +2829,7 @@
                   <svg class="label-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/></svg>
                   Exam Day
                 </label>
-                <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. Day 1 or Sunday" autocomplete="off" />
+                <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. D1, D2, or D3" autocomplete="off" />
               </div>
 
               <div class="form-group">
@@ -2944,7 +2889,7 @@
               Click <strong>Copy</strong> to copy the 2-course template format, customize with your course details, then paste below. Supports both complete and minimal course info.
             </div>
             <textarea class="json-textarea" id="jsonInput" style="height: 220px; font-size: 0.74rem; font-family: monospace;"
-              placeholder='{&#10;  "CSE 3715": {&#10;    "name": "Software Engineering",&#10;    "examDay": "Day 1",&#10;    "examSlot": "T1",&#10;    "prerequisites": [&#10;      "CSE 2215",&#10;      "CSE 2216"&#10;    ]&#10;  },&#10;  "ACT 1111": {&#10;    "name": "Financial Accounting",&#10;    "examDay": "",&#10;    "examSlot": "",&#10;    "prerequisites": []&#10;  }&#10;}'></textarea>
+              placeholder='{&#10;  "CSE 3715": {&#10;    "name": "Software Engineering",&#10;    "examDay": "D1",&#10;    "examSlot": "T1",&#10;    "prerequisites": [&#10;      "CSE 2215",&#10;      "CSE 2216"&#10;    ]&#10;  },&#10;  "ACT 1111": {&#10;    "name": "Financial Accounting",&#10;    "examDay": "",&#10;    "examSlot": "",&#10;    "prerequisites": []&#10;  }&#10;}'></textarea>
             <div class="import-msg" id="importMsg"></div>
             <div class="import-actions" style="margin-top: 8px;">
               <button class="btn-import" id="importBtn" style="padding: 11px;">

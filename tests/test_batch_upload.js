@@ -4,7 +4,7 @@ const assert = require("assert");
 const SAMPLE_TWO_COURSES = JSON.stringify({
   "CSE 3715": {
     "name": "Software Engineering",
-    "examDay": "Day 1",
+    "examDay": "D1",
     "examSlot": "T1",
     "prerequisites": ["CSE 2215", "CSE 2216"]
   },
@@ -78,7 +78,7 @@ async function runTests() {
 
   const cse3715 = parsedSample["CSE 3715"];
   assert.strictEqual(cse3715.name, "Software Engineering");
-  assert.strictEqual(cse3715.examDay, "Day 1");
+  assert.strictEqual(cse3715.examDay, "D1");
   assert.strictEqual(cse3715.examSlot, "T1");
   assert.deepStrictEqual(cse3715.prerequisites, ["CSE 2215", "CSE 2216"]);
 
