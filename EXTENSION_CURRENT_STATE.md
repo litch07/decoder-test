@@ -127,6 +127,15 @@ Previously, course imports were limited to a single raw JSON input box without d
 
 ---
 
+### G. Settings View: Modern Allowed Domains Tag Cloud
+- **Eliminated Narrow 76px Scroll Box**: Replaced the cramped vertical list with a flexible wrapping tag cloud (`flex-wrap: wrap; gap: 6px;`).
+- **Interactive Domain Chips**:
+  - Rendered as compact badges: `[ 🌐 ucam.uiu.ac.bd  ✕ ]` with a clean globe icon, monospace font, and subtle hover states.
+  - One-click remove button with soft red hover animation.
+  - All domains are visible simultaneously at a glance, naturally wrapping across rows without unnecessary internal scrollbars.
+
+---
+
 ## 3. Current Data Architecture & Merge Precedence
 
 ### Storage Keys (`chrome.storage.local`)

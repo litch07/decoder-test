@@ -339,10 +339,10 @@
 
     if (allowedSites.length === 0) {
       const msg = document.createElement("div");
-      msg.style.padding = "7px";
+      msg.style.padding = "8px 4px";
       msg.style.textAlign = "center";
       msg.style.color = "var(--text-muted)";
-      msg.style.fontSize = "0.7rem";
+      msg.style.fontSize = "0.72rem";
       msg.textContent = "No domains allowed yet.";
       els.allowlistContainer.appendChild(msg);
       return;
@@ -350,15 +350,25 @@
 
     const frag = document.createDocumentFragment();
     allowedSites.forEach(site => {
-      const div = document.createElement("div");
-      div.className = "allowlist-item";
+      const chip = document.createElement("div");
+      chip.className = "allowlist-item";
+
+      const iconSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      iconSvg.setAttribute("class", "allowlist-item-icon");
+      iconSvg.setAttribute("viewBox", "0 0 24 24");
+      const iconPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      iconPath.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z");
+      iconSvg.appendChild(iconPath);
 
       const span = document.createElement("span");
+      span.className = "allowlist-item-text";
       span.textContent = site;
 
       const btn = document.createElement("button");
+      btn.type = "button";
       btn.appendChild(createIcon('remove'));
       btn.title = `Remove ${site}`;
+      btn.setAttribute("aria-label", `Remove ${site}`);
       btn.addEventListener("click", async () => {
         allowedSites = allowedSites.filter(s => s !== site);
         await chrome.storage.local.set({ allowedSites });
@@ -366,9 +376,10 @@
         updateToggleAndStatus();
       });
 
-      div.appendChild(span);
-      div.appendChild(btn);
-      frag.appendChild(div);
+      chip.appendChild(iconSvg);
+      chip.appendChild(span);
+      chip.appendChild(btn);
+      frag.appendChild(chip);
     });
 
     els.allowlistContainer.appendChild(frag);

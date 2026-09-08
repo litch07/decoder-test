@@ -513,33 +513,62 @@
     }
 
     .allowlist-item {
-      display: flex;
-      justify-content: space-between;
+      display: inline-flex;
       align-items: center;
-      background: #f8fafc;
+      gap: 5px;
+      background: #f1f5f9;
       border: 1px solid var(--border-color);
-      padding: 5px 9px;
+      padding: 4px 6px 4px 8px;
       border-radius: 6px;
       font-size: 0.72rem;
       font-weight: 500;
+      color: var(--text-main);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .allowlist-item:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+    }
+
+    .allowlist-item-icon {
+      width: 12px;
+      height: 12px;
+      fill: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .allowlist-item-text {
+      line-height: 1.25;
+      word-break: break-all;
     }
 
     .allowlist-item button {
-      background: none;
+      background: transparent;
       border: none;
-      color: var(--danger);
+      color: #94a3b8;
       cursor: pointer;
-      font-weight: bold;
-      font-size: 1rem;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       padding: 2px;
       border-radius: 4px;
+      margin-left: 2px;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
     }
 
     .allowlist-item button:hover {
       background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .allowlist-item button svg {
+      width: 10px;
+      height: 10px;
+      fill: currentColor;
     }
 
     .mode-group {
