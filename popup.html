@@ -421,8 +421,101 @@
     }
 
     .status-dot.inactive {
-      background: var(--danger);
-      box-shadow: 0 0 7px rgba(239, 68, 68, 0.5);
+      background: #94a3b8;
+      box-shadow: none;
+    }
+
+    /* ── INACTIVE / PAUSED DOMAIN CARD ── */
+    .inactive-site-card {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 13px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      animation: fadeIn 0.22s ease-out;
+    }
+
+    .inactive-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .inactive-icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      border: 1px solid var(--border-color);
+      display: grid;
+      place-items: center;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .inactive-icon-box svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .inactive-title {
+      font-size: 0.80rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.25;
+    }
+
+    .inactive-subtitle {
+      font-size: 0.69rem;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .inactive-desc {
+      font-size: 0.70rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
+    .inactive-action-row {
+      margin-top: 2px;
+    }
+
+    .btn-inactive-settings {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      background: var(--surface2);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 0.71rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.18s ease;
+      box-sizing: border-box;
+    }
+
+    .btn-inactive-settings:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: var(--accent);
+    }
+
+    .btn-inactive-settings svg {
+      width: 13px;
+      height: 13px;
+      fill: currentColor;
+      flex-shrink: 0;
     }
 
     .allowlist-input-row {
@@ -2659,6 +2752,34 @@
               <input type="checkbox" id="showPrerequisitesToggle" />
               <span class="switch-track"></span>
             </label>
+          </div>
+        </div>
+
+        <div class="card inactive-site-card" id="inactiveSiteCard" style="display: none;">
+          <div class="inactive-card-header">
+            <div class="inactive-icon-box">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
+              </svg>
+            </div>
+            <div>
+              <div class="inactive-title">Course Detection Paused</div>
+              <div class="inactive-subtitle" id="inactiveHostLabel">Inactive on this domain</div>
+            </div>
+          </div>
+          <div class="inactive-desc">
+            Decoder is paused on this domain. Turn on the switch above to automatically detect UIU course codes, prerequisites, and exam schedules on this page.
+          </div>
+          <div class="inactive-action-row">
+            <button type="button" class="btn-inactive-settings" id="inactiveSettingsLink">
+              <svg viewBox="0 0 24 24">
+                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+              </svg>
+              <span>Manage Allowed Domains</span>
+              <svg style="width:11px;height:11px;margin-left:auto;opacity:0.6;" viewBox="0 0 24 24">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+              </svg>
+            </button>
           </div>
         </div>
 

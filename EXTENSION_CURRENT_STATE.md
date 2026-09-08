@@ -117,6 +117,16 @@ Previously, course imports were limited to a single raw JSON input box without d
 
 ---
 
+### F. Main View (Home Screen) Inactive Domain State
+- **Eliminated 200px Empty Void**: When the extension is disabled on a site (e.g. non-UIU domains like `claude.ai`), replacing the hidden Display Settings with a styled `#inactiveSiteCard` maintains visual balance and eliminates dead white space.
+- **Contextual Inactive Card**:
+  - Displays a clean pause icon box with title `Course Detection Paused` and dynamic domain subtitle (`Inactive on ${currentHost}`).
+  - Explanatory copy: *"Decoder is paused on this domain. Turn on the switch above to automatically detect UIU course codes, prerequisites, and exam schedules on this page."*
+  - Interactive shortcut button `Manage Allowed Domains` with gear icon that navigates directly to Settings view (`#allowlistContainer`).
+- **De-escalated Status Dot**: Replaced the harsh red warning dot (`var(--danger)` with red glow) with a calm, neutral slate dot (`#94a3b8`, no glow) to indicate expected inactive state rather than an error condition.
+
+---
+
 ## 3. Current Data Architecture & Merge Precedence
 
 ### Storage Keys (`chrome.storage.local`)

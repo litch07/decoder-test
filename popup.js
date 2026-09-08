@@ -19,6 +19,7 @@
     allowlistBtn: document.getElementById("allowlistBtn"),
     allowlistContainer: document.getElementById("allowlistContainer"),
     displaySettingsCard: document.getElementById("displaySettingsCard"),
+    inactiveSiteCard: document.getElementById("inactiveSiteCard"),
     modeRadios: document.querySelectorAll('input[name="mode"]'),
     showExamInfoToggle: document.getElementById("showExamInfoToggle"),
     showPrerequisitesToggle: document.getElementById("showPrerequisitesToggle"),
@@ -328,11 +329,19 @@
       els.statusText.textContent = "Active on this page";
       els.statusText.style.color = "var(--success)";
       if (els.displaySettingsCard) els.displaySettingsCard.style.display = "";
+      if (els.inactiveSiteCard) els.inactiveSiteCard.style.display = "none";
     } else {
       els.statusDot.className = "status-dot inactive";
       els.statusText.textContent = "Disabled on this site";
       els.statusText.style.color = "var(--text-muted)";
       if (els.displaySettingsCard) els.displaySettingsCard.style.display = "none";
+      if (els.inactiveSiteCard) {
+        els.inactiveSiteCard.style.display = "";
+        const hostLabel = document.getElementById("inactiveHostLabel");
+        if (hostLabel) {
+          hostLabel.textContent = currentHost ? `Inactive on ${currentHost}` : "Inactive on this domain";
+        }
+      }
     }
   }
 
@@ -1232,6 +1241,7 @@
     };
     els.openSettingsBtn?.addEventListener("click", openSettings);
     document.getElementById("homeSyncAlert")?.addEventListener("click", openSettings);
+    document.getElementById("inactiveSettingsLink")?.addEventListener("click", openSettings);
 
     els.settingsBackBtn?.addEventListener("click", () => {
       els.viewWrapper.classList.remove("show-settings");
