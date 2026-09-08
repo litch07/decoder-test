@@ -60,6 +60,9 @@
     clearSingleFormBtn: document.getElementById("clearSingleFormBtn"),
     singleCourseMsg: document.getElementById("singleCourseMsg"),
     openImportBtn: document.getElementById("openImportBtn"),
+    openBatchBtn: document.getElementById("openBatchBtn"),
+    coursesActionsRow: document.getElementById("coursesActionsRow"),
+    openBatchFromSingleBtn: document.getElementById("openBatchFromSingleBtn"),
     importBackBtn: document.getElementById("importBackBtn"),
     detailsBackBtn: document.getElementById("detailsBackBtn"),
     detailsCourseCode: document.getElementById("detailsCourseCode"),
@@ -1169,6 +1172,7 @@
       if (els.colHeaderAction) els.colHeaderAction.textContent = "";
       els.viewTrashBtn.style.display = "grid";
       els.courseFilterRow.style.display = "flex";
+      if (els.coursesActionsRow) els.coursesActionsRow.style.display = "flex";
       els.openImportBtn.style.display = "flex";
       renderCourseList(searchQuery);
       els.viewWrapper.classList.add("show-courses");
@@ -1185,8 +1189,41 @@
       els.viewWrapper.classList.remove("show-settings");
     });
 
+    function activateSingleCourseTab() {
+      els.tabSingleCourse?.classList.add("active");
+      els.tabBulkImport?.classList.remove("active");
+      if (els.singleCourseSection) els.singleCourseSection.style.display = "flex";
+      if (els.bulkImportSection) els.bulkImportSection.style.display = "none";
+      const subtitle = document.getElementById("importViewSubtitle");
+      if (subtitle) subtitle.textContent = "Add single course to catalog";
+      els.singleCourseCode?.focus();
+    }
+
+    function activateBatchUploadTab(showMessage = false) {
+      els.tabBulkImport?.classList.add("active");
+      els.tabSingleCourse?.classList.remove("active");
+      if (els.singleCourseSection) els.singleCourseSection.style.display = "none";
+      if (els.bulkImportSection) els.bulkImportSection.style.display = "flex";
+      const subtitle = document.getElementById("importViewSubtitle");
+      if (subtitle) subtitle.textContent = "Paste JSON to batch upload courses";
+      if (showMessage) {
+        showImportMsg("info", "💡 Tip: Click 'Copy Sample JSON' to copy the 2-course format template.");
+      }
+      els.jsonInput?.focus();
+    }
+
     els.openImportBtn?.addEventListener("click", () => {
+      activateSingleCourseTab();
       els.viewWrapper.classList.add("show-import");
+    });
+
+    els.openBatchBtn?.addEventListener("click", () => {
+      activateBatchUploadTab(false);
+      els.viewWrapper.classList.add("show-import");
+    });
+
+    els.openBatchFromSingleBtn?.addEventListener("click", () => {
+      activateBatchUploadTab(true);
     });
 
     els.importBackBtn?.addEventListener("click", () => {
@@ -1205,6 +1242,7 @@
         } else {
           els.trashActionsRow.style.display = "none";
         }
+        if (els.coursesActionsRow) els.coursesActionsRow.style.display = "none";
         els.openImportBtn.style.display = "none";
         renderTrashList(searchQuery);
       } else {
@@ -1213,6 +1251,7 @@
         els.viewTrashBtn.style.display = "grid";
         els.courseFilterRow.style.display = "flex";
         els.trashActionsRow.style.display = "none";
+        if (els.coursesActionsRow) els.coursesActionsRow.style.display = "flex";
         els.openImportBtn.style.display = "flex";
         renderCourseList(searchQuery);
       }
@@ -1226,6 +1265,7 @@
         els.viewTrashBtn.style.display = "grid";
         els.courseFilterRow.style.display = "flex";
         els.trashActionsRow.style.display = "none";
+        if (els.coursesActionsRow) els.coursesActionsRow.style.display = "flex";
         els.openImportBtn.style.display = "flex";
         renderCourseList(searchQuery);
       } else {
@@ -1551,48 +1591,54 @@
       });
     });
 
+    // 2-course sample JSON template matching the placeholder format
+    const SAMPLE_TWO_COURSES = JSON.stringify({
+      "CSE 3715": {
+        "name": "Software Engineering",
+        "examDay": "Sunday",
+        "examSlot": "Slot A (09:00 AM - 11:00 AM)",
+        "prerequisites": ["CSE 2215", "CSE 2216"]
+      },
+      "ACT 1111": {
+        "name": "Financial Accounting",
+        "examDay": "Tuesday",
+        "examSlot": "Slot B (11:30 AM - 01:30 PM)",
+        "prerequisites": []
+      }
+    }, null, 2);
+
     // Copy Sample button
     els.copySampleBtn?.addEventListener("click", async () => {
-      const sample = `{
-  "COURSE CODE": {
-    "name": "Full Name of The Course",
-    "examDay": "Day",
-    "examSlot": "Slot",
-    "prerequisites": ["PREREQ1", "PREREQ2"]
-  }
-}`;
       try {
-        await navigator.clipboard.writeText(sample);
+        await navigator.clipboard.writeText(SAMPLE_TWO_COURSES);
+        const originalHtml = els.copySampleBtn.innerHTML;
         els.copySampleBtn.textContent = "Copied!";
         els.copySampleBtn.style.background = "var(--accent)";
         els.copySampleBtn.style.color = "#fff";
+        showImportMsg("success", "📋 Copied 2-course sample JSON format to clipboard! Edit details and click Import & Merge.");
         setTimeout(() => {
-          els.copySampleBtn.textContent = "Copy Sample";
+          els.copySampleBtn.innerHTML = originalHtml;
           els.copySampleBtn.style.background = "";
           els.copySampleBtn.style.color = "";
-        }, 2000);
+        }, 2200);
       } catch (err) {
         console.error("Failed to copy", err);
+        if (els.jsonInput && !els.jsonInput.value.trim()) {
+          els.jsonInput.value = SAMPLE_TWO_COURSES;
+          showImportMsg("info", "📋 Loaded 2-course sample JSON into editor.");
+        } else {
+          showImportMsg("error", "⚠️ Could not copy to clipboard. Please copy directly from the placeholder.");
+        }
       }
     });
 
     // Add / Import Tab Switching
     els.tabSingleCourse?.addEventListener("click", () => {
-      els.tabSingleCourse.classList.add("active");
-      els.tabBulkImport?.classList.remove("active");
-      if (els.singleCourseSection) els.singleCourseSection.style.display = "flex";
-      if (els.bulkImportSection) els.bulkImportSection.style.display = "none";
-      const subtitle = document.getElementById("importViewSubtitle");
-      if (subtitle) subtitle.textContent = "Add single course to catalog";
+      activateSingleCourseTab();
     });
 
     els.tabBulkImport?.addEventListener("click", () => {
-      els.tabBulkImport.classList.add("active");
-      els.tabSingleCourse?.classList.remove("active");
-      if (els.singleCourseSection) els.singleCourseSection.style.display = "none";
-      if (els.bulkImportSection) els.bulkImportSection.style.display = "flex";
-      const subtitle = document.getElementById("importViewSubtitle");
-      if (subtitle) subtitle.textContent = "Paste JSON to merge courses";
+      activateBatchUploadTab(false);
     });
 
     // Remove input error borders when user types
