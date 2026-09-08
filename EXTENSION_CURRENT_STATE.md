@@ -180,7 +180,8 @@ Previously, course imports were limited to a single raw JSON input box without d
 
 ## 4. Key Files & Structure
 
-- `popup.html` — Popup user interface markup and styles. Contains 4 views (Main Settings, Course Manager, Course Details, Add/Import Courses) and confirmation modal overlays.
+- `popup.html` — Lean semantic markup for the popup interface (Main Settings, Course Database, Course Details, Add/Import Courses, and Settings view) with confirmation modals. References `popup.css`.
+- `popup.css` — Dedicated stylesheet containing all design tokens, card styles, transitions, animations, and component layouts (extracted from `popup.html` for token efficiency).
 - `popup.js` — Client-side UI logic, view router, form validation, real-time JSON editor badge, message helpers, and storage listener integrations.
 - `background.js` — Service worker. Handles catalog merging, storage migration, remote synchronization, and course count queries.
 - `content.js` — Injected script. Builds regex matcher from `courses`, decorates DOM nodes (inline, tooltip, or highlight), manages Highcharts SVG overlays, and utilizes `MutationObserver` safely.
