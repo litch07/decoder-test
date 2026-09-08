@@ -1193,7 +1193,9 @@
       if (els.bulkImportSection) els.bulkImportSection.style.display = "none";
       const subtitle = document.getElementById("importViewSubtitle");
       if (subtitle) subtitle.textContent = "Add single course to catalog";
-      els.singleCourseCode?.focus();
+      setTimeout(() => {
+        els.singleCourseCode?.focus({ preventScroll: true });
+      }, 350);
     }
 
     function activateBatchUploadTab(showMessage = false) {
@@ -1206,20 +1208,33 @@
       if (showMessage) {
         showImportMsg("info", "💡 Tip: Click 'Copy Sample JSON' to copy the 2-course format template.");
       }
-      els.jsonInput?.focus();
+      setTimeout(() => {
+        els.jsonInput?.focus({ preventScroll: true });
+      }, 350);
     }
 
-    els.openImportBtn?.addEventListener("click", () => {
+    els.openImportBtn?.addEventListener("click", (e) => {
+      e?.preventDefault();
+      document.body.scrollLeft = 0;
+      document.documentElement.scrollLeft = 0;
+      if (els.viewWrapper) els.viewWrapper.scrollLeft = 0;
       activateSingleCourseTab();
+      els.viewWrapper.classList.remove("show-details", "show-settings");
       els.viewWrapper.classList.add("show-import");
     });
 
-    els.openBatchFromSingleBtn?.addEventListener("click", () => {
+    els.openBatchFromSingleBtn?.addEventListener("click", (e) => {
+      e?.preventDefault();
       activateBatchUploadTab(true);
     });
 
-    els.importBackBtn?.addEventListener("click", () => {
+    els.importBackBtn?.addEventListener("click", (e) => {
+      e?.preventDefault();
+      document.body.scrollLeft = 0;
+      document.documentElement.scrollLeft = 0;
+      if (els.viewWrapper) els.viewWrapper.scrollLeft = 0;
       els.viewWrapper.classList.remove("show-import");
+      els.viewWrapper.classList.add("show-courses");
     });
 
     els.viewTrashBtn?.addEventListener("click", () => {
