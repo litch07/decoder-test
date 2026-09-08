@@ -120,9 +120,10 @@ Previously, course imports were limited to a single raw JSON input box without d
 ### F. Main View (Home Screen) Unified Site Card & Global Settings
 - **Zero Redundancy**: Eliminated duplicate status boxes and redundant paused notice cards. Merged the domain name, status indicator, and toggle switch into a single, clean `.site-card` hero.
 - **Global Settings Stability**: Display Mode (`Highlight`, `Tooltip`, `Inline`) and schedule toggles remain permanently accessible as global user preferences rather than collapsing when visiting non-whitelisted sites.
-- **Soft Status Indicator**:
+- **Soft Status Indicator & Column Alignment**:
   - Active: Emerald green dot + `Active on this page`
   - Inactive: Calm neutral slate dot (`#94a3b8`) + `Paused on this site` (no alarmist red error dot).
+  - Status dot centered directly on the vertical centerline of the 14px domain globe icon (`margin: 0 3px`), with status text starting at the exact same horizontal coordinate (`20px`) as the domain name.
 - **Balanced Layout**: The combination of `Courses Indexed` pill, unified site hero card, global display settings, and `Manage Course Database` fills the 500px popup naturally without artificial gaps or layout bounce.
 
 ---
