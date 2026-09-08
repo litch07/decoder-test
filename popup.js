@@ -33,8 +33,10 @@
     trashActionsRow: document.getElementById("trashActionsRow"),
     restoreAllBtn: document.getElementById("restoreAllBtn"),
     emptyTrashBtn: document.getElementById("emptyTrashBtn"),
+    courseTableCard: document.getElementById("courseTableCard"),
     courseList: document.getElementById("courseList"),
     courseListHeader: document.getElementById("courseListHeader"),
+    colHeaderAction: document.getElementById("colHeaderAction"),
     courseSearch: document.getElementById("courseSearch"),
     searchClearBtn: document.getElementById("searchClearBtn"),
     courseFilterRow: document.getElementById("courseFilterRow"),
@@ -401,6 +403,20 @@
     return val;
   }
 
+  function getCourseOrigin(code) {
+    const inBundled = !!bundledCourses[code];
+    const inRemote = !!remoteCourses[code];
+    const inUser = !!userCourses[code];
+
+    if (!inBundled && !inRemote && inUser) {
+      return { class: "user-added", label: "User Added" };
+    } else if ((inBundled || inRemote) && inUser) {
+      return { class: "edited", label: "Edited" };
+    } else {
+      return { class: "official", label: "Official" };
+    }
+  }
+
   async function reloadLocalCoursesState() {
     const data = await chrome.storage.local.get(["courses", "softDeletedCourses", "userCourses", "remoteCourses", "hardDeletedCourses"]);
     courses = data.courses || {};
@@ -412,7 +428,6 @@
   }
 
   function renderTrashList(filter = "") {
-    if (els.courseListHeader) els.courseListHeader.style.display = "none";
     const lc = filter.toLowerCase().trim();
     const entries = softDeletedCourses
       .map(code => ({ code, data: getSoftDeletedCourseData(code) }))
@@ -423,6 +438,11 @@
       .sort((a, b) => a.code.localeCompare(b.code));
 
     if (entries.length === 0) {
+      if (els.courseListHeader) els.courseListHeader.style.display = "none";
+      if (els.trashActionsRow && softDeletedCourses.length === 0) {
+        els.trashActionsRow.style.display = "none";
+      }
+
       const emptyState = document.createElement("div");
       emptyState.className = "empty-state";
 
@@ -469,62 +489,82 @@
       return;
     }
 
+    if (els.courseTableCard) els.courseTableCard.classList.add("trash-mode");
+    if (els.courseListHeader) {
+      els.courseListHeader.style.display = "grid";
+      if (els.colHeaderAction) els.colHeaderAction.textContent = "Action";
+    }
+    if (els.trashActionsRow && !filter) {
+      els.trashActionsRow.style.display = "flex";
+    }
+
     const frag = document.createDocumentFragment();
     entries.forEach(({ code, data }) => {
       const row = document.createElement("div");
-      row.className = "course-row";
-      row.style.cursor = "default";
+      row.className = "course-grid-row";
 
       const name = typeof data === "object" && data !== null ? (data.name || "") : (data || "Unknown Course");
 
-      const textCol = document.createElement("div");
-      textCol.style.flex = "1";
-      textCol.style.display = "flex";
-      textCol.style.flexDirection = "column";
-
-      const codeEl = document.createElement("span");
+      const codeEl = document.createElement("div");
       codeEl.className = "course-row-code";
       codeEl.textContent = code;
+      codeEl.title = code;
 
-      const nameEl = document.createElement("span");
+      const nameEl = document.createElement("div");
       nameEl.className = "course-row-name";
       nameEl.textContent = name;
+      nameEl.title = name;
 
-      textCol.appendChild(codeEl);
-      textCol.appendChild(nameEl);
+      const origin = getCourseOrigin(code);
+      const typeEl = document.createElement("div");
+      typeEl.className = "course-row-type";
+
+      const badge = document.createElement("span");
+      badge.className = `origin-badge ${origin.class}`;
+      badge.textContent = origin.label;
+      typeEl.appendChild(badge);
 
       const actionCol = document.createElement("div");
-      actionCol.style.display = "flex";
-      actionCol.style.gap = "4px";
+      actionCol.className = "trash-row-actions";
 
       const restoreBtn = document.createElement("button");
-      restoreBtn.className = "btn-icon restore";
-      restoreBtn.title = "Restore";
-      restoreBtn.innerHTML = '<svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.896 8.896 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>';
+      restoreBtn.type = "button";
+      restoreBtn.className = "btn-trash-action-item restore";
+      restoreBtn.title = `Restore ${code} to catalog`;
+      restoreBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.896 8.896 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>';
       restoreBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         pendingAction = "restore";
         pendingTarget = code;
-        els.modalText.textContent = `Restore ${code} from Trash? It will be returned to the active course catalog.`;
+        els.modalText.innerHTML = `
+          <div style="font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;">Restore ${escapeHtml(code)} to catalog?</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">This course will be returned to your active course database and decoder immediately.</div>
+        `;
         els.confirmModal.classList.add("show");
       });
 
       const permDelBtn = document.createElement("button");
-      permDelBtn.className = "btn-icon delete";
-      permDelBtn.title = "Permanently Delete";
-      permDelBtn.innerHTML = '<svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+      permDelBtn.type = "button";
+      permDelBtn.className = "btn-trash-action-item delete";
+      permDelBtn.title = `Permanently delete ${code}`;
+      permDelBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
       permDelBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         pendingAction = "perm-delete";
         pendingTarget = code;
-        els.modalText.textContent = `This will permanently remove this course. It will no longer appear anywhere in the extension, including Trash, unless manually re-added through Import.`;
+        els.modalText.innerHTML = `
+          <div style="font-weight:700; font-size:0.86rem; color:var(--danger); margin-bottom:4px;">Permanently delete ${escapeHtml(code)}?</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">This course will be permanently removed from storage and cannot be restored from Trash.</div>
+        `;
         els.confirmModal.classList.add("show");
       });
 
       actionCol.appendChild(restoreBtn);
       actionCol.appendChild(permDelBtn);
 
-      row.appendChild(textCol);
+      row.appendChild(codeEl);
+      row.appendChild(nameEl);
+      row.appendChild(typeEl);
       row.appendChild(actionCol);
       frag.appendChild(row);
     });
@@ -634,7 +674,11 @@
       return;
     }
 
-    if (els.courseListHeader) els.courseListHeader.style.display = "grid";
+    if (els.courseTableCard) els.courseTableCard.classList.remove("trash-mode");
+    if (els.courseListHeader) {
+      els.courseListHeader.style.display = "grid";
+      if (els.colHeaderAction) els.colHeaderAction.textContent = "";
+    }
     els.courseList.textContent = "";
 
     const frag = document.createDocumentFragment();
@@ -654,29 +698,13 @@
       nameEl.textContent = name;
       nameEl.title = name;
 
-      const inBundled = !!bundledCourses[code];
-      const inRemote = !!remoteCourses[code];
-      const inUser = !!userCourses[code];
-
-      let originClass = "";
-      let originLabel = "";
-      if (!inBundled && !inRemote && inUser) {
-        originClass = "user-added";
-        originLabel = "User Added";
-      } else if ((inBundled || inRemote) && inUser) {
-        originClass = "edited";
-        originLabel = "Edited";
-      } else {
-        originClass = "official";
-        originLabel = "Official";
-      }
-
+      const origin = getCourseOrigin(code);
       const typeEl = document.createElement("div");
       typeEl.className = "course-row-type";
 
       const badge = document.createElement("span");
-      badge.className = `origin-badge ${originClass}`;
-      badge.textContent = originLabel;
+      badge.className = `origin-badge ${origin.class}`;
+      badge.textContent = origin.label;
 
       typeEl.appendChild(badge);
 
@@ -710,27 +738,11 @@
     currentEditingCode = code;
     els.detailsCourseCode.textContent = code;
 
-    const inBundled = !!bundledCourses[code];
-    const inRemote = !!remoteCourses[code];
-    const inUser = !!userCourses[code];
-
-    let originClass = "";
-    let originLabel = "";
-    if (!inBundled && !inRemote && inUser) {
-      originClass = "user-added";
-      originLabel = "User Added";
-    } else if ((inBundled || inRemote) && inUser) {
-      originClass = "edited";
-      originLabel = "Edited";
-    } else {
-      originClass = "official";
-      originLabel = "Official";
-    }
-
+    const origin = getCourseOrigin(code);
     const badgeEl = document.getElementById("detailsOriginBadge");
     if (badgeEl) {
-      badgeEl.className = `origin-badge ${originClass}`;
-      badgeEl.textContent = originLabel;
+      badgeEl.className = `origin-badge ${origin.class}`;
+      badgeEl.textContent = origin.label;
     }
 
     const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
@@ -1080,6 +1092,8 @@
       els.coursesPanelTitle.textContent = "Course Database";
       updateCourseCount();
       updateSearchClearBtn();
+      if (els.courseTableCard) els.courseTableCard.classList.remove("trash-mode");
+      if (els.colHeaderAction) els.colHeaderAction.textContent = "";
       els.viewTrashBtn.style.display = "grid";
       els.courseFilterRow.style.display = "flex";
       els.openImportBtn.style.display = "flex";
@@ -1113,7 +1127,11 @@
         els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
         els.viewTrashBtn.style.display = "none";
         els.courseFilterRow.style.display = "none";
-        els.trashActionsRow.style.display = "flex";
+        if (softDeletedCourses.length > 0) {
+          els.trashActionsRow.style.display = "flex";
+        } else {
+          els.trashActionsRow.style.display = "none";
+        }
         els.openImportBtn.style.display = "none";
         renderTrashList(searchQuery);
       } else {
@@ -1146,9 +1164,10 @@
       if (softDeletedCourses.length === 0) return;
       pendingAction = "restore-all";
       const count = softDeletedCourses.length;
-      els.modalText.textContent = count === 1
-        ? "Restore this course from Trash? It will be returned to the active course catalog."
-        : `Restore all ${count} courses from Trash? They will be returned to the active course catalog.`;
+      els.modalText.innerHTML = `
+        <div style="font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;">Restore ${count === 1 ? 'course' : `all ${count} courses`}?</div>
+        <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">${count === 1 ? 'This course' : 'All courses in Trash'} will be returned to your active course catalog.</div>
+      `;
       els.confirmModal.classList.add("show");
     });
 
@@ -1156,9 +1175,10 @@
       if (softDeletedCourses.length === 0) return;
       pendingAction = "empty-trash";
       const count = softDeletedCourses.length;
-      els.modalText.textContent = count === 1
-        ? "Permanently delete this course from Trash? This action cannot be undone."
-        : `Permanently delete all ${count} courses from Trash? This action cannot be undone.`;
+      els.modalText.innerHTML = `
+        <div style="font-weight:700; font-size:0.86rem; color:var(--danger); margin-bottom:4px;">Empty entire Trash bin?</div>
+        <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">All ${count} deleted course${count !== 1 ? 's' : ''} will be permanently removed. This action cannot be undone.</div>
+      `;
       els.confirmModal.classList.add("show");
     });
 
@@ -1234,9 +1254,10 @@
         commitCourseSave(currentEditingCode, pendingSaveVal);
       } else if (pendingAction === "delete" && currentEditingCode) {
         let changed = false;
+        const target = currentEditingCode;
 
-        if (!softDeletedCourses.includes(currentEditingCode)) {
-          softDeletedCourses.push(currentEditingCode);
+        if (!softDeletedCourses.includes(target)) {
+          softDeletedCourses.push(target);
           await chrome.storage.local.set({ softDeletedCourses });
           changed = true;
         }
@@ -1244,6 +1265,7 @@
         if (changed) {
           await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
           await reloadLocalCoursesState();
+          showToast(`${target} moved to Trash`, "info");
 
           if (isTrashMode) {
             els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
@@ -1255,10 +1277,12 @@
         els.viewWrapper.classList.remove("show-details");
         els.viewWrapper.classList.add("show-courses");
       } else if (pendingAction === "restore" && pendingTarget) {
-        softDeletedCourses = softDeletedCourses.filter(c => c !== pendingTarget);
+        const target = pendingTarget;
+        softDeletedCourses = softDeletedCourses.filter(c => c !== target);
         await chrome.storage.local.set({ softDeletedCourses });
         await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
         await reloadLocalCoursesState();
+        showToast(`${target} restored to catalog`, "success");
         if (isTrashMode) {
           els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
           renderTrashList(searchQuery);
@@ -1266,16 +1290,18 @@
           renderCourseList(searchQuery);
         }
       } else if (pendingAction === "perm-delete" && pendingTarget) {
-        if (userCourses[pendingTarget] !== undefined) {
-          delete userCourses[pendingTarget];
+        const target = pendingTarget;
+        if (userCourses[target] !== undefined) {
+          delete userCourses[target];
         }
-        softDeletedCourses = softDeletedCourses.filter(c => c !== pendingTarget);
-        if (!hardDeletedCourses.includes(pendingTarget)) {
-          hardDeletedCourses.push(pendingTarget);
+        softDeletedCourses = softDeletedCourses.filter(c => c !== target);
+        if (!hardDeletedCourses.includes(target)) {
+          hardDeletedCourses.push(target);
         }
         await chrome.storage.local.set({ userCourses, softDeletedCourses, hardDeletedCourses });
         await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
         await reloadLocalCoursesState();
+        showToast(`${target} permanently deleted`, "info");
         if (isTrashMode) {
           els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
           renderTrashList(searchQuery);
@@ -1283,10 +1309,12 @@
           renderCourseList(searchQuery);
         }
       } else if (pendingAction === "restore-all") {
+        const count = softDeletedCourses.length;
         softDeletedCourses = [];
         await chrome.storage.local.set({ softDeletedCourses });
         await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
         await reloadLocalCoursesState();
+        showToast(count === 1 ? "Course restored to catalog" : `All ${count} courses restored to catalog`, "success");
         if (isTrashMode) {
           els.coursesPanelCount.textContent = `0 courses`;
           renderTrashList(searchQuery);
@@ -1307,6 +1335,7 @@
         await chrome.storage.local.set({ userCourses, softDeletedCourses, hardDeletedCourses });
         await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
         await reloadLocalCoursesState();
+        showToast("Trash bin emptied", "info");
 
         if (isTrashMode) {
           els.coursesPanelCount.textContent = `0 courses`;

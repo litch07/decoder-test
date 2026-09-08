@@ -1414,6 +1414,75 @@
       transform: translateX(1.5px);
     }
 
+    /* Trash Mode Grid Layout */
+    .course-table-card.trash-mode .course-grid-header {
+      grid-template-columns: 78px 1fr 66px 50px;
+      gap: 6px;
+    }
+
+    .course-table-card.trash-mode .course-grid-row {
+      grid-template-columns: 78px 1fr 66px 50px;
+      gap: 6px;
+      cursor: default;
+    }
+
+    .course-table-card.trash-mode .course-grid-row:hover {
+      background: #f8fafc;
+    }
+
+    .trash-row-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    .btn-trash-action-item {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-trash-action-item.restore {
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #a7f3d0;
+    }
+
+    .btn-trash-action-item.restore:hover {
+      background: #d1fae5;
+      border-color: #6ee7b7;
+      transform: scale(1.08);
+      box-shadow: 0 1px 3px rgba(4, 120, 87, 0.2);
+    }
+
+    .btn-trash-action-item.delete {
+      background: #fef2f2;
+      color: #dc2626;
+      border-color: #fecaca;
+    }
+
+    .btn-trash-action-item.delete:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      transform: scale(1.08);
+      box-shadow: 0 1px 3px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-trash-action-item svg {
+      width: 12px;
+      height: 12px;
+      fill: currentColor;
+    }
+
     .course-row-code {
       font-size: 0.73rem;
       font-weight: 700;
@@ -2274,12 +2343,12 @@
         </div>
 
         <!-- Course list card with fixed header -->
-        <div class="course-table-card">
+        <div class="course-table-card" id="courseTableCard">
           <div class="course-grid-header" id="courseListHeader" style="display: none;">
             <div>Code</div>
             <div>Name</div>
             <div>Type</div>
-            <div></div>
+            <div id="colHeaderAction" style="text-align: right;"></div>
           </div>
           <div class="course-scroll" id="courseList">
             <div class="empty-state">
