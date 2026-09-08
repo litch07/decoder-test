@@ -1854,7 +1854,7 @@
       border-radius: 9px;
       gap: 3px;
       border: 1px solid var(--border-color);
-      margin-bottom: 12px;
+      margin-bottom: 0;
     }
 
     .import-tab-btn {
@@ -1885,31 +1885,37 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
 
-    /* ── SINGLE COURSE FORM ── */
-    .single-course-card {
+    /* ── ADD & IMPORT COURSE CARDS ── */
+    .single-course-card,
+    .bulk-import-card {
       display: flex;
       flex-direction: column;
-      gap: 11px;
+      gap: 10px;
       background: #ffffff;
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 13px;
+      padding: 14px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
-
-    .single-form-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
     }
 
     .form-section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 4px;
+      padding-bottom: 5px;
       border-bottom: 1px solid var(--border-color);
-      margin-top: 2px;
+    }
+
+    .form-section-header.is-secondary {
+      margin-top: 4px;
+    }
+
+    .bulk-import-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .form-section-title {
@@ -1926,6 +1932,32 @@
       width: 12px;
       height: 12px;
       fill: var(--accent);
+    }
+
+    .btn-copy-sample {
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn-copy-sample:hover {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-copy-sample svg {
+      width: 12px;
+      height: 12px;
+      fill: currentColor;
     }
 
     .section-tag-required {
@@ -1955,7 +1987,7 @@
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 5px;
     }
 
     .form-label {
@@ -1991,7 +2023,7 @@
       padding: 8px 10px;
       background: #f8fafc;
       border: 1px solid var(--border-color);
-      border-radius: 7px;
+      border-radius: 8px;
       font-size: 0.74rem;
       color: var(--text-main);
       font-family: inherit;
@@ -2014,41 +2046,29 @@
     .form-row-2col {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 10px;
     }
 
     /* JSON Import */
-    .import-section {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .import-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-    }
-
     .json-textarea {
       width: 100%;
-      height: 90px;
+      height: 200px;
       resize: vertical;
       background: #f8fafc;
       border: 1px solid var(--border-color);
       color: var(--text-main);
       border-radius: 8px;
-      padding: 9px 11px;
-      font-size: 0.71rem;
+      padding: 10px 12px;
+      font-size: 0.72rem;
       font-family: 'Courier New', monospace;
-      line-height: 1.5;
+      line-height: 1.45;
       transition: border-color 0.2s;
+      box-sizing: border-box;
     }
 
     .json-textarea:focus {
       outline: none;
+      background: #ffffff;
       border-color: var(--accent);
       box-shadow: 0 0 0 2px var(--accent-light);
     }
@@ -2058,19 +2078,21 @@
     }
 
     .import-hint {
-      font-size: 0.67rem;
+      font-size: 0.69rem;
       color: var(--text-muted);
       line-height: 1.5;
     }
 
     .import-actions {
       display: flex;
-      gap: 7px;
+      gap: 8px;
+      margin-top: 4px;
     }
 
     .btn-import {
       flex: 1;
-      padding: 9px;
+      min-height: 38px;
+      padding: 8px 14px;
       background: linear-gradient(135deg, var(--accent), var(--accent-hover));
       color: #fff;
       border: none;
@@ -2079,7 +2101,8 @@
       font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
+      box-shadow: 0 2px 6px rgba(242, 101, 34, 0.22);
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2087,7 +2110,12 @@
     }
 
     .btn-import:hover {
-      opacity: 0.9;
+      opacity: 0.95;
+      box-shadow: 0 4px 10px rgba(242, 101, 34, 0.3);
+    }
+
+    .btn-import:active {
+      transform: scale(0.99);
     }
 
     .btn-import:disabled {
@@ -2096,23 +2124,30 @@
     }
 
     .btn-clear {
-      padding: 9px 14px;
+      min-height: 38px;
+      padding: 8px 14px;
       background: transparent;
       color: var(--danger);
-      border: 1.5px solid var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.35);
       border-radius: 8px;
       font-family: inherit;
       font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 5px;
     }
 
     .btn-clear:hover {
       background: #fee2e2;
+      border-color: var(--danger);
+    }
+
+    .btn-clear:active {
+      transform: scale(0.99);
     }
 
     .import-msg {
@@ -2788,123 +2823,117 @@
 
         <!-- Section 1: Single Course Form -->
         <div class="single-course-card" id="singleCourseSection">
-          <div class="single-form-grid">
-            <!-- Section A: Identity -->
-            <div class="form-section-header">
-              <div class="form-section-title">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                <span>Course Identity</span>
-              </div>
-              <span class="section-tag-required">Required</span>
+          <!-- Section A: Identity -->
+          <div class="form-section-header">
+            <div class="form-section-title">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              <span>Course Identity</span>
+            </div>
+            <span class="section-tag-required">Required</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="singleCourseCode">
+              <svg class="label-icon" viewBox="0 0 24 24"><path d="M20 10V8h-4V4h-2v4h-4V4H8v4H4v2h4v4H4v2h4v4h2v-4h4v4h2v-4h4v-2h-4v-4h4zm-6 4h-4v-4h4v4z"/></svg>
+              Course Code <span class="required-star">*</span>
+            </label>
+            <input type="text" class="form-input" id="singleCourseCode" placeholder="e.g. CSE 3715 or ACT 1111" autocomplete="off" spellcheck="false" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="singleCourseName">
+              <svg class="label-icon" viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+              Course Title / Name <span class="required-star">*</span>
+            </label>
+            <input type="text" class="form-input" id="singleCourseName" placeholder="e.g. Software Engineering" autocomplete="off" />
+          </div>
+
+          <!-- Section B: Schedule & Prerequisites -->
+          <div class="form-section-header is-secondary">
+            <div class="form-section-title">
+              <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+              <span>Schedule &amp; Prerequisites</span>
+            </div>
+            <span class="section-tag-optional">Optional</span>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label class="form-label" for="singleCourseDay">
+                <svg class="label-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/></svg>
+                Exam Day
+              </label>
+              <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. D1, D2, or D3" autocomplete="off" />
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="singleCourseCode">
-                <svg class="label-icon" viewBox="0 0 24 24"><path d="M20 10V8h-4V4h-2v4h-4V4H8v4H4v2h4v4H4v2h4v4h2v-4h4v4h2v-4h4v-2h-4v-4h4zm-6 4h-4v-4h4v4z"/></svg>
-                Course Code <span class="required-star">*</span>
+              <label class="form-label" for="singleCourseSlot">
+                <svg class="label-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                Exam Slot
               </label>
-              <input type="text" class="form-input" id="singleCourseCode" placeholder="e.g. CSE 3715 or ACT 1111" autocomplete="off" spellcheck="false" />
+              <input type="text" class="form-input" id="singleCourseSlot" placeholder="e.g. T1, T2, or T3" autocomplete="off" />
             </div>
+          </div>
 
-            <div class="form-group">
-              <label class="form-label" for="singleCourseName">
-                <svg class="label-icon" viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
-                Course Title / Name <span class="required-star">*</span>
-              </label>
-              <input type="text" class="form-input" id="singleCourseName" placeholder="e.g. Software Engineering" autocomplete="off" />
-            </div>
-
-            <!-- Section B: Schedule & Prerequisites -->
-            <div class="form-section-header" style="margin-top: 4px;">
-              <div class="form-section-title">
-                <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-                <span>Schedule &amp; Prerequisites</span>
-              </div>
-              <span class="section-tag-optional">Optional</span>
-            </div>
-
-            <div class="form-row-2col">
-              <div class="form-group">
-                <label class="form-label" for="singleCourseDay">
-                  <svg class="label-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/></svg>
-                  Exam Day
-                </label>
-                <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. D1, D2, or D3" autocomplete="off" />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="singleCourseSlot">
-                  <svg class="label-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-                  Exam Slot
-                </label>
-                <input type="text" class="form-input" id="singleCourseSlot" placeholder="e.g. T1, T2, or T3" autocomplete="off" />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="singleCoursePrereq">
-                <svg class="label-icon" viewBox="0 0 24 24"><path d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h8v2H8z"/></svg>
-                Prerequisites
-              </label>
-              <input type="text" class="form-input" id="singleCoursePrereq" placeholder="e.g. CSE 2215, CSE 2216 (comma separated)" autocomplete="off" />
-            </div>
+          <div class="form-group">
+            <label class="form-label" for="singleCoursePrereq">
+              <svg class="label-icon" viewBox="0 0 24 24"><path d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h8v2H8z"/></svg>
+              Prerequisites
+            </label>
+            <input type="text" class="form-input" id="singleCoursePrereq" placeholder="e.g. CSE 2215, CSE 2216 (comma separated)" autocomplete="off" />
           </div>
 
           <div class="import-msg" id="singleCourseMsg"></div>
 
-          <div class="import-actions" style="margin-top: 4px;">
-            <button class="btn-import" id="addSingleCourseBtn" style="padding: 11px;">
+          <div class="import-actions">
+            <button class="btn-import" id="addSingleCourseBtn">
               <svg style="width:14px;height:14px;fill:white;" viewBox="0 0 24 24">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
               </svg>
               Add Course to Catalog
             </button>
-            <button class="btn-clear" id="clearSingleFormBtn" style="padding: 11px 16px;">
+            <button class="btn-clear" id="clearSingleFormBtn">
               <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
               </svg>
               Clear
             </button>
           </div>
-
         </div>
 
         <!-- Section 2: Batch Upload (JSON) -->
-        <div class="card" id="bulkImportSection"
-          style="display: none; gap:12px; border:none; box-shadow:none; padding: 0; background: transparent;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 5px;">
-              <svg style="width:13px;height:13px;fill:var(--accent);" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-              Batch Upload (JSON)
+        <div class="card bulk-import-card" id="bulkImportSection" style="display: none;">
+          <div class="bulk-import-header">
+            <div class="form-section-title">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              <span>Batch Upload (JSON)</span>
             </div>
-            <button type="button" class="btn-copy-sample" id="copySampleBtn" title="Copy Sample JSON" style="font-size: 0.72rem; padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px;">
-              <svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24">
+            <button type="button" class="btn-copy-sample" id="copySampleBtn" title="Copy Sample JSON">
+              <svg viewBox="0 0 24 24">
                 <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
               </svg>
               <span>Copy</span>
             </button>
           </div>
-          <div class="import-section">
-            <div class="import-hint" style="font-size: 0.72rem;">
-              Click <strong>Copy</strong> to copy the 2-course template format, customize with your course details, then paste below. Supports both complete and minimal course info.
-            </div>
-            <textarea class="json-textarea" id="jsonInput" style="height: 220px; font-size: 0.74rem; font-family: monospace;"
-              placeholder='{&#10;  "CSE 3715": {&#10;    "name": "Software Engineering",&#10;    "examDay": "D1",&#10;    "examSlot": "T1",&#10;    "prerequisites": [&#10;      "CSE 2215",&#10;      "CSE 2216"&#10;    ]&#10;  },&#10;  "ACT 1111": {&#10;    "name": "Financial Accounting",&#10;    "examDay": "",&#10;    "examSlot": "",&#10;    "prerequisites": []&#10;  }&#10;}'></textarea>
-            <div class="import-msg" id="importMsg"></div>
-            <div class="import-actions" style="margin-top: 8px;">
-              <button class="btn-import" id="importBtn" style="padding: 11px;">
-                <svg style="width:14px;height:14px;fill:white;" viewBox="0 0 24 24">
-                  <path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z" />
-                </svg>
-                Import &amp; Merge
-              </button>
-              <button class="btn-clear" id="clearBtn" style="padding: 11px 16px;">
-                <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
-                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                </svg>
-                Clear All
-              </button>
-            </div>
+          <div class="import-hint">
+            Click <strong>Copy</strong> to copy the 2-course template format, customize with your course details, then paste below. Supports both complete and minimal course info.
+          </div>
+          <textarea class="json-textarea" id="jsonInput"
+            placeholder='{&#10;  "CSE 3715": {&#10;    "name": "Software Engineering",&#10;    "examDay": "D1",&#10;    "examSlot": "T1",&#10;    "prerequisites": [&#10;      "CSE 2215",&#10;      "CSE 2216"&#10;    ]&#10;  },&#10;  "ACT 1111": {&#10;    "name": "Financial Accounting",&#10;    "examDay": "",&#10;    "examSlot": "",&#10;    "prerequisites": []&#10;  }&#10;}'></textarea>
+          <div class="import-msg" id="importMsg"></div>
+          <div class="import-actions">
+            <button class="btn-import" id="importBtn">
+              <svg style="width:14px;height:14px;fill:white;" viewBox="0 0 24 24">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z" />
+              </svg>
+              Import &amp; Merge
+            </button>
+            <button class="btn-clear" id="clearBtn">
+              <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+              </svg>
+              Clear All
+            </button>
           </div>
         </div>
       </div>
