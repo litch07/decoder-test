@@ -60,7 +60,6 @@
     clearSingleFormBtn: document.getElementById("clearSingleFormBtn"),
     singleCourseMsg: document.getElementById("singleCourseMsg"),
     openImportBtn: document.getElementById("openImportBtn"),
-    openBatchFromSingleBtn: document.getElementById("openBatchFromSingleBtn"),
     importBackBtn: document.getElementById("importBackBtn"),
     detailsBackBtn: document.getElementById("detailsBackBtn"),
     detailsCourseCode: document.getElementById("detailsCourseCode"),
@@ -1221,11 +1220,6 @@
       activateSingleCourseTab();
       els.viewWrapper.classList.remove("show-details", "show-settings");
       els.viewWrapper.classList.add("show-import");
-    });
-
-    els.openBatchFromSingleBtn?.addEventListener("click", (e) => {
-      e?.preventDefault();
-      activateBatchUploadTab(true);
     });
 
     els.importBackBtn?.addEventListener("click", (e) => {

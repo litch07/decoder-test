@@ -2090,60 +2090,6 @@
       border: 1px solid #bfdbfe;
     }
 
-    .batch-upload-prompt {
-      margin-top: 10px;
-      padding: 9px 12px;
-      background: var(--surface2);
-      border: 1px dashed var(--accent);
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .batch-upload-prompt-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      flex: 1;
-    }
-
-    .batch-upload-prompt-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    .batch-upload-prompt-sub {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      line-height: 1.3;
-    }
-
-    .btn-batch-switch {
-      padding: 6px 10px;
-      background: var(--accent);
-      color: #ffffff;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.69rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-      transition: all 0.15s ease;
-      flex-shrink: 0;
-      font-family: inherit;
-    }
-
-    .btn-batch-switch:hover {
-      background: var(--accent-hover);
-      transform: translateY(-1px);
-    }
-
     /* Divider */
     .divider {
       border: none;
@@ -2846,17 +2792,6 @@
             </button>
           </div>
 
-          <!-- Batch Upload Quick Prompt -->
-          <div class="batch-upload-prompt" id="batchUploadPrompt">
-            <div class="batch-upload-prompt-text">
-              <span class="batch-upload-prompt-title">Need to add multiple courses?</span>
-              <span class="batch-upload-prompt-sub">Import courses in bulk using JSON format</span>
-            </div>
-            <button type="button" class="btn-batch-switch" id="openBatchFromSingleBtn">
-              Batch Upload
-              <svg style="width:11px;height:11px;fill:currentColor;" viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.71 12l-8.86-8.85-1.42 1.42L16.86 10H5v3z"/></svg>
-            </button>
-          </div>
         </div>
 
         <!-- Section 2: Batch Upload (JSON) -->
@@ -2867,16 +2802,16 @@
               <svg style="width:13px;height:13px;fill:var(--accent);" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
               Batch Upload (JSON)
             </div>
-            <button class="btn-copy-sample" id="copySampleBtn" style="font-size: 0.72rem; padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px;">
+            <button type="button" class="btn-copy-sample" id="copySampleBtn" title="Copy Sample JSON" style="font-size: 0.72rem; padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px;">
               <svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24">
                 <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
               </svg>
-              Copy Sample JSON
+              <span>Copy</span>
             </button>
           </div>
           <div class="import-section">
             <div class="import-hint" style="font-size: 0.72rem;">
-              Click <strong>Copy Sample JSON</strong> to copy the 2-course template format, customize with your course details, then paste below. Supports both complete and minimal course info.
+              Click <strong>Copy</strong> to copy the 2-course template format, customize with your course details, then paste below. Supports both complete and minimal course info.
             </div>
             <textarea class="json-textarea" id="jsonInput" style="height: 220px; font-size: 0.74rem; font-family: monospace;"
               placeholder='{&#10;  "CSE 3715": {&#10;    "name": "Software Engineering",&#10;    "examDay": "Sunday",&#10;    "examSlot": "Slot A (09:00 AM - 11:00 AM)",&#10;    "prerequisites": [&#10;      "CSE 2215",&#10;      "CSE 2216"&#10;    ]&#10;  },&#10;  "ACT 1111": {&#10;    "name": "Financial Accounting",&#10;    "examDay": "Tuesday",&#10;    "examSlot": "Slot B (11:30 AM - 01:30 PM)",&#10;    "prerequisites": []&#10;  }&#10;}'></textarea>
