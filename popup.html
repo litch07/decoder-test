@@ -963,12 +963,49 @@
     .courses-view #openImportBtn {
       flex-shrink: 0;
       margin-top: auto;
+      background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
+      color: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 6px rgba(242, 101, 34, 0.28);
+      font-weight: 600;
+    }
+
+    .courses-view #openImportBtn:hover {
+      background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+      box-shadow: 0 4px 10px rgba(242, 101, 34, 0.35);
+      transform: translateY(-1px);
+      color: #ffffff;
+    }
+
+    .courses-view #openImportBtn:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 1px 3px rgba(242, 101, 34, 0.2);
+    }
+
+    .header-trash-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      color: white;
+      transition: background 0.2s, transform 0.15s;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .header-trash-btn:hover {
+      background: rgba(255, 255, 255, 0.32);
+      transform: scale(1.04);
     }
 
     /* Filter */
     .filter-row {
       display: flex;
-      gap: 5px;
+      gap: 6px;
       margin-top: 0;
     }
 
@@ -977,23 +1014,90 @@
       background: var(--surface);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      border-radius: 6px;
-      padding: 5px;
+      border-radius: 7px;
+      padding: 6px 4px;
       font-size: 0.65rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .filter-btn .filter-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .filter-dot.dot-user {
+      background: #4338ca;
+    }
+
+    .filter-dot.dot-edited {
+      background: #b45309;
+    }
+
+    .filter-dot.dot-official {
+      background: #047857;
     }
 
     .filter-btn.active {
       background: var(--accent-light);
       border-color: var(--accent);
       color: var(--accent);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(242, 101, 34, 0.12);
     }
 
     .filter-btn:hover:not(.active) {
       background: #f8fafc;
+      border-color: #cbd5e1;
       color: var(--text-main);
+    }
+
+    /* Trash Action Bar Buttons */
+    .btn-trash-action {
+      flex: 1;
+      border-radius: 7px;
+      padding: 7px 8px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .btn-trash-action.restore {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+
+    .btn-trash-action.restore:hover {
+      background: #d1fae5;
+      border-color: #6ee7b7;
+      box-shadow: 0 1px 4px rgba(4, 120, 87, 0.15);
+    }
+
+    .btn-trash-action.empty {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .btn-trash-action.empty:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      box-shadow: 0 1px 4px rgba(185, 28, 28, 0.15);
     }
 
     .origin-badge {
@@ -1063,6 +1167,8 @@
     /* Search */
     .search-row {
       position: relative;
+      display: flex;
+      align-items: center;
     }
 
     .search-row input {
@@ -1071,25 +1177,63 @@
       border: 1px solid var(--border-color);
       color: var(--text-main);
       border-radius: 8px;
-      padding: 9px 36px 9px 12px;
+      padding: 8px 30px 8px 32px;
       font-size: 0.78rem;
       font-family: inherit;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .search-row input:focus {
       outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--accent-light);
+      box-shadow: 0 0 0 2.5px var(--accent-light);
     }
 
     .search-row .search-icon {
       position: absolute;
-      right: 10px;
+      left: 10px;
       top: 50%;
       transform: translateY(-50%);
       color: var(--text-muted);
       pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .search-row:focus-within .search-icon {
+      color: var(--accent);
+    }
+
+    .search-clear-btn {
+      position: absolute;
+      right: 7px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #e2e8f0;
+      border: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 0;
+      transition: all 0.15s ease;
+    }
+
+    .search-clear-btn:hover {
+      background: #cbd5e1;
+      color: var(--text-main);
+    }
+
+    .search-clear-btn svg {
+      width: 9px;
+      height: 9px;
+      fill: currentColor;
     }
 
     /* Scrollable course list */
@@ -1133,6 +1277,24 @@
       margin-bottom: 6px;
     }
 
+    .empty-clear-btn {
+      margin-top: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .empty-clear-btn:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+    }
+
     .course-row {
       display: flex;
       align-items: center;
@@ -1154,15 +1316,15 @@
 
     .course-grid-header {
       display: grid;
-      grid-template-columns: 85px 1fr 75px;
-      padding: 8px 12px;
+      grid-template-columns: 80px 1fr 68px 14px;
+      padding: 8px 10px;
       font-size: 0.65rem;
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       border-bottom: 1px solid var(--border-color);
-      gap: 12px;
+      gap: 8px;
       background: #f1f5f9;
       flex-shrink: 0;
       user-select: none;
@@ -1171,12 +1333,12 @@
 
     .course-grid-row {
       display: grid;
-      grid-template-columns: 85px 1fr 75px;
+      grid-template-columns: 80px 1fr 68px 14px;
       align-items: center;
-      padding: 9px 12px;
+      padding: 8px 10px;
       border-bottom: 1px solid var(--border-color);
       transition: background 0.15s;
-      gap: 12px;
+      gap: 8px;
       cursor: pointer;
     }
 
@@ -1214,6 +1376,27 @@
 
     .course-grid-row .origin-badge {
       margin-left: 0;
+    }
+
+    .course-row-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      opacity: 0.35;
+      transition: all 0.15s ease;
+    }
+
+    .course-row-arrow svg {
+      width: 13px;
+      height: 13px;
+      fill: currentColor;
+    }
+
+    .course-grid-row:hover .course-row-arrow {
+      opacity: 1;
+      color: var(--accent);
+      transform: translateX(1.5px);
     }
 
     .course-row-code {
@@ -2021,7 +2204,7 @@
           <p id="coursesPanelCount">— courses loaded</p>
         </div>
         <button id="viewTrashBtn"
-          style="background:rgba(255, 255, 255, 0.2); border:none; border-radius:8px; width:32px; height:32px; display:grid; place-items:center; cursor:pointer; color:white; transition: background 0.2s; flex-shrink: 0; position: relative;"
+          class="header-trash-btn"
           title="Trash Bin">
           <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
@@ -2036,36 +2219,39 @@
 
         <!-- Search -->
         <div class="search-row">
-          <input type="text" id="courseSearch" placeholder="Search by code or name…" />
           <span class="search-icon">
             <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
               <path
                 d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
             </svg>
           </span>
+          <input type="text" id="courseSearch" placeholder="Search by code or name…" autocomplete="off" spellcheck="false" />
+          <button type="button" class="search-clear-btn" id="searchClearBtn" title="Clear search" aria-label="Clear search">
+            <svg viewBox="0 0 24 24">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
         </div>
 
         <!-- Filter row -->
         <div class="filter-row" id="courseFilterRow">
           <button class="filter-btn active" data-filter="all">All</button>
-          <button class="filter-btn" data-filter="user">User Added</button>
-          <button class="filter-btn" data-filter="edited">Edited</button>
-          <button class="filter-btn" data-filter="official">Official</button>
+          <button class="filter-btn" data-filter="user"><span class="filter-dot dot-user"></span>User Added</button>
+          <button class="filter-btn" data-filter="edited"><span class="filter-dot dot-edited"></span>Edited</button>
+          <button class="filter-btn" data-filter="official"><span class="filter-dot dot-official"></span>Official</button>
         </div>
 
         <!-- Trash actions row -->
         <div class="filter-row" id="trashActionsRow" style="display: none; gap: 8px;">
-          <button class="filter-btn" id="restoreAllBtn"
-            style="color: var(--success); border-color: var(--success); display: flex; align-items: center; justify-content: center; gap: 4px;">
-            <svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24">
+          <button class="btn-trash-action restore" id="restoreAllBtn">
+            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
               <path
                 d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.896 8.896 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
             </svg>
             Restore All
           </button>
-          <button class="filter-btn" id="emptyTrashBtn"
-            style="color: var(--danger); border-color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 4px;">
-            <svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24">
+          <button class="btn-trash-action empty" id="emptyTrashBtn">
+            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
               <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
             </svg>
             Empty Trash
@@ -2078,6 +2264,7 @@
             <div>Code</div>
             <div>Name</div>
             <div>Type</div>
+            <div></div>
           </div>
           <div class="course-scroll" id="courseList">
             <div class="empty-state">

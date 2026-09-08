@@ -36,6 +36,7 @@
     courseList: document.getElementById("courseList"),
     courseListHeader: document.getElementById("courseListHeader"),
     courseSearch: document.getElementById("courseSearch"),
+    searchClearBtn: document.getElementById("searchClearBtn"),
     courseFilterRow: document.getElementById("courseFilterRow"),
     filterBtns: document.querySelectorAll("#courseFilterRow .filter-btn"),
     jsonInput: document.getElementById("jsonInput"),
@@ -431,11 +432,28 @@
       emptyState.appendChild(emptyIcon);
 
       if (filter) {
-        emptyState.appendChild(document.createTextNode('No results for "'));
+        const textSpan = document.createElement("div");
+        textSpan.appendChild(document.createTextNode('No results for "'));
         const strong = document.createElement("strong");
         strong.textContent = filter;
-        emptyState.appendChild(strong);
-        emptyState.appendChild(document.createTextNode('"'));
+        textSpan.appendChild(strong);
+        textSpan.appendChild(document.createTextNode('"'));
+        emptyState.appendChild(textSpan);
+
+        const clearBtn = document.createElement("button");
+        clearBtn.type = "button";
+        clearBtn.className = "empty-clear-btn";
+        clearBtn.textContent = "Clear search";
+        clearBtn.addEventListener("click", () => {
+          if (els.courseSearch) {
+            els.courseSearch.value = "";
+            searchQuery = "";
+            if (els.searchClearBtn) els.searchClearBtn.style.display = "none";
+            renderTrashList("");
+            els.courseSearch.focus();
+          }
+        });
+        emptyState.appendChild(clearBtn);
       } else {
         emptyState.appendChild(document.createTextNode("No courses in the trash."));
       }
@@ -550,11 +568,28 @@
       emptyState.appendChild(emptyIcon);
 
       if (filter) {
-        emptyState.appendChild(document.createTextNode('No results for "'));
+        const textSpan = document.createElement("div");
+        textSpan.appendChild(document.createTextNode('No results for "'));
         const strong = document.createElement("strong");
         strong.textContent = filter;
-        emptyState.appendChild(strong);
-        emptyState.appendChild(document.createTextNode('"'));
+        textSpan.appendChild(strong);
+        textSpan.appendChild(document.createTextNode('"'));
+        emptyState.appendChild(textSpan);
+
+        const clearBtn = document.createElement("button");
+        clearBtn.type = "button";
+        clearBtn.className = "empty-clear-btn";
+        clearBtn.textContent = "Clear search";
+        clearBtn.addEventListener("click", () => {
+          if (els.courseSearch) {
+            els.courseSearch.value = "";
+            searchQuery = "";
+            if (els.searchClearBtn) els.searchClearBtn.style.display = "none";
+            renderCourseList("");
+            els.courseSearch.focus();
+          }
+        });
+        emptyState.appendChild(clearBtn);
       } else {
         emptyState.appendChild(document.createTextNode("No courses loaded yet. Import from JSON below."));
       }
@@ -611,9 +646,14 @@
 
       typeEl.appendChild(badge);
 
+      const arrowEl = document.createElement("div");
+      arrowEl.className = "course-row-arrow";
+      arrowEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>';
+
       row.appendChild(codeEl);
       row.appendChild(nameEl);
       row.appendChild(typeEl);
+      row.appendChild(arrowEl);
 
       row.addEventListener("click", () => {
         openCourseDetails(code, courseData);
@@ -1005,6 +1045,7 @@
       isTrashMode = false;
       els.coursesPanelTitle.textContent = "Course Database";
       updateCourseCount();
+      updateSearchClearBtn();
       els.viewTrashBtn.style.display = "grid";
       els.courseFilterRow.style.display = "flex";
       els.openImportBtn.style.display = "flex";
@@ -1325,10 +1366,28 @@
       pendingTarget = null;
     });
 
+    function updateSearchClearBtn() {
+      if (els.searchClearBtn) {
+        els.searchClearBtn.style.display = els.courseSearch?.value ? "flex" : "none";
+      }
+    }
+
     els.courseSearch?.addEventListener("input", () => {
       searchQuery = els.courseSearch.value;
+      updateSearchClearBtn();
       if (isTrashMode) renderTrashList(searchQuery);
       else renderCourseList(searchQuery);
+    });
+
+    els.searchClearBtn?.addEventListener("click", () => {
+      if (els.courseSearch) {
+        els.courseSearch.value = "";
+        searchQuery = "";
+        updateSearchClearBtn();
+        if (isTrashMode) renderTrashList("");
+        else renderCourseList("");
+        els.courseSearch.focus();
+      }
     });
 
     els.filterBtns?.forEach(btn => {
