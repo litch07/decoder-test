@@ -60,8 +60,6 @@
     clearSingleFormBtn: document.getElementById("clearSingleFormBtn"),
     singleCourseMsg: document.getElementById("singleCourseMsg"),
     openImportBtn: document.getElementById("openImportBtn"),
-    openBatchBtn: document.getElementById("openBatchBtn"),
-    coursesActionsRow: document.getElementById("coursesActionsRow"),
     openBatchFromSingleBtn: document.getElementById("openBatchFromSingleBtn"),
     importBackBtn: document.getElementById("importBackBtn"),
     detailsBackBtn: document.getElementById("detailsBackBtn"),
@@ -1172,7 +1170,6 @@
       if (els.colHeaderAction) els.colHeaderAction.textContent = "";
       els.viewTrashBtn.style.display = "grid";
       els.courseFilterRow.style.display = "flex";
-      if (els.coursesActionsRow) els.coursesActionsRow.style.display = "flex";
       els.openImportBtn.style.display = "flex";
       renderCourseList(searchQuery);
       els.viewWrapper.classList.add("show-courses");
@@ -1217,11 +1214,6 @@
       els.viewWrapper.classList.add("show-import");
     });
 
-    els.openBatchBtn?.addEventListener("click", () => {
-      activateBatchUploadTab(false);
-      els.viewWrapper.classList.add("show-import");
-    });
-
     els.openBatchFromSingleBtn?.addEventListener("click", () => {
       activateBatchUploadTab(true);
     });
@@ -1242,7 +1234,6 @@
         } else {
           els.trashActionsRow.style.display = "none";
         }
-        if (els.coursesActionsRow) els.coursesActionsRow.style.display = "none";
         els.openImportBtn.style.display = "none";
         renderTrashList(searchQuery);
       } else {
@@ -1251,7 +1242,6 @@
         els.viewTrashBtn.style.display = "grid";
         els.courseFilterRow.style.display = "flex";
         els.trashActionsRow.style.display = "none";
-        if (els.coursesActionsRow) els.coursesActionsRow.style.display = "flex";
         els.openImportBtn.style.display = "flex";
         renderCourseList(searchQuery);
       }
@@ -1265,7 +1255,6 @@
         els.viewTrashBtn.style.display = "grid";
         els.courseFilterRow.style.display = "flex";
         els.trashActionsRow.style.display = "none";
-        if (els.coursesActionsRow) els.coursesActionsRow.style.display = "flex";
         els.openImportBtn.style.display = "flex";
         renderCourseList(searchQuery);
       } else {
