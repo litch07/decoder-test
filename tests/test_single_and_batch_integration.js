@@ -219,14 +219,14 @@ async function runIntegrationSuite() {
   const sampleTwoCourses = JSON.stringify({
     "CSE 3715": {
       "name": "Software Engineering (Updated)",
-      "examDay": "Sunday",
-      "examSlot": "Slot A (09:00 AM - 11:00 AM)",
+      "examDay": "Day 1",
+      "examSlot": "T1",
       "prerequisites": ["CSE 2215", "CSE 2216"]
     },
     "ACT 1111": {
       "name": "Financial Accounting",
-      "examDay": "Tuesday",
-      "examSlot": "Slot B (11:30 AM - 01:30 PM)",
+      "examDay": "",
+      "examSlot": "",
       "prerequisites": []
     }
   });
@@ -238,7 +238,8 @@ async function runIntegrationSuite() {
   const snap3 = await chrome.storage.local.get(["courses"]);
   assert.strictEqual(snap3.courses["CSE 3715"].name, "Software Engineering (Updated)");
   assert.strictEqual(snap3.courses["ACT 1111"].name, "Financial Accounting");
-  assert.strictEqual(snap3.courses["ACT 1111"].examDay, "Tuesday");
+  assert.strictEqual(snap3.courses["ACT 1111"].examDay, "");
+  assert.strictEqual(snap3.courses["ACT 1111"].examSlot, "");
   console.log("  ✓ 2-Course sample format successfully imported and merged into catalog");
 
   // --- 6. BATCH UPLOAD MIXED FORMATS (FLAT STRINGS & OBJECTS) ---
@@ -323,24 +324,20 @@ async function runIntegrationSuite() {
   assert.deepStrictEqual(Object.keys(parsedJsSample), ["CSE 3715", "ACT 1111"]);
   console.log("  ✓ popup.js SAMPLE_TWO_COURSES matches placeholder schema");
 
-  console.log("\n[TEST 9] Single Course Professional UI & Live Preview Architecture");
-  // Check section headers and intro banner
+  console.log("\n[TEST 9] Single Course Professional UI & Clean Architecture");
+  // Check section headers, intro banner, and slot placeholder
   assert.ok(popupHtml.includes('class="single-course-intro"'), "Must have single-course-intro banner");
   assert.ok(popupHtml.includes('<span>Course Identity</span>'), "Must have Course Identity section header");
   assert.ok(popupHtml.includes('<span>Schedule &amp; Prerequisites</span>'), "Must have Schedule & Prerequisites section header");
-  assert.ok(popupHtml.includes('id="singlePrereqChips"'), "Must have interactive prerequisite chips container");
-  assert.ok(popupHtml.includes('id="singleLivePreview"'), "Must have single live preview card");
-  assert.ok(popupHtml.includes('id="previewCardCode"'), "Must have preview card code element");
-  assert.ok(popupHtml.includes('id="previewCardTitle"'), "Must have preview card title element");
-  console.log("  ✓ popup.html includes structured section headers, prereq chips container, and live catalog preview");
+  assert.ok(popupHtml.includes('placeholder="e.g. T1, T2, or T3"'), "Exam Slot placeholder must show UIU standard slot notation like T1, T2, or T3");
+  assert.ok(!popupHtml.includes('id="singleLivePreview"'), "Unnecessary live preview must be removed for a clean UI");
+  console.log("  ✓ popup.html includes structured section headers, T1/T2/T3 slot format, and clean uncluttered layout");
 
-  // Check popup.js live preview logic and keyboard navigation
-  assert.ok(popupJs.includes("function updateSingleLivePreview()"), "popup.js must define updateSingleLivePreview");
-  assert.ok(popupJs.includes("previewCardCode"), "popup.js must cache previewCardCode in els");
-  assert.ok(popupJs.includes("singlePrereqChips"), "popup.js must cache singlePrereqChips in els");
+  // Check popup.js keyboard navigation and auto-uppercase
   assert.ok(popupJs.includes('e.key === "Enter"'), "popup.js must implement Enter-to-submit on inputs");
   assert.ok(popupJs.includes(".toUpperCase()"), "popup.js must auto-uppercase course code");
-  console.log("  ✓ popup.js includes updateSingleLivePreview, auto-uppercase, and Enter key handlers");
+  assert.ok(!popupJs.includes("updateSingleLivePreview"), "popup.js must not contain redundant live preview function");
+  console.log("  ✓ popup.js includes auto-uppercase and Enter key handlers without redundant preview overhead");
 
   console.log("\n==================================================");
   console.log("  ALL TESTS PASSED WITH ZERO ERRORS (9 / 9)        ");

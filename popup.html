@@ -2062,145 +2062,6 @@
       gap: 8px;
     }
 
-    /* Prerequisite live chips */
-    .prereq-chips-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 3px;
-    }
-
-    .prereq-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--accent-light);
-      color: var(--accent);
-      border: 1px solid rgba(242, 101, 34, 0.22);
-      padding: 2px 7px;
-      border-radius: 6px;
-      font-size: 0.65rem;
-      font-weight: 600;
-      font-family: monospace;
-      letter-spacing: 0.02em;
-      animation: fadeIn 0.18s ease;
-    }
-
-    .prereq-chip svg {
-      width: 9px;
-      height: 9px;
-      fill: currentColor;
-    }
-
-    /* Live Catalog Preview Box */
-    .single-preview-container {
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
-      border-radius: 9px;
-      padding: 9px 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 2px;
-      transition: all 0.2s ease;
-    }
-
-    .single-preview-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .preview-title-group {
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .preview-title-group svg {
-      width: 12px;
-      height: 12px;
-      fill: var(--accent);
-    }
-
-    .preview-badge-status {
-      font-size: 0.58rem;
-      font-weight: 600;
-      background: #e0e7ff;
-      color: #4338ca;
-      padding: 1px 6px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .single-preview-card {
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 8px 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .preview-card-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .preview-code-badge {
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: var(--accent);
-      letter-spacing: 0.04em;
-      font-family: inherit;
-    }
-
-    .preview-card-title {
-      font-size: 0.74rem;
-      font-weight: 600;
-      color: var(--text-main);
-      line-height: 1.35;
-    }
-
-    .preview-card-title.placeholder {
-      font-weight: 400;
-      color: var(--text-muted);
-      font-style: italic;
-    }
-
-    .preview-card-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 0.64rem;
-      color: var(--text-muted);
-      margin-top: 3px;
-      padding-top: 4px;
-      border-top: 1px solid #f1f5f9;
-    }
-
-    .preview-meta-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .preview-meta-item svg {
-      width: 11px;
-      height: 11px;
-      fill: currentColor;
-      flex-shrink: 0;
-    }
-
     /* JSON Import */
     .import-section {
       display: flex;
@@ -3023,7 +2884,7 @@
                   <svg class="label-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/></svg>
                   Exam Day
                 </label>
-                <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. Sunday or Day 1" autocomplete="off" />
+                <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. Day 1 or Sunday" autocomplete="off" />
               </div>
 
               <div class="form-group">
@@ -3031,7 +2892,7 @@
                   <svg class="label-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
                   Exam Slot
                 </label>
-                <input type="text" class="form-input" id="singleCourseSlot" placeholder="e.g. Slot A (09:00 AM)" autocomplete="off" />
+                <input type="text" class="form-input" id="singleCourseSlot" placeholder="e.g. T1, T2, or T3" autocomplete="off" />
               </div>
             </div>
 
@@ -3041,35 +2902,6 @@
                 Prerequisites
               </label>
               <input type="text" class="form-input" id="singleCoursePrereq" placeholder="e.g. CSE 2215, CSE 2216 (comma separated)" autocomplete="off" />
-              <div id="singlePrereqChips" class="prereq-chips-container" style="display: none;"></div>
-            </div>
-          </div>
-
-          <!-- Dynamic Live Catalog Preview -->
-          <div class="single-preview-container">
-            <div class="single-preview-header">
-              <div class="preview-title-group">
-                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                <span>Live Catalog Preview</span>
-              </div>
-              <span class="preview-badge-status">Instant Preview</span>
-            </div>
-            <div class="single-preview-card" id="singleLivePreview">
-              <div class="preview-card-top">
-                <span class="preview-code-badge" id="previewCardCode">COURSE CODE</span>
-                <span class="origin-badge user" style="font-size: 0.58rem; padding: 1px 6px;">Custom</span>
-              </div>
-              <div class="preview-card-title placeholder" id="previewCardTitle">Course title preview will appear here</div>
-              <div class="preview-card-meta" id="previewCardMeta">
-                <span class="preview-meta-item" id="previewCardSchedule">
-                  <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-                  <span id="previewCardScheduleText">No exam schedule set</span>
-                </span>
-                <span class="preview-meta-item" id="previewCardPrereq" style="display:none;">
-                  <svg viewBox="0 0 24 24"><path d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h8v2H8z"/></svg>
-                  <span id="previewCardPrereqText"></span>
-                </span>
-              </div>
             </div>
           </div>
 
@@ -3112,7 +2944,7 @@
               Click <strong>Copy</strong> to copy the 2-course template format, customize with your course details, then paste below. Supports both complete and minimal course info.
             </div>
             <textarea class="json-textarea" id="jsonInput" style="height: 220px; font-size: 0.74rem; font-family: monospace;"
-              placeholder='{&#10;  "CSE 3715": {&#10;    "name": "Software Engineering",&#10;    "examDay": "Sunday",&#10;    "examSlot": "Slot A (09:00 AM - 11:00 AM)",&#10;    "prerequisites": [&#10;      "CSE 2215",&#10;      "CSE 2216"&#10;    ]&#10;  },&#10;  "ACT 1111": {&#10;    "name": "Financial Accounting",&#10;    "examDay": "Tuesday",&#10;    "examSlot": "Slot B (11:30 AM - 01:30 PM)",&#10;    "prerequisites": []&#10;  }&#10;}'></textarea>
+              placeholder='{&#10;  "CSE 3715": {&#10;    "name": "Software Engineering",&#10;    "examDay": "Day 1",&#10;    "examSlot": "T1",&#10;    "prerequisites": [&#10;      "CSE 2215",&#10;      "CSE 2216"&#10;    ]&#10;  },&#10;  "ACT 1111": {&#10;    "name": "Financial Accounting",&#10;    "examDay": "",&#10;    "examSlot": "",&#10;    "prerequisites": []&#10;  }&#10;}'></textarea>
             <div class="import-msg" id="importMsg"></div>
             <div class="import-actions" style="margin-top: 8px;">
               <button class="btn-import" id="importBtn" style="padding: 11px;">

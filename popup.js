@@ -59,13 +59,6 @@
     addSingleCourseBtn: document.getElementById("addSingleCourseBtn"),
     clearSingleFormBtn: document.getElementById("clearSingleFormBtn"),
     singleCourseMsg: document.getElementById("singleCourseMsg"),
-    singlePrereqChips: document.getElementById("singlePrereqChips"),
-    previewCardCode: document.getElementById("previewCardCode"),
-    previewCardTitle: document.getElementById("previewCardTitle"),
-    previewCardSchedule: document.getElementById("previewCardSchedule"),
-    previewCardScheduleText: document.getElementById("previewCardScheduleText"),
-    previewCardPrereq: document.getElementById("previewCardPrereq"),
-    previewCardPrereqText: document.getElementById("previewCardPrereqText"),
     openImportBtn: document.getElementById("openImportBtn"),
     importBackBtn: document.getElementById("importBackBtn"),
     detailsBackBtn: document.getElementById("detailsBackBtn"),
@@ -850,77 +843,6 @@
     }, 4000);
   }
 
-  function updateSingleLivePreview() {
-    const rawCode = (els.singleCourseCode?.value || "").trim().toUpperCase();
-    const rawName = (els.singleCourseName?.value || "").trim();
-    const rawDay = (els.singleCourseDay?.value || "").trim();
-    const rawSlot = (els.singleCourseSlot?.value || "").trim();
-    const rawPrereq = (els.singleCoursePrereq?.value || "").trim();
-
-    // 1. Update Preview Code
-    if (els.previewCardCode) {
-      els.previewCardCode.textContent = rawCode || "COURSE CODE";
-      els.previewCardCode.style.opacity = rawCode ? "1" : "0.38";
-    }
-
-    // 2. Update Preview Title
-    if (els.previewCardTitle) {
-      if (rawName) {
-        els.previewCardTitle.textContent = rawName;
-        els.previewCardTitle.classList.remove("placeholder");
-      } else {
-        els.previewCardTitle.textContent = "Course title preview will appear here";
-        els.previewCardTitle.classList.add("placeholder");
-      }
-    }
-
-    // 3. Update Preview Schedule
-    if (els.previewCardScheduleText && els.previewCardSchedule) {
-      if (rawDay && rawSlot) {
-        els.previewCardScheduleText.textContent = `${rawDay} • ${rawSlot}`;
-        els.previewCardSchedule.style.display = "inline-flex";
-      } else if (rawDay) {
-        els.previewCardScheduleText.textContent = rawDay;
-        els.previewCardSchedule.style.display = "inline-flex";
-      } else if (rawSlot) {
-        els.previewCardScheduleText.textContent = rawSlot;
-        els.previewCardSchedule.style.display = "inline-flex";
-      } else {
-        els.previewCardScheduleText.textContent = "No exam schedule set";
-        els.previewCardSchedule.style.display = "inline-flex";
-      }
-    }
-
-    // 4. Update Prerequisite Chips & Preview Prereqs
-    const prereqList = rawPrereq
-      ? rawPrereq.split(",").map(p => p.trim().toUpperCase()).filter(Boolean)
-      : [];
-
-    if (els.singlePrereqChips) {
-      if (prereqList.length > 0) {
-        els.singlePrereqChips.innerHTML = prereqList.map(p => `
-          <span class="prereq-chip">
-            <svg viewBox="0 0 24 24"><path d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h8v2H8z"/></svg>
-            ${escapeHtml(p)}
-          </span>
-        `).join("");
-        els.singlePrereqChips.style.display = "flex";
-      } else {
-        els.singlePrereqChips.innerHTML = "";
-        els.singlePrereqChips.style.display = "none";
-      }
-    }
-
-    if (els.previewCardPrereq && els.previewCardPrereqText) {
-      if (prereqList.length > 0) {
-        els.previewCardPrereqText.textContent = `Prereq: ${prereqList.join(", ")}`;
-        els.previewCardPrereq.style.display = "inline-flex";
-      } else {
-        els.previewCardPrereq.style.display = "none";
-      }
-    }
-  }
-
   function showToast(message, type = "info") {
     let toast = document.getElementById("globalToast");
     if (!toast) {
@@ -1270,7 +1192,6 @@
       if (els.bulkImportSection) els.bulkImportSection.style.display = "none";
       const subtitle = document.getElementById("importViewSubtitle");
       if (subtitle) subtitle.textContent = "Add single course to catalog";
-      updateSingleLivePreview();
       setTimeout(() => {
         els.singleCourseCode?.focus({ preventScroll: true });
       }, 350);
@@ -1672,14 +1593,14 @@
     const SAMPLE_TWO_COURSES = JSON.stringify({
       "CSE 3715": {
         "name": "Software Engineering",
-        "examDay": "Sunday",
-        "examSlot": "Slot A (09:00 AM - 11:00 AM)",
+        "examDay": "Day 1",
+        "examSlot": "T1",
         "prerequisites": ["CSE 2215", "CSE 2216"]
       },
       "ACT 1111": {
         "name": "Financial Accounting",
-        "examDay": "Tuesday",
-        "examSlot": "Slot B (11:30 AM - 01:30 PM)",
+        "examDay": "",
+        "examSlot": "",
         "prerequisites": []
       }
     }, null, 2);
@@ -1718,7 +1639,7 @@
       activateBatchUploadTab(false);
     });
 
-    // Live preview & validation on single course form inputs
+    // Validation & auto-uppercase on single course form inputs
     els.singleCourseCode?.addEventListener("input", () => {
       els.singleCourseCode.classList.remove("input-error");
       const start = els.singleCourseCode.selectionStart;
@@ -1727,17 +1648,11 @@
       if (start !== null && end !== null) {
         els.singleCourseCode.setSelectionRange(start, end);
       }
-      updateSingleLivePreview();
     });
 
     els.singleCourseName?.addEventListener("input", () => {
       els.singleCourseName.classList.remove("input-error");
-      updateSingleLivePreview();
     });
-
-    els.singleCourseDay?.addEventListener("input", updateSingleLivePreview);
-    els.singleCourseSlot?.addEventListener("input", updateSingleLivePreview);
-    els.singleCoursePrereq?.addEventListener("input", updateSingleLivePreview);
 
     // Keyboard navigation: Enter in any single course input triggers submit
     [
@@ -1825,13 +1740,12 @@
         showSingleCourseMsg("success", `✅ ${code} added to course database!`);
         showToast(`${code} added to catalog`, "success");
 
-        // Clear input form for next entry & refresh live preview
+        // Clear input form for next entry
         if (els.singleCourseCode) els.singleCourseCode.value = "";
         if (els.singleCourseName) els.singleCourseName.value = "";
         if (els.singleCourseDay) els.singleCourseDay.value = "";
         if (els.singleCourseSlot) els.singleCourseSlot.value = "";
         if (els.singleCoursePrereq) els.singleCoursePrereq.value = "";
-        updateSingleLivePreview();
         els.singleCourseCode?.focus();
       } catch (err) {
         console.error("Failed to add course:", err);
@@ -1856,7 +1770,6 @@
         els.singleCourseMsg.className = "import-msg";
         els.singleCourseMsg.style.display = "none";
       }
-      updateSingleLivePreview();
       els.singleCourseCode?.focus();
     });
 

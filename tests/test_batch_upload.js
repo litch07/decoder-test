@@ -4,14 +4,14 @@ const assert = require("assert");
 const SAMPLE_TWO_COURSES = JSON.stringify({
   "CSE 3715": {
     "name": "Software Engineering",
-    "examDay": "Sunday",
-    "examSlot": "Slot A (09:00 AM - 11:00 AM)",
+    "examDay": "Day 1",
+    "examSlot": "T1",
     "prerequisites": ["CSE 2215", "CSE 2216"]
   },
   "ACT 1111": {
     "name": "Financial Accounting",
-    "examDay": "Tuesday",
-    "examSlot": "Slot B (11:30 AM - 01:30 PM)",
+    "examDay": "",
+    "examSlot": "",
     "prerequisites": []
   }
 }, null, 2);
@@ -78,14 +78,14 @@ async function runTests() {
 
   const cse3715 = parsedSample["CSE 3715"];
   assert.strictEqual(cse3715.name, "Software Engineering");
-  assert.strictEqual(cse3715.examDay, "Sunday");
-  assert.strictEqual(cse3715.examSlot, "Slot A (09:00 AM - 11:00 AM)");
+  assert.strictEqual(cse3715.examDay, "Day 1");
+  assert.strictEqual(cse3715.examSlot, "T1");
   assert.deepStrictEqual(cse3715.prerequisites, ["CSE 2215", "CSE 2216"]);
 
   const act1111 = parsedSample["ACT 1111"];
   assert.strictEqual(act1111.name, "Financial Accounting");
-  assert.strictEqual(act1111.examDay, "Tuesday");
-  assert.strictEqual(act1111.examSlot, "Slot B (11:30 AM - 01:30 PM)");
+  assert.strictEqual(act1111.examDay, "");
+  assert.strictEqual(act1111.examSlot, "");
   assert.deepStrictEqual(act1111.prerequisites, []);
 
   console.log("--- TEST 2: Parsing and Batch Upload Processing ---");
