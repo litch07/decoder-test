@@ -61,7 +61,7 @@ Previously, course imports were limited to a single raw JSON input box without d
    - **Prevented Catalog Wiping Hazard**:
      - Replaced the previous dangerous secondary button (which cleared all 600+ courses from the entire database) with a safe editor `Clear` button (`#clearBtn`) that resets only the JSON input field.
    - **Symmetrical Guidance Box**:
-     - Transformed the plain text disclaimer into `.import-hint`: full width (`width: 100%`), subtle background (`var(--surface2)`), and justified text alignment (`text-align: justify; text-justify: inter-word;`).
+     - Transformed the disclaimer into a clean `.import-hint`: full width (`width: 100%`), subtle background (`var(--surface2)`), and justified text alignment, with straightforward copy instructing students to paste the JSON or click Copy and make sure to add the title of the course.
 
 4. **Professional SVG Status Messaging System**:
    - Upgraded `showImportMsg()` and `showSingleCourseMsg()` from raw emojis (`⚠️`, `❌`, `✅`) to modern, color-coded SVG alert cards:
