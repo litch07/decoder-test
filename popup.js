@@ -70,6 +70,7 @@
     resetResultDesc: document.getElementById("resetResultDesc"),
     resetResultBadges: document.getElementById("resetResultBadges"),
     resetResultDetails: document.getElementById("resetResultDetails"),
+    resetResultDismissBtn: document.getElementById("resetResultDismissBtn"),
     syncResultBox: document.getElementById("syncResultBox"),
     syncResultDot: document.getElementById("syncResultDot"),
     syncResultTitle: document.getElementById("syncResultTitle"),
@@ -77,6 +78,7 @@
     syncResultDesc: document.getElementById("syncResultDesc"),
     syncResultBadges: document.getElementById("syncResultBadges"),
     syncResultDetails: document.getElementById("syncResultDetails"),
+    syncResultDismissBtn: document.getElementById("syncResultDismissBtn"),
   };
 
   let currentEditingCode = null;
@@ -247,7 +249,13 @@
     els.showExamInfoToggle.checked = showExamInfo;
     els.showPrerequisitesToggle.checked = showPrerequisites;
     els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
-    renderSyncResult(lastSyncResult);
+    if (lastSyncResult) {
+      renderSyncResult(lastSyncResult);
+      // Viewed once in this session; remove from persistent storage so next popup session starts clean
+      chrome.storage.local.remove("lastSyncResult");
+    } else {
+      renderSyncResult(null);
+    }
     checkSyncReminder();
     setInterval(checkSyncReminder, 1500);
 
@@ -734,7 +742,10 @@
       .replace(/>/g, "&gt;");
   }
 
-  function openCourseDetails(code, courseData) {
+  let detailsOriginView = "courses";
+
+  function openCourseDetails(code, courseData, originView = "courses") {
+    detailsOriginView = originView;
     currentEditingCode = code;
     els.detailsCourseCode.textContent = code;
 
@@ -761,7 +772,16 @@
     els.detailDelBtn.title = "";
 
     els.viewWrapper.classList.add("show-details");
-    els.viewWrapper.classList.remove("show-courses");
+    els.viewWrapper.classList.remove("show-courses", "show-settings", "show-trash", "show-import");
+  }
+
+  function exitCourseDetails() {
+    els.viewWrapper.classList.remove("show-details");
+    if (detailsOriginView === "settings") {
+      els.viewWrapper.classList.add("show-settings");
+    } else {
+      els.viewWrapper.classList.add("show-courses");
+    }
   }
 
   function commitCourseSave(code, newVal) {
@@ -788,8 +808,7 @@
       if (isTrashMode) renderTrashList(searchQuery);
       else renderCourseList(searchQuery);
 
-      els.viewWrapper.classList.remove("show-details");
-      els.viewWrapper.classList.add("show-courses");
+      exitCourseDetails();
     })();
   }
 
@@ -852,6 +871,89 @@
     }, 2800);
   }
 
+  function renderDiffChip(code, detailsMap, type) {
+    const isRemoved = type === "remove";
+    let badgeHtml = "";
+    if (detailsMap && detailsMap[code]) {
+      const detailText = Array.isArray(detailsMap[code]) 
+        ? detailsMap[code].join(" & ") 
+        : detailsMap[code];
+      const pillClass = type === "add" ? "add" : (type === "revert" ? "revert" : "");
+      badgeHtml = `<span class="sync-field-pill ${pillClass}">${escapeHtml(detailText)}</span>`;
+    } else if (type === "add") {
+      badgeHtml = `<span class="sync-field-pill add">New</span>`;
+    } else if (type === "remove") {
+      badgeHtml = `<span class="sync-field-pill">Removed</span>`;
+    } else if (type === "restore") {
+      badgeHtml = `<span class="sync-field-pill add">Restored</span>`;
+    } else if (type === "revert") {
+      badgeHtml = `<span class="sync-field-pill revert">Reverted</span>`;
+    }
+
+    if (isRemoved) {
+      return `<span class="sync-code-chip is-removed" title="Course removed from catalog"><span>${escapeHtml(code)}</span>${badgeHtml}</span>`;
+    }
+
+    return `<button type="button" class="sync-code-chip" data-code="${escapeHtml(code)}" title="Click to view details for ${escapeHtml(code)}"><span>${escapeHtml(code)}</span>${badgeHtml}<svg class="sync-chip-arrow" viewBox="0 0 24 24"><path d="M5 19L19 5M19 5H9M19 5V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>`;
+  }
+
+  function formatInteractiveDiffRow(label, codes, detailsMap, type) {
+    if (!codes || codes.length === 0) return "";
+    if (codes.length <= 6) {
+      const chips = codes.map(c => renderDiffChip(c, detailsMap, type)).join("");
+      return `<div class="sync-diff-row"><strong>${label}:</strong> <div class="sync-diff-chips">${chips}</div></div>`;
+    }
+    const preview = codes.slice(0, 6).map(c => renderDiffChip(c, detailsMap, type)).join("");
+    const full = codes.map(c => renderDiffChip(c, detailsMap, type)).join("");
+    const moreCount = codes.length - 6;
+    return `<div class="sync-diff-row">
+      <strong>${label}:</strong>
+      <div class="sync-diff-chips sync-codes-preview">${preview}</div>
+      <div class="sync-diff-chips sync-codes-full" style="display:none;">${full}</div>
+      <button class="btn-more-codes" type="button" data-more-count="${moreCount}">+${moreCount} more</button>
+    </div>`;
+  }
+
+  function bindDiffContainerEvents(container) {
+    if (!container) return;
+
+    // Expand / collapse "+N more" toggles
+    container.querySelectorAll(".btn-more-codes").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const row = btn.closest(".sync-diff-row");
+        if (!row) return;
+        const previewEl = row.querySelector(".sync-codes-preview");
+        const fullEl = row.querySelector(".sync-codes-full");
+        const moreCount = btn.getAttribute("data-more-count");
+
+        if (fullEl && fullEl.style.display === "none") {
+          if (previewEl) previewEl.style.display = "none";
+          fullEl.style.display = "inline-flex";
+          btn.textContent = "Show less";
+          btn.classList.add("is-expanded");
+        } else if (fullEl) {
+          fullEl.style.display = "none";
+          if (previewEl) previewEl.style.display = "inline-flex";
+          btn.textContent = `+${moreCount} more`;
+          btn.classList.remove("is-expanded");
+        }
+      });
+    });
+
+    // Click on a course chip to jump straight to Course Details
+    container.querySelectorAll(".sync-code-chip[data-code]").forEach(chip => {
+      chip.addEventListener("click", (e) => {
+        e.preventDefault();
+        const code = chip.getAttribute("data-code");
+        if (code && courses && courses[code]) {
+          openCourseDetails(code, courses[code], "settings");
+        } else if (code) {
+          showToast(`Course ${code} is not in active catalog`, "info");
+        }
+      });
+    });
+  }
+
   function renderSyncResult(stats) {
     if (!els.syncResultBox || !stats) {
       if (els.syncResultBox) {
@@ -862,7 +964,16 @@
       return;
     }
 
-    const { added = 0, updated = 0, removed = 0, addedCodes = [], updatedCodes = [], removedCodes = [], timestamp } = stats;
+    const {
+      added = 0,
+      updated = 0,
+      removed = 0,
+      addedCodes = [],
+      updatedCodes = [],
+      removedCodes = [],
+      updatedDetails = {},
+      timestamp
+    } = stats;
     const hasChanges = added > 0 || updated > 0 || removed > 0;
 
     els.syncResultBox.classList.add("show");
@@ -913,54 +1024,22 @@
         els.syncResultBadges.innerHTML = badgesHtml;
       }
 
-      function formatDiffRow(label, codes) {
-        if (!codes || codes.length === 0) return "";
-        if (codes.length <= 6) {
-          return `<div class="sync-diff-row"><strong>${label}:</strong> ${escapeHtml(codes.join(", "))}</div>`;
-        }
-        const preview = escapeHtml(codes.slice(0, 6).join(", "));
-        const full = escapeHtml(codes.join(", "));
-        const moreCount = codes.length - 6;
-        return `<div class="sync-diff-row"><strong>${label}:</strong> <span class="sync-codes-preview">${preview}</span><span class="sync-codes-full" style="display:none;">${full}</span><button class="btn-more-codes" type="button" data-more-count="${moreCount}">+${moreCount} more</button></div>`;
-      }
-
       const diffRows = [];
       if (addedCodes.length > 0) {
-        diffRows.push(formatDiffRow("Added", addedCodes));
+        diffRows.push(formatInteractiveDiffRow("Added", addedCodes, null, "add"));
       }
       if (updatedCodes.length > 0) {
-        diffRows.push(formatDiffRow("Updated", updatedCodes));
+        diffRows.push(formatInteractiveDiffRow("Updated", updatedCodes, updatedDetails, "update"));
       }
       if (removedCodes.length > 0) {
-        diffRows.push(formatDiffRow("Removed", removedCodes));
+        diffRows.push(formatInteractiveDiffRow("Removed", removedCodes, null, "remove"));
       }
 
       if (els.syncResultDetails) {
         if (diffRows.length > 0) {
           els.syncResultDetails.style.display = "flex";
           els.syncResultDetails.innerHTML = diffRows.join("");
-
-          els.syncResultDetails.querySelectorAll(".btn-more-codes").forEach(btn => {
-            btn.addEventListener("click", () => {
-              const row = btn.closest(".sync-diff-row");
-              if (!row) return;
-              const previewSpan = row.querySelector(".sync-codes-preview");
-              const fullSpan = row.querySelector(".sync-codes-full");
-              const moreCount = btn.getAttribute("data-more-count");
-
-              if (fullSpan && fullSpan.style.display === "none") {
-                if (previewSpan) previewSpan.style.display = "none";
-                fullSpan.style.display = "inline";
-                btn.textContent = "Show less";
-                btn.classList.add("is-expanded");
-              } else if (fullSpan) {
-                fullSpan.style.display = "none";
-                if (previewSpan) previewSpan.style.display = "inline";
-                btn.textContent = `+${moreCount} more`;
-                btn.classList.remove("is-expanded");
-              }
-            });
-          });
+          bindDiffContainerEvents(els.syncResultDetails);
         } else {
           els.syncResultDetails.style.display = "none";
           els.syncResultDetails.innerHTML = "";
@@ -982,6 +1061,7 @@
       totalChanges = 0,
       restoredCodes = [],
       revertedCodes = [],
+      revertedDetails = {},
       timestamp = Date.now()
     } = stats;
 
@@ -1031,51 +1111,19 @@
         els.resetResultBadges.innerHTML = badgesHtml;
       }
 
-      function formatDiffRow(label, codes) {
-        if (!codes || codes.length === 0) return "";
-        if (codes.length <= 6) {
-          return `<div class="sync-diff-row"><strong>${label}:</strong> ${escapeHtml(codes.join(", "))}</div>`;
-        }
-        const preview = escapeHtml(codes.slice(0, 6).join(", "));
-        const full = escapeHtml(codes.join(", "));
-        const moreCount = codes.length - 6;
-        return `<div class="sync-diff-row"><strong>${label}:</strong> <span class="sync-codes-preview">${preview}</span><span class="sync-codes-full" style="display:none;">${full}</span><button class="btn-more-codes" type="button" data-more-count="${moreCount}">+${moreCount} more</button></div>`;
-      }
-
       const diffRows = [];
       if (restoredCodes.length > 0) {
-        diffRows.push(formatDiffRow("Restored", restoredCodes));
+        diffRows.push(formatInteractiveDiffRow("Restored", restoredCodes, null, "restore"));
       }
       if (revertedCodes.length > 0) {
-        diffRows.push(formatDiffRow("Reverted", revertedCodes));
+        diffRows.push(formatInteractiveDiffRow("Reverted", revertedCodes, revertedDetails, "revert"));
       }
 
       if (els.resetResultDetails) {
         if (diffRows.length > 0) {
           els.resetResultDetails.style.display = "flex";
           els.resetResultDetails.innerHTML = diffRows.join("");
-
-          els.resetResultDetails.querySelectorAll(".btn-more-codes").forEach(btn => {
-            btn.addEventListener("click", () => {
-              const row = btn.closest(".sync-diff-row");
-              if (!row) return;
-              const previewSpan = row.querySelector(".sync-codes-preview");
-              const fullSpan = row.querySelector(".sync-codes-full");
-              const moreCount = btn.getAttribute("data-more-count");
-
-              if (fullSpan && fullSpan.style.display === "none") {
-                if (previewSpan) previewSpan.style.display = "none";
-                fullSpan.style.display = "inline";
-                btn.textContent = "Show less";
-                btn.classList.add("is-expanded");
-              } else if (fullSpan) {
-                fullSpan.style.display = "none";
-                if (previewSpan) previewSpan.style.display = "inline";
-                btn.textContent = `+${moreCount} more`;
-                btn.classList.remove("is-expanded");
-              }
-            });
-          });
+          bindDiffContainerEvents(els.resetResultDetails);
         } else {
           els.resetResultDetails.style.display = "none";
           els.resetResultDetails.innerHTML = "";
@@ -1183,8 +1231,7 @@
     });
 
     els.detailsBackBtn?.addEventListener("click", () => {
-      els.viewWrapper.classList.remove("show-details");
-      els.viewWrapper.classList.add("show-courses");
+      exitCourseDetails();
     });
 
     els.detailSaveBtn?.addEventListener("click", () => {
@@ -1216,8 +1263,7 @@
       const currentData = courses[currentEditingCode];
       if (areCourseDataEqual(newVal, currentData)) {
         showToast("No changes made to course details.", "info");
-        els.viewWrapper.classList.remove("show-details");
-        els.viewWrapper.classList.add("show-courses");
+        exitCourseDetails();
         return;
       }
 
@@ -1274,8 +1320,7 @@
             renderCourseList(searchQuery);
           }
         }
-        els.viewWrapper.classList.remove("show-details");
-        els.viewWrapper.classList.add("show-courses");
+        exitCourseDetails();
       } else if (pendingAction === "restore" && pendingTarget) {
         const target = pendingTarget;
         softDeletedCourses = softDeletedCourses.filter(c => c !== target);
@@ -1361,6 +1406,24 @@
           const affectedCodes = new Set([...restoredCodes, ...revertedCodes]);
           const changeCount = affectedCodes.size;
 
+          // Track what specific field modifications are being reverted to default
+          const revertedDetails = {};
+          for (const code of revertedCodes) {
+            const userVal = userCourses[code];
+            const officialBase = remoteCourses[code] || bundledCourses[code];
+            const userObj = typeof userVal === "object" && userVal !== null ? userVal : { name: userVal || "" };
+            const officialObj = typeof officialBase === "object" && officialBase !== null ? officialBase : { name: officialBase || "" };
+
+            const changedFields = [];
+            if ((userObj.name || "") !== (officialObj.name || "")) changedFields.push("Title");
+            if ((userObj.examDay || "") !== (officialObj.examDay || "") || (userObj.examSlot || "") !== (officialObj.examSlot || "")) changedFields.push("Exam Schedule");
+            const uPrereq = Array.isArray(userObj.prerequisites) ? userObj.prerequisites.slice().sort().join(",") : "";
+            const oPrereq = Array.isArray(officialObj.prerequisites) ? officialObj.prerequisites.slice().sort().join(",") : "";
+            if (uPrereq !== oPrereq) changedFields.push("Prerequisites");
+
+            revertedDetails[code] = changedFields.length > 0 ? changedFields.join(" & ") + " Reverted" : "Reverted";
+          }
+
           softDeletedCourses = [];
           hardDeletedCourses = [];
 
@@ -1404,6 +1467,7 @@
             totalChanges: changeCount,
             restoredCodes,
             revertedCodes,
+            revertedDetails,
             timestamp: Date.now()
           });
         } catch (err) {
@@ -1677,6 +1741,8 @@
             els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
 
             renderSyncResult(lastSyncResult);
+            // Session-only: clear from persistent storage so next popup launch starts clean
+            chrome.storage.local.remove("lastSyncResult");
             checkSyncReminder();
           } else {
             throw new Error(response.error || "Unknown error");
@@ -1705,6 +1771,24 @@
         }
       });
     }
+
+    // Dismiss buttons for sync and reset summary boxes
+    els.syncResultDismissBtn?.addEventListener("click", () => {
+      if (els.syncResultBox) {
+        els.syncResultBox.classList.remove("show");
+        els.syncResultBox.style.display = "none";
+      }
+      if (els.syncTime) els.syncTime.style.display = "block";
+      lastSyncResult = null;
+      chrome.storage.local.remove("lastSyncResult");
+    });
+
+    els.resetResultDismissBtn?.addEventListener("click", () => {
+      if (els.resetResultBox) {
+        els.resetResultBox.classList.remove("show");
+        els.resetResultBox.style.display = "none";
+      }
+    });
 
     els.resetDefaultsBtn?.addEventListener("click", () => {
       pendingAction = "reset-defaults";

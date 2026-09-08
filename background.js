@@ -131,6 +131,7 @@ async function syncCourses() {
     const addedCodes = [];
     const updatedCodes = [];
     const removedCodes = [];
+    const updatedDetails = {};
 
     // Check for added and updated courses
     for (const code of Object.keys(data)) {
@@ -148,8 +149,14 @@ async function syncCourses() {
         const prevPrereq = (typeof prev === "object" && prev !== null && Array.isArray(prev.prerequisites)) ? prev.prerequisites.slice().sort().join(",") : "";
         const currPrereq = (typeof curr === "object" && curr !== null && Array.isArray(curr.prerequisites)) ? curr.prerequisites.slice().sort().join(",") : "";
 
-        if (prevName !== currName || prevDay !== currDay || prevSlot !== currSlot || prevPrereq !== currPrereq) {
+        const changedFields = [];
+        if (prevName !== currName) changedFields.push("Title");
+        if (prevDay !== currDay || prevSlot !== currSlot) changedFields.push("Exam Schedule");
+        if (prevPrereq !== currPrereq) changedFields.push("Prerequisites");
+
+        if (changedFields.length > 0) {
           updatedCodes.push(code);
+          updatedDetails[code] = changedFields;
         }
       }
     }
@@ -171,6 +178,7 @@ async function syncCourses() {
       addedCodes,
       updatedCodes,
       removedCodes,
+      updatedDetails,
       total: Object.keys(data).length,
       timestamp
     };

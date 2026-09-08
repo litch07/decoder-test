@@ -798,18 +798,52 @@
       border: 1px solid #fecaca;
     }
 
+    .sync-card-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sync-card-dismiss-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .sync-card-dismiss-btn:hover {
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--text-main);
+      transform: scale(1.08);
+    }
+
+    .sync-card-dismiss-btn svg {
+      width: 12px;
+      height: 12px;
+      fill: currentColor;
+    }
+
     .sync-diff-section {
       margin-top: 8px;
       padding-top: 8px;
       border-top: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
     }
 
     .sync-diff-row {
-      font-size: 0.64rem;
-      line-height: 1.4;
+      font-size: 0.65rem;
+      line-height: 1.45;
       color: var(--text-muted);
       word-break: break-word;
     }
@@ -817,18 +851,111 @@
     .sync-diff-row strong {
       color: var(--text-main);
       font-weight: 600;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .sync-diff-chips {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      vertical-align: middle;
+    }
+
+    .sync-code-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2.5px 7px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.64rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      text-decoration: none;
+      line-height: 1.3;
+    }
+
+    .sync-code-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #fffaf7;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(242, 101, 34, 0.12);
+    }
+
+    .sync-code-chip:active {
+      transform: translateY(0);
+    }
+
+    .sync-code-chip.is-removed {
+      cursor: default;
+      opacity: 0.72;
+      background: #f8fafc;
+      border-style: dashed;
+    }
+
+    .sync-code-chip.is-removed:hover {
+      border-color: var(--border-color);
+      color: var(--text-main);
+      background: #f8fafc;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .sync-code-chip .sync-chip-arrow {
+      width: 9px;
+      height: 9px;
+      fill: currentColor;
+      opacity: 0.55;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .sync-code-chip:hover .sync-chip-arrow {
+      opacity: 1;
+      transform: translate(1px, -1px);
+    }
+
+    .sync-field-pill {
+      display: inline-block;
+      font-size: 0.56rem;
+      font-weight: 600;
+      padding: 0 4px;
+      border-radius: 4px;
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #ffedd5;
+      letter-spacing: 0.01em;
+    }
+
+    .sync-field-pill.add {
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #d1fae5;
+    }
+
+    .sync-field-pill.revert {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #dbeafe;
     }
 
     .btn-more-codes {
       display: inline-flex;
       align-items: center;
-      margin-left: 5px;
-      padding: 1px 6px;
+      margin-left: 2px;
+      padding: 2.5px 7px;
       background: var(--surface2);
       border: 1px solid rgba(242, 101, 34, 0.3);
-      border-radius: 4px;
+      border-radius: 6px;
       color: var(--accent);
-      font-size: 0.61rem;
+      font-size: 0.62rem;
       font-weight: 600;
       cursor: pointer;
       line-height: 1.3;
@@ -847,7 +974,7 @@
     .btn-more-codes.is-expanded {
       display: block;
       width: fit-content;
-      margin-top: 6px;
+      margin-top: 4px;
       margin-left: 0;
       padding: 2px 8px;
     }
@@ -2568,9 +2695,14 @@
                 <span id="syncResultDot" class="sync-card-dot"></span>
                 <span id="syncResultTitle">Database is up to date</span>
               </div>
-              <div class="sync-card-time-group">
-                <span class="sync-card-time-label">Last synced</span>
-                <span id="syncResultTime" class="sync-card-time"></span>
+              <div class="sync-card-header-actions">
+                <div class="sync-card-time-group">
+                  <span class="sync-card-time-label">Last synced</span>
+                  <span id="syncResultTime" class="sync-card-time"></span>
+                </div>
+                <button type="button" class="sync-card-dismiss-btn" id="syncResultDismissBtn" title="Dismiss summary" aria-label="Dismiss summary">
+                  <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
               </div>
             </div>
             <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.</div>
@@ -2605,9 +2737,14 @@
                 <span id="resetResultDot" class="sync-card-dot"></span>
                 <span id="resetResultTitle">Official Catalog Restored</span>
               </div>
-              <div class="sync-card-time-group">
-                <span class="sync-card-time-label">Status</span>
-                <span id="resetResultTime" class="sync-card-time">Just now</span>
+              <div class="sync-card-header-actions">
+                <div class="sync-card-time-group">
+                  <span class="sync-card-time-label">Status</span>
+                  <span id="resetResultTime" class="sync-card-time">Just now</span>
+                </div>
+                <button type="button" class="sync-card-dismiss-btn" id="resetResultDismissBtn" title="Dismiss summary" aria-label="Dismiss summary">
+                  <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
               </div>
             </div>
             <div id="resetResultDesc" class="sync-card-desc">Restored to default repository catalog.</div>

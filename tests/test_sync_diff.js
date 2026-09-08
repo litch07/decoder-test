@@ -35,6 +35,7 @@ function computeSyncDiff(incomingData, prevRemote, bundled) {
   const addedCodes = [];
   const updatedCodes = [];
   const removedCodes = [];
+  const updatedDetails = {};
 
   for (const code of Object.keys(incomingData)) {
     if (!(code in prevOfficial)) {
@@ -51,8 +52,14 @@ function computeSyncDiff(incomingData, prevRemote, bundled) {
       const prevPrereq = (typeof prev === "object" && prev !== null && Array.isArray(prev.prerequisites)) ? prev.prerequisites.slice().sort().join(",") : "";
       const currPrereq = (typeof curr === "object" && curr !== null && Array.isArray(curr.prerequisites)) ? curr.prerequisites.slice().sort().join(",") : "";
 
-      if (prevName !== currName || prevDay !== currDay || prevSlot !== currSlot || prevPrereq !== currPrereq) {
+      const changedFields = [];
+      if (prevName !== currName) changedFields.push("Title");
+      if (prevDay !== currDay || prevSlot !== currSlot) changedFields.push("Exam Schedule");
+      if (prevPrereq !== currPrereq) changedFields.push("Prerequisites");
+
+      if (changedFields.length > 0) {
         updatedCodes.push(code);
+        updatedDetails[code] = changedFields;
       }
     }
   }
@@ -73,6 +80,7 @@ function computeSyncDiff(incomingData, prevRemote, bundled) {
     addedCodes,
     updatedCodes,
     removedCodes,
+    updatedDetails,
     total: Object.keys(incomingData).length,
     timestamp
   };
@@ -121,6 +129,9 @@ async function runTests() {
   assert.strictEqual(diff3.updated, 3, "3 courses should be detected as updated");
   assert.deepStrictEqual(diff3.updatedCodes.sort(), ["CSE 1111", "CSE 2222", "CSE 3333"]);
   assert.strictEqual(diff3.removed, 0, "No courses removed");
+  assert.deepStrictEqual(diff3.updatedDetails["CSE 1111"], ["Title"]);
+  assert.deepStrictEqual(diff3.updatedDetails["CSE 2222"], ["Exam Schedule"]);
+  assert.deepStrictEqual(diff3.updatedDetails["CSE 3333"], ["Prerequisites"]);
 
   console.log("--- TEST 4: Sync with a remote course removed ---");
   const incoming4 = {
