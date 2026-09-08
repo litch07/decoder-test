@@ -1277,6 +1277,21 @@
       margin-bottom: 6px;
     }
 
+    .empty-title {
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 3px;
+      font-size: 0.78rem;
+    }
+
+    .empty-subtitle {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      max-width: 230px;
+      margin: 0 auto;
+      line-height: 1.35;
+    }
+
     .empty-clear-btn {
       margin-top: 8px;
       background: #ffffff;
@@ -2269,7 +2284,8 @@
           <div class="course-scroll" id="courseList">
             <div class="empty-state">
               <div class="empty-icon">📚</div>
-              No courses loaded yet. Import from JSON below.
+              <div class="empty-title">Loading Courses</div>
+              <div class="empty-subtitle">Please wait while course data is loaded…</div>
             </div>
           </div>
         </div>

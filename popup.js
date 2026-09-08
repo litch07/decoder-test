@@ -431,14 +431,17 @@
       emptyIcon.textContent = filter ? "🔍" : "🗑️";
       emptyState.appendChild(emptyIcon);
 
+      const titleEl = document.createElement("div");
+      titleEl.className = "empty-title";
+
+      const subEl = document.createElement("div");
+      subEl.className = "empty-subtitle";
+
       if (filter) {
-        const textSpan = document.createElement("div");
-        textSpan.appendChild(document.createTextNode('No results for "'));
-        const strong = document.createElement("strong");
-        strong.textContent = filter;
-        textSpan.appendChild(strong);
-        textSpan.appendChild(document.createTextNode('"'));
-        emptyState.appendChild(textSpan);
+        titleEl.textContent = "No courses found";
+        subEl.textContent = `No courses in Trash matching "${filter}".`;
+        emptyState.appendChild(titleEl);
+        emptyState.appendChild(subEl);
 
         const clearBtn = document.createElement("button");
         clearBtn.type = "button";
@@ -455,7 +458,10 @@
         });
         emptyState.appendChild(clearBtn);
       } else {
-        emptyState.appendChild(document.createTextNode("No courses in the trash."));
+        titleEl.textContent = "Trash is Empty";
+        subEl.textContent = "Courses you delete will appear here until permanently removed.";
+        emptyState.appendChild(titleEl);
+        emptyState.appendChild(subEl);
       }
 
       els.courseList.textContent = "";
@@ -564,17 +570,26 @@
 
       const emptyIcon = document.createElement("div");
       emptyIcon.className = "empty-icon";
-      emptyIcon.textContent = filter ? "🔍" : "📚";
-      emptyState.appendChild(emptyIcon);
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "empty-title";
+
+      const subEl = document.createElement("div");
+      subEl.className = "empty-subtitle";
 
       if (filter) {
-        const textSpan = document.createElement("div");
-        textSpan.appendChild(document.createTextNode('No results for "'));
-        const strong = document.createElement("strong");
-        strong.textContent = filter;
-        textSpan.appendChild(strong);
-        textSpan.appendChild(document.createTextNode('"'));
-        emptyState.appendChild(textSpan);
+        emptyIcon.textContent = "🔍";
+        titleEl.textContent = "No courses found";
+
+        let filterCategory = "";
+        if (currentFilter === "user") filterCategory = " in User Added";
+        else if (currentFilter === "edited") filterCategory = " in Edited";
+        else if (currentFilter === "official") filterCategory = " in Official";
+
+        subEl.textContent = `No results matching "${filter}"${filterCategory}.`;
+        emptyState.appendChild(emptyIcon);
+        emptyState.appendChild(titleEl);
+        emptyState.appendChild(subEl);
 
         const clearBtn = document.createElement("button");
         clearBtn.type = "button";
@@ -591,7 +606,26 @@
         });
         emptyState.appendChild(clearBtn);
       } else {
-        emptyState.appendChild(document.createTextNode("No courses loaded yet. Import from JSON below."));
+        if (currentFilter === "user") {
+          emptyIcon.textContent = "📂";
+          titleEl.textContent = "No User-Added Courses";
+          subEl.textContent = "You haven't added any custom courses yet. Click \"Add / Import Courses\" below to create one.";
+        } else if (currentFilter === "edited") {
+          emptyIcon.textContent = "📝";
+          titleEl.textContent = "No Edited Courses";
+          subEl.textContent = "Official courses that you customize or modify will be tracked here.";
+        } else if (currentFilter === "official") {
+          emptyIcon.textContent = "🏛️";
+          titleEl.textContent = "No Official Courses";
+          subEl.textContent = "Official catalog courses will appear here once loaded or synced.";
+        } else {
+          emptyIcon.textContent = "📚";
+          titleEl.textContent = "No Courses Available";
+          subEl.textContent = "Import courses from JSON below or sync the catalog to get started.";
+        }
+        emptyState.appendChild(emptyIcon);
+        emptyState.appendChild(titleEl);
+        emptyState.appendChild(subEl);
       }
 
       if (els.courseListHeader) els.courseListHeader.style.display = "none";
