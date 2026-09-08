@@ -323,8 +323,27 @@ async function runIntegrationSuite() {
   assert.deepStrictEqual(Object.keys(parsedJsSample), ["CSE 3715", "ACT 1111"]);
   console.log("  ✓ popup.js SAMPLE_TWO_COURSES matches placeholder schema");
 
+  console.log("\n[TEST 9] Single Course Professional UI & Live Preview Architecture");
+  // Check section headers and intro banner
+  assert.ok(popupHtml.includes('class="single-course-intro"'), "Must have single-course-intro banner");
+  assert.ok(popupHtml.includes('<span>Course Identity</span>'), "Must have Course Identity section header");
+  assert.ok(popupHtml.includes('<span>Schedule &amp; Prerequisites</span>'), "Must have Schedule & Prerequisites section header");
+  assert.ok(popupHtml.includes('id="singlePrereqChips"'), "Must have interactive prerequisite chips container");
+  assert.ok(popupHtml.includes('id="singleLivePreview"'), "Must have single live preview card");
+  assert.ok(popupHtml.includes('id="previewCardCode"'), "Must have preview card code element");
+  assert.ok(popupHtml.includes('id="previewCardTitle"'), "Must have preview card title element");
+  console.log("  ✓ popup.html includes structured section headers, prereq chips container, and live catalog preview");
+
+  // Check popup.js live preview logic and keyboard navigation
+  assert.ok(popupJs.includes("function updateSingleLivePreview()"), "popup.js must define updateSingleLivePreview");
+  assert.ok(popupJs.includes("previewCardCode"), "popup.js must cache previewCardCode in els");
+  assert.ok(popupJs.includes("singlePrereqChips"), "popup.js must cache singlePrereqChips in els");
+  assert.ok(popupJs.includes('e.key === "Enter"'), "popup.js must implement Enter-to-submit on inputs");
+  assert.ok(popupJs.includes(".toUpperCase()"), "popup.js must auto-uppercase course code");
+  console.log("  ✓ popup.js includes updateSingleLivePreview, auto-uppercase, and Enter key handlers");
+
   console.log("\n==================================================");
-  console.log("  ALL TESTS PASSED WITH ZERO ERRORS (8 / 8)        ");
+  console.log("  ALL TESTS PASSED WITH ZERO ERRORS (9 / 9)        ");
   console.log("==================================================");
 }
 
