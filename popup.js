@@ -47,6 +47,18 @@
     clearBtn: document.getElementById("clearBtn"),
     importMsg: document.getElementById("importMsg"),
     copySampleBtn: document.getElementById("copySampleBtn"),
+    tabSingleCourse: document.getElementById("tabSingleCourse"),
+    tabBulkImport: document.getElementById("tabBulkImport"),
+    singleCourseSection: document.getElementById("singleCourseSection"),
+    bulkImportSection: document.getElementById("bulkImportSection"),
+    singleCourseCode: document.getElementById("singleCourseCode"),
+    singleCourseName: document.getElementById("singleCourseName"),
+    singleCourseDay: document.getElementById("singleCourseDay"),
+    singleCourseSlot: document.getElementById("singleCourseSlot"),
+    singleCoursePrereq: document.getElementById("singleCoursePrereq"),
+    addSingleCourseBtn: document.getElementById("addSingleCourseBtn"),
+    clearSingleFormBtn: document.getElementById("clearSingleFormBtn"),
+    singleCourseMsg: document.getElementById("singleCourseMsg"),
     openImportBtn: document.getElementById("openImportBtn"),
     importBackBtn: document.getElementById("importBackBtn"),
     detailsBackBtn: document.getElementById("detailsBackBtn"),
@@ -818,6 +830,19 @@
     setTimeout(() => { els.importMsg.className = "import-msg"; }, 4000);
   }
 
+  function showSingleCourseMsg(type, text) {
+    if (!els.singleCourseMsg) return;
+    els.singleCourseMsg.className = `import-msg ${type}`;
+    els.singleCourseMsg.textContent = text;
+    els.singleCourseMsg.style.display = "flex";
+    setTimeout(() => {
+      if (els.singleCourseMsg) {
+        els.singleCourseMsg.className = "import-msg";
+        els.singleCourseMsg.style.display = "none";
+      }
+    }, 4000);
+  }
+
   function showToast(message, type = "info") {
     let toast = document.getElementById("globalToast");
     if (!toast) {
@@ -1549,6 +1574,136 @@
       } catch (err) {
         console.error("Failed to copy", err);
       }
+    });
+
+    // Add / Import Tab Switching
+    els.tabSingleCourse?.addEventListener("click", () => {
+      els.tabSingleCourse.classList.add("active");
+      els.tabBulkImport?.classList.remove("active");
+      if (els.singleCourseSection) els.singleCourseSection.style.display = "flex";
+      if (els.bulkImportSection) els.bulkImportSection.style.display = "none";
+      const subtitle = document.getElementById("importViewSubtitle");
+      if (subtitle) subtitle.textContent = "Add single course to catalog";
+    });
+
+    els.tabBulkImport?.addEventListener("click", () => {
+      els.tabBulkImport.classList.add("active");
+      els.tabSingleCourse?.classList.remove("active");
+      if (els.singleCourseSection) els.singleCourseSection.style.display = "none";
+      if (els.bulkImportSection) els.bulkImportSection.style.display = "flex";
+      const subtitle = document.getElementById("importViewSubtitle");
+      if (subtitle) subtitle.textContent = "Paste JSON to merge courses";
+    });
+
+    // Remove input error borders when user types
+    els.singleCourseCode?.addEventListener("input", () => {
+      els.singleCourseCode.classList.remove("input-error");
+    });
+    els.singleCourseName?.addEventListener("input", () => {
+      els.singleCourseName.classList.remove("input-error");
+    });
+
+    // Add single course to database
+    els.addSingleCourseBtn?.addEventListener("click", async () => {
+      els.singleCourseCode?.classList.remove("input-error");
+      els.singleCourseName?.classList.remove("input-error");
+
+      const rawCode = els.singleCourseCode?.value.trim() || "";
+      const rawName = els.singleCourseName?.value.trim() || "";
+      const rawDay = els.singleCourseDay?.value.trim() || "";
+      const rawSlot = els.singleCourseSlot?.value.trim() || "";
+      const rawPrereq = els.singleCoursePrereq?.value.trim() || "";
+
+      if (!rawCode && !rawName) {
+        els.singleCourseCode?.classList.add("input-error");
+        els.singleCourseName?.classList.add("input-error");
+        showSingleCourseMsg("error", "⚠️ Course code and course title are required.");
+        els.singleCourseCode?.focus();
+        return;
+      }
+      if (!rawCode) {
+        els.singleCourseCode?.classList.add("input-error");
+        showSingleCourseMsg("error", "⚠️ Please enter a course code (e.g. CSE 3715).");
+        els.singleCourseCode?.focus();
+        return;
+      }
+      if (!rawName) {
+        els.singleCourseName?.classList.add("input-error");
+        showSingleCourseMsg("error", "⚠️ Please enter a course title (e.g. Software Engineering).");
+        els.singleCourseName?.focus();
+        return;
+      }
+
+      const code = rawCode.toUpperCase();
+      const prereqs = rawPrereq 
+        ? rawPrereq.split(",").map(p => p.trim().toUpperCase()).filter(Boolean) 
+        : [];
+
+      // Construct course object JSON (empty schedule/prereqs if left blank)
+      const courseObj = {
+        name: rawName,
+        examDay: rawDay || "",
+        examSlot: rawSlot || "",
+        prerequisites: prereqs
+      };
+
+      // Un-delete if this course was previously soft or hard deleted
+      if (softDeletedCourses.includes(code)) {
+        softDeletedCourses = softDeletedCourses.filter(c => c !== code);
+      }
+      if (hardDeletedCourses.includes(code)) {
+        hardDeletedCourses = hardDeletedCourses.filter(c => c !== code);
+      }
+
+      userCourses[code] = courseObj;
+      courses[code] = courseObj;
+
+      try {
+        await chrome.storage.local.set({ userCourses, softDeletedCourses, hardDeletedCourses });
+        await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
+        await reloadLocalCoursesState();
+        updateCourseCount();
+
+        if (isTrashMode) {
+          renderTrashList(searchQuery);
+        } else {
+          renderCourseList(searchQuery);
+        }
+
+        showSingleCourseMsg("success", `✅ ${code} added to course database!`);
+        showToast(`${code} added to catalog`, "success");
+
+        // Clear input form for next entry
+        if (els.singleCourseCode) els.singleCourseCode.value = "";
+        if (els.singleCourseName) els.singleCourseName.value = "";
+        if (els.singleCourseDay) els.singleCourseDay.value = "";
+        if (els.singleCourseSlot) els.singleCourseSlot.value = "";
+        if (els.singleCoursePrereq) els.singleCoursePrereq.value = "";
+        els.singleCourseCode?.focus();
+      } catch (err) {
+        console.error("Failed to add course:", err);
+        showSingleCourseMsg("error", "❌ Failed to save course. Please try again.");
+      }
+    });
+
+    // Clear single course form
+    els.clearSingleFormBtn?.addEventListener("click", () => {
+      if (els.singleCourseCode) {
+        els.singleCourseCode.value = "";
+        els.singleCourseCode.classList.remove("input-error");
+      }
+      if (els.singleCourseName) {
+        els.singleCourseName.value = "";
+        els.singleCourseName.classList.remove("input-error");
+      }
+      if (els.singleCourseDay) els.singleCourseDay.value = "";
+      if (els.singleCourseSlot) els.singleCourseSlot.value = "";
+      if (els.singleCoursePrereq) els.singleCoursePrereq.value = "";
+      if (els.singleCourseMsg) {
+        els.singleCourseMsg.className = "import-msg";
+        els.singleCourseMsg.style.display = "none";
+      }
+      els.singleCourseCode?.focus();
     });
 
     // Handle user pasting in a new JSON course list

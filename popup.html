@@ -1845,6 +1845,121 @@
       margin-bottom: 8px;
     }
 
+    /* ── ADD & IMPORT TAB SWITCHER ── */
+    .import-tab-nav {
+      display: flex;
+      background: var(--surface2);
+      padding: 3px;
+      border-radius: 9px;
+      gap: 3px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 12px;
+    }
+
+    .import-tab-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+
+    .import-tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .import-tab-btn.active {
+      background: #ffffff;
+      color: var(--accent);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* ── SINGLE COURSE FORM ── */
+    .single-course-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .single-form-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .required-star {
+      color: var(--danger);
+      font-size: 0.75rem;
+    }
+
+    .optional-label {
+      font-size: 0.62rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 8px 10px;
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 7px;
+      font-size: 0.74rem;
+      color: var(--text-main);
+      font-family: inherit;
+      transition: all 0.18s ease;
+      box-sizing: border-box;
+    }
+
+    .form-input:focus {
+      outline: none;
+      background: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-light);
+    }
+
+    .form-input.input-error {
+      border-color: var(--danger) !important;
+      background: #fff5f5 !important;
+    }
+
+    .form-row-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
     /* JSON Import */
     .import-section {
       display: flex;
@@ -2591,12 +2706,88 @@
         </button>
         <div class="header-text" style="flex:1;">
           <h1>Add / Import Courses</h1>
-          <p>Paste JSON to merge</p>
+          <p id="importViewSubtitle">Add single course or bulk JSON</p>
         </div>
       </div>
       <div class="body">
-        <div class="card" id="importSection"
-          style="gap:14px; border:none; box-shadow:none; padding: 0; background: transparent;">
+        <!-- Segmented Tab Navigation -->
+        <div class="import-tab-nav">
+          <button type="button" class="import-tab-btn active" id="tabSingleCourse">
+            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Single Course
+          </button>
+          <button type="button" class="import-tab-btn" id="tabBulkImport">
+            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+            Bulk JSON Import
+          </button>
+        </div>
+
+        <!-- Section 1: Single Course Form -->
+        <div class="single-course-card" id="singleCourseSection">
+          <div style="font-size: 0.69rem; color: var(--text-muted); line-height: 1.45;">
+            Enter course details below. Course Code and Title are required; exam schedule and prerequisites are optional.
+          </div>
+
+          <div class="single-form-grid">
+            <div class="form-group">
+              <label class="form-label" for="singleCourseCode">
+                Course Code <span class="required-star">*</span>
+              </label>
+              <input type="text" class="form-input" id="singleCourseCode" placeholder="e.g. CSE 3715 or ACT 1111" autocomplete="off" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="singleCourseName">
+                Course Title / Name <span class="required-star">*</span>
+              </label>
+              <input type="text" class="form-input" id="singleCourseName" placeholder="e.g. Software Engineering" autocomplete="off" />
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label class="form-label" for="singleCourseDay">
+                  Exam Day <span class="optional-label">(Optional)</span>
+                </label>
+                <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. Sunday or Day 1" autocomplete="off" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="singleCourseSlot">
+                  Exam Slot <span class="optional-label">(Optional)</span>
+                </label>
+                <input type="text" class="form-input" id="singleCourseSlot" placeholder="e.g. Slot A (09:00 AM)" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="singleCoursePrereq">
+                Prerequisites <span class="optional-label">(Optional, comma separated)</span>
+              </label>
+              <input type="text" class="form-input" id="singleCoursePrereq" placeholder="e.g. CSE 2215, CSE 2216" autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="import-msg" id="singleCourseMsg"></div>
+
+          <div class="import-actions" style="margin-top: 4px;">
+            <button class="btn-import" id="addSingleCourseBtn" style="padding: 11px;">
+              <svg style="width:14px;height:14px;fill:white;" viewBox="0 0 24 24">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </svg>
+              Add Course to Catalog
+            </button>
+            <button class="btn-clear" id="clearSingleFormBtn" style="padding: 11px 16px;">
+              <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+              </svg>
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 2: Bulk JSON Import -->
+        <div class="card" id="bulkImportSection"
+          style="display: none; gap:14px; border:none; box-shadow:none; padding: 0; background: transparent;">
           <div style="display: flex; justify-content: flex-end; align-items: center;">
             <button class="btn-copy-sample" id="copySampleBtn" style="font-size: 0.72rem; padding: 5px 10px;">Copy
               Sample JSON</button>
