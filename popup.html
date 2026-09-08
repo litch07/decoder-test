@@ -2050,24 +2050,26 @@
 
     .contribution-card {
       margin-top: 0;
-      padding: 10px 12px;
-      background: linear-gradient(135deg, rgba(242, 101, 34, 0.05), rgba(242, 101, 34, 0.11));
+      padding: 11px 13px;
+      background: #fffaf7;
       border: 1px solid rgba(242, 101, 34, 0.22);
-      border-radius: 10px;
+      border-left: 3.5px solid var(--accent);
+      border-radius: 9px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      text-align: center;
+      align-items: flex-start;
+      text-align: left;
       gap: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
 
     .contribution-card-header {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 6px;
       color: var(--accent);
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       font-weight: 700;
     }
 
@@ -2082,7 +2084,7 @@
       font-size: 0.69rem;
       color: var(--text-muted);
       line-height: 1.45;
-      text-align: center;
+      text-align: left;
     }
 
     .contribution-btn {
@@ -2090,11 +2092,11 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 8px 12px;
+      padding: 7px 12px;
       margin-top: 2px;
-      background: var(--surface);
+      background: #ffffff;
       border: 1px solid rgba(242, 101, 34, 0.35);
-      border-radius: 8px;
+      border-radius: 7px;
       color: var(--accent);
       font-size: 0.70rem;
       font-weight: 600;
@@ -2109,7 +2111,7 @@
       background: var(--accent);
       color: #fff;
       border-color: var(--accent);
-      box-shadow: 0 3px 8px rgba(242, 101, 34, 0.25);
+      box-shadow: 0 2px 6px rgba(242, 101, 34, 0.25);
     }
 
     .contribution-btn svg {
@@ -2436,7 +2438,7 @@
             <span>Help Fellow UIU Students</span>
           </div>
           <div class="contribution-card-body">
-            Edits made here are saved only on this device. If this fixes an error or adds missing course info, consider submitting it to the official open-source repository so every UIU student can benefit!
+            Changes are saved locally to this browser. If you corrected an error or added missing course details, consider contributing your fix to the official repository to benefit all UIU students.
           </div>
           <a href="https://github.com/litch07/uiu-course-decoder/blob/main/CONTRIBUTING.md" target="_blank"
             rel="noopener noreferrer" class="contribution-btn">
