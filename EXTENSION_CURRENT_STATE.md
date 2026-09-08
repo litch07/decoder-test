@@ -111,9 +111,24 @@ Previously, course imports were limited to a single raw JSON input box without d
 
 ---
 
-### E. Navigation & Slide Animation Stability
-- Fixed slide transitions between views (Main Settings -> Courses View -> Course Details -> Add/Import View).
-- Resolved focus scroll conflicts where focusing off-screen textareas or inputs caused the browser popup container to violently shift or clip headers.
+### E. Navigation, Animation & Tactile Micro-Interactions
+- **Fluid Spring View Sliding**:
+  - Upgraded `.view-wrapper` transition to an Apple/Spring curve: `0.28s cubic-bezier(0.25, 1, 0.5, 1)` with `will-change: transform`.
+  - Resolved focus scroll conflicts where focusing off-screen textareas or inputs caused the browser popup container to violently shift or clip headers.
+- **Tactile Button Press Feedback (`:active`)**:
+  - Consistent spring-eased compressions across all controls:
+    * Primary & action buttons (`.btn-courses`, `.btn-sync:active:not(.is-loading)`, `#allowlistBtn`, `.btn-copy-sample`, `.contribution-btn`): `scale(0.96)` to `scale(0.98)`.
+    * Header navigation (`.header-back:active` scales down to `0.92`, while hover nudges arrow `translateX(-2px)`).
+    * Settings gear button (`.header-btn:hover` rotates 35deg; `:active` rotates 45deg + scales to `0.92`).
+    * Display mode options (`.mode-btn:active` compresses to `0.96`).
+    * Course list rows (`.course-grid-row:active` scales to `0.995` with soft slate highlight).
+    * Allowed domains remove button (`.allowlist-item button:hover` scales up to `1.1`; `:active` scales down to `0.9`).
+- **Tab Switching & Card Transitions**:
+  - Single Course and Batch Upload views enter with a gentle crossfade + slide animation (`@keyframes fadeInTab: 0.18s cubic-bezier(0.16, 1, 0.3, 1)`).
+- **Modal Dialog Polish**:
+  - Backdrop blur filter (`backdrop-filter: blur(2px)`), deeper elevation shadows, spring-scale entry (`translateY(8px) scale(0.96)` -> `translateY(0) scale(1)`), and tactile confirmation/cancel button presses.
+- **Accessibility (`prefers-reduced-motion`)**:
+  - Full `@media (prefers-reduced-motion: reduce)` block that zeroes animation durations and disables heavy sliding transforms for motion-sensitive users.
 
 ---
 
