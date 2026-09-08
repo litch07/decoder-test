@@ -340,8 +340,23 @@ async function runIntegrationSuite() {
   assert.ok(!popupJs.includes("updateSingleLivePreview"), "popup.js must not contain redundant live preview function");
   console.log("  ✓ popup.js includes auto-uppercase and Enter key handlers without redundant preview overhead");
 
+  console.log("\n[TEST 10] Batch Upload Professional UI, SVG Messages & Safe Editor Controls");
+  // Check editor toolbar, badge, and hint
+  assert.ok(popupHtml.includes('id="batchJsonBadge"'), "Batch upload must include real-time json status badge");
+  assert.ok(popupHtml.includes('class="editor-header-bar"'), "Must include professional editor header bar");
+  assert.ok(popupHtml.includes('class="import-hint"'), "Must include styled import hint");
+  assert.ok(popupHtml.includes('id="clearBtn"'), "Must include clear button");
+  assert.ok(!popupHtml.includes("Clear All</button>"), "Dangerous 'Clear All' button text must be replaced with safe 'Clear'");
+  console.log("  ✓ popup.html includes editor toolbar, live badge, styled hint, and safe 'Clear' button");
+
+  // Check popup.js live badge updater, SVG message renderer, and safe editor clear logic
+  assert.ok(popupJs.includes("updateJsonBadge"), "popup.js must implement updateJsonBadge");
+  assert.ok(popupJs.includes("import-msg-icon"), "popup.js must render clean SVG status icons for messages");
+  assert.ok(popupJs.includes("Editor cleared."), "popup.js must safely clear the JSON editor rather than wiping database");
+  console.log("  ✓ popup.js implements real-time badge updates, clean SVG message rendering, and safe editor clearing");
+
   console.log("\n==================================================");
-  console.log("  ALL TESTS PASSED WITH ZERO ERRORS (9 / 9)        ");
+  console.log("  ALL TESTS PASSED WITH ZERO ERRORS (10 / 10)      ");
   console.log("==================================================");
 }
 

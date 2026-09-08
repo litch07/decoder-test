@@ -824,23 +824,75 @@
     })();
   }
 
+  let importMsgTimer = null;
   function showImportMsg(type, text) {
+    if (!els.importMsg) return;
+    if (importMsgTimer) clearTimeout(importMsgTimer);
+
+    const icons = {
+      success: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
+      error: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>',
+      info: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
+    };
+    const iconSvg = icons[type] || icons.info;
     els.importMsg.className = `import-msg ${type}`;
-    els.importMsg.textContent = text;
-    setTimeout(() => { els.importMsg.className = "import-msg"; }, 4000);
+    els.importMsg.innerHTML = `${iconSvg}<span>${text}</span>`;
+    els.importMsg.style.display = "flex";
+    importMsgTimer = setTimeout(() => {
+      if (els.importMsg) {
+        els.importMsg.className = "import-msg";
+        els.importMsg.style.display = "none";
+        els.importMsg.innerHTML = "";
+      }
+    }, 4500);
   }
 
+  let singleCourseMsgTimer = null;
   function showSingleCourseMsg(type, text) {
     if (!els.singleCourseMsg) return;
+    if (singleCourseMsgTimer) clearTimeout(singleCourseMsgTimer);
+
+    const icons = {
+      success: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
+      error: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>',
+      info: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
+    };
+    const iconSvg = icons[type] || icons.info;
     els.singleCourseMsg.className = `import-msg ${type}`;
-    els.singleCourseMsg.textContent = text;
+    els.singleCourseMsg.innerHTML = `${iconSvg}<span>${text}</span>`;
     els.singleCourseMsg.style.display = "flex";
-    setTimeout(() => {
+    singleCourseMsgTimer = setTimeout(() => {
       if (els.singleCourseMsg) {
         els.singleCourseMsg.className = "import-msg";
         els.singleCourseMsg.style.display = "none";
+        els.singleCourseMsg.innerHTML = "";
       }
-    }, 4000);
+    }, 4500);
+  }
+
+  function updateJsonBadge() {
+    const badge = document.getElementById("batchJsonBadge");
+    if (!badge || !els.jsonInput) return;
+    const text = els.jsonInput.value.trim();
+    if (!text) {
+      badge.textContent = "Ready";
+      badge.className = "editor-badge";
+      return;
+    }
+    try {
+      const parsed = JSON.parse(text);
+      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+        const count = Object.keys(parsed).length;
+        badge.textContent = count === 1 ? "1 course detected" : `${count} courses detected`;
+        badge.className = "editor-badge has-courses";
+      } else {
+        badge.textContent = "Expected { ... }";
+        badge.className = "editor-badge has-error";
+      }
+    } catch {
+      badge.textContent = "Invalid JSON";
+      badge.className = "editor-badge has-error";
+    }
   }
 
   function showToast(message, type = "info") {
@@ -1191,7 +1243,7 @@
       if (els.singleCourseSection) els.singleCourseSection.style.display = "flex";
       if (els.bulkImportSection) els.bulkImportSection.style.display = "none";
       const subtitle = document.getElementById("importViewSubtitle");
-      if (subtitle) subtitle.textContent = "Add single course to catalog";
+      if (subtitle) subtitle.textContent = "Add a single course to catalog";
       setTimeout(() => {
         els.singleCourseCode?.focus({ preventScroll: true });
       }, 350);
@@ -1203,9 +1255,10 @@
       if (els.singleCourseSection) els.singleCourseSection.style.display = "none";
       if (els.bulkImportSection) els.bulkImportSection.style.display = "flex";
       const subtitle = document.getElementById("importViewSubtitle");
-      if (subtitle) subtitle.textContent = "Paste JSON to batch upload courses";
+      if (subtitle) subtitle.textContent = "Batch upload courses via JSON";
+      updateJsonBadge();
       if (showMessage) {
-        showImportMsg("info", "💡 Tip: Click 'Copy Sample JSON' to copy the 2-course format template.");
+        showImportMsg("info", "Click 'Copy' to copy the 2-course JSON template.");
       }
       setTimeout(() => {
         els.jsonInput?.focus({ preventScroll: true });
@@ -1610,22 +1663,28 @@
       try {
         await navigator.clipboard.writeText(SAMPLE_TWO_COURSES);
         const originalHtml = els.copySampleBtn.innerHTML;
-        els.copySampleBtn.textContent = "Copied!";
+        els.copySampleBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:currentColor;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <span>Copied!</span>
+        `;
         els.copySampleBtn.style.background = "var(--accent)";
         els.copySampleBtn.style.color = "#fff";
-        showImportMsg("success", "📋 Copied 2-course sample JSON format to clipboard! Edit details and click Import & Merge.");
+        showImportMsg("success", "2-course sample JSON copied to clipboard. Customize and click Import & Merge.");
         setTimeout(() => {
-          els.copySampleBtn.innerHTML = originalHtml;
-          els.copySampleBtn.style.background = "";
-          els.copySampleBtn.style.color = "";
+          if (els.copySampleBtn) {
+            els.copySampleBtn.innerHTML = originalHtml;
+            els.copySampleBtn.style.background = "";
+            els.copySampleBtn.style.color = "";
+          }
         }, 2200);
       } catch (err) {
         console.error("Failed to copy", err);
         if (els.jsonInput && !els.jsonInput.value.trim()) {
           els.jsonInput.value = SAMPLE_TWO_COURSES;
-          showImportMsg("info", "📋 Loaded 2-course sample JSON into editor.");
+          updateJsonBadge();
+          showImportMsg("info", "Sample template loaded directly into the editor.");
         } else {
-          showImportMsg("error", "⚠️ Could not copy to clipboard. Please copy directly from the placeholder.");
+          showImportMsg("error", "Clipboard access was blocked. Please copy the template from the placeholder.");
         }
       }
     });
@@ -1638,6 +1697,9 @@
     els.tabBulkImport?.addEventListener("click", () => {
       activateBatchUploadTab(false);
     });
+
+    // Real-time batch editor status update
+    els.jsonInput?.addEventListener("input", updateJsonBadge);
 
     // Validation & auto-uppercase on single course form inputs
     els.singleCourseCode?.addEventListener("input", () => {
@@ -1684,19 +1746,19 @@
       if (!rawCode && !rawName) {
         els.singleCourseCode?.classList.add("input-error");
         els.singleCourseName?.classList.add("input-error");
-        showSingleCourseMsg("error", "⚠️ Course code and course title are required.");
+        showSingleCourseMsg("error", "Course code and course title are required.");
         els.singleCourseCode?.focus();
         return;
       }
       if (!rawCode) {
         els.singleCourseCode?.classList.add("input-error");
-        showSingleCourseMsg("error", "⚠️ Please enter a course code (e.g. CSE 3715).");
+        showSingleCourseMsg("error", "Please enter a course code (e.g. CSE 3715).");
         els.singleCourseCode?.focus();
         return;
       }
       if (!rawName) {
         els.singleCourseName?.classList.add("input-error");
-        showSingleCourseMsg("error", "⚠️ Please enter a course title (e.g. Software Engineering).");
+        showSingleCourseMsg("error", "Please enter a course title (e.g. Software Engineering).");
         els.singleCourseName?.focus();
         return;
       }
@@ -1737,7 +1799,7 @@
           renderCourseList(searchQuery);
         }
 
-        showSingleCourseMsg("success", `✅ ${code} added to course database!`);
+        showSingleCourseMsg("success", `${code} added to course database!`);
         showToast(`${code} added to catalog`, "success");
 
         // Clear input form for next entry
@@ -1749,7 +1811,7 @@
         els.singleCourseCode?.focus();
       } catch (err) {
         console.error("Failed to add course:", err);
-        showSingleCourseMsg("error", "❌ Failed to save course. Please try again.");
+        showSingleCourseMsg("error", "Failed to save course. Please try again.");
       }
     });
 
@@ -1769,6 +1831,7 @@
       if (els.singleCourseMsg) {
         els.singleCourseMsg.className = "import-msg";
         els.singleCourseMsg.style.display = "none";
+        els.singleCourseMsg.innerHTML = "";
       }
       els.singleCourseCode?.focus();
     });
@@ -1777,7 +1840,8 @@
     els.importBtn?.addEventListener("click", async () => {
       const raw = els.jsonInput.value.trim();
       if (!raw) {
-        showImportMsg("error", "⚠️ Please paste some JSON first.");
+        showImportMsg("error", "Please paste or enter JSON course data before importing.");
+        els.jsonInput.focus();
         return;
       }
 
@@ -1785,12 +1849,12 @@
       try {
         parsed = JSON.parse(raw);
       } catch (e) {
-        showImportMsg("error", "❌ Invalid JSON: " + e.message);
+        showImportMsg("error", `JSON Syntax Error: ${e.message}`);
         return;
       }
 
       if (typeof parsed !== "object" || Array.isArray(parsed) || parsed === null) {
-        showImportMsg("error", '❌ JSON must be a flat object: { "CODE": "Name" }');
+        showImportMsg("error", 'Invalid format: Root must be a JSON object with course codes as keys (e.g. { "CSE 3715": { ... } }).');
         return;
       }
 
@@ -1802,7 +1866,7 @@
           errors++;
           continue;
         }
-        const key = k.trim();
+        const key = k.trim().toUpperCase();
         let val;
         let isNameOnly = false;
 
@@ -1835,10 +1899,10 @@
       }
 
       if (added === 0 && errors > 0) {
-        showImportMsg("error", `❌ Found ${errors} invalid entries, none added.`);
+        showImportMsg("error", `Found ${errors} invalid course entr${errors === 1 ? "y" : "ies"}. No courses were imported.`);
         return;
       } else if (added === 0) {
-        showImportMsg("error", "⚠️ No valid entries found in JSON.");
+        showImportMsg("error", "No valid course entries detected in the provided JSON.");
         return;
       }
 
@@ -1846,34 +1910,34 @@
       updateCourseCount();
       renderCourseList(searchQuery);
       els.jsonInput.value = "";
+      updateJsonBadge();
 
       let msg = "";
       if (errors > 0) {
-        msg = `✅ Imported ${added}. Skipped ${errors} invalid.`;
+        msg = `Successfully imported ${added} course${added !== 1 ? "s" : ""}; skipped ${errors} invalid entr${errors === 1 ? "y" : "ies"}.`;
       } else {
-        msg = `✅ Imported ${added} course${added !== 1 ? "s" : ""}. Saved permanently!`;
+        msg = `Successfully imported and merged ${added} course${added !== 1 ? "s" : ""} into catalog.`;
       }
 
       if (nameOnlyCount > 0) {
-        msg += ` ℹ️ ${nameOnlyCount} course(s) were added with name only — consider editing them later to add exam/prerequisite details.`;
+        msg += ` (${nameOnlyCount} added with title only).`;
       }
       showImportMsg("success", msg);
+      showToast(`Imported ${added} course${added !== 1 ? "s" : ""}`, "success");
     });
 
-    // Wipe all courses clean
-    els.clearBtn?.addEventListener("click", async () => {
-      if (!confirm(`Delete ALL ${Object.keys(courses).length} courses from the database? This cannot be undone.`)) return;
-      courses = {};
-      userCourses = {};
-      softDeletedCourses = [];
-      const allOfficial = Object.keys({ ...bundledCourses, ...remoteCourses });
-      hardDeletedCourses = [...new Set([...hardDeletedCourses, ...allOfficial])];
-      await chrome.storage.local.set({ courses, userCourses, softDeletedCourses, hardDeletedCourses });
-      await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
-      await reloadLocalCoursesState();
-      updateCourseCount();
-      renderCourseList(searchQuery);
-      showImportMsg("success", "🗑️ All courses cleared.");
+    // Clear JSON editor
+    els.clearBtn?.addEventListener("click", () => {
+      if (!els.jsonInput) return;
+      if (!els.jsonInput.value.trim()) {
+        showImportMsg("info", "Editor is already empty.");
+        els.jsonInput.focus();
+        return;
+      }
+      els.jsonInput.value = "";
+      updateJsonBadge();
+      els.jsonInput.focus();
+      showImportMsg("info", "Editor cleared.");
     });
 
     // Adding sites to the allowlist

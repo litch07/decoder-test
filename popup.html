@@ -2050,19 +2050,71 @@
     }
 
     /* JSON Import */
+    .import-hint {
+      font-size: 0.69rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      background: var(--surface2);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+
+    .import-hint strong {
+      color: var(--text-main);
+    }
+
+    .editor-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2px;
+    }
+
+    .editor-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .editor-badge {
+      font-size: 0.60rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--surface2);
+      padding: 1px 7px;
+      border-radius: 99px;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+    }
+
+    .editor-badge.has-courses {
+      color: #15803d;
+      background: #dcfce7;
+      border-color: #bbf7d0;
+    }
+
+    .editor-badge.has-error {
+      color: #dc2626;
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+
     .json-textarea {
       width: 100%;
-      height: 200px;
+      height: 185px;
       resize: vertical;
       background: #f8fafc;
       border: 1px solid var(--border-color);
       color: var(--text-main);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 9px 11px;
       font-size: 0.72rem;
-      font-family: 'Courier New', monospace;
-      line-height: 1.45;
-      transition: border-color 0.2s;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      line-height: 1.48;
+      transition: border-color 0.2s, box-shadow 0.2s;
       box-sizing: border-box;
     }
 
@@ -2074,13 +2126,7 @@
     }
 
     .json-textarea::placeholder {
-      color: #9ca3af;
-    }
-
-    .import-hint {
-      font-size: 0.69rem;
-      color: var(--text-muted);
-      line-height: 1.5;
+      color: #94a3b8;
     }
 
     .import-actions {
@@ -2152,32 +2198,53 @@
 
     .import-msg {
       font-size: 0.73rem;
-      font-weight: 600;
-      padding: 7px 10px;
-      border-radius: 7px;
+      font-weight: 500;
+      padding: 8px 11px;
+      border-radius: 8px;
       display: none;
-      align-items: center;
-      gap: 6px;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.45;
+      animation: fadeInMsg 0.2s ease-out;
+    }
+
+    @keyframes fadeInMsg {
+      from {
+        opacity: 0;
+        transform: translateY(-2px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .import-msg-icon {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+      flex-shrink: 0;
+      margin-top: 1.5px;
     }
 
     .import-msg.success {
       display: flex;
-      background: #d1fae5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
     }
 
     .import-msg.error {
       display: flex;
-      background: #fee2e2;
+      background: #fef2f2;
       color: #991b1b;
-      border: 1px solid #fca5a5;
+      border: 1px solid #fecaca;
     }
 
     .import-msg.info {
       display: flex;
       background: #eff6ff;
-      color: #1d4ed8;
+      color: #1e40af;
       border: 1px solid #bfdbfe;
     }
 
@@ -2372,22 +2439,6 @@
       background: transparent;
     }
 
-    .btn-copy-sample {
-      background: var(--accent-light);
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      border-radius: 4px;
-      padding: 3px 8px;
-      font-size: 0.65rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-copy-sample:hover {
-      background: var(--accent);
-      color: #fff;
-    }
 
     .contribution-card {
       margin-top: 0;
@@ -2916,9 +2967,13 @@
             </button>
           </div>
           <div class="import-hint">
-            Click <strong>Copy</strong> to copy the 2-course template format, customize with your course details, then paste below. Supports both complete and minimal course info.
+            Paste a JSON object of courses below, or click <strong>Copy</strong> to use the 2-course template. Both complete schedules and minimal title-only objects are supported.
           </div>
-          <textarea class="json-textarea" id="jsonInput"
+          <div class="editor-header-bar">
+            <span class="editor-label">JSON Editor</span>
+            <span class="editor-badge" id="batchJsonBadge">Ready</span>
+          </div>
+          <textarea class="json-textarea" id="jsonInput" spellcheck="false"
             placeholder='{&#10;  "CSE 3715": {&#10;    "name": "Software Engineering",&#10;    "examDay": "D1",&#10;    "examSlot": "T1",&#10;    "prerequisites": [&#10;      "CSE 2215",&#10;      "CSE 2216"&#10;    ]&#10;  },&#10;  "ACT 1111": {&#10;    "name": "Financial Accounting",&#10;    "examDay": "",&#10;    "examSlot": "",&#10;    "prerequisites": []&#10;  }&#10;}'></textarea>
           <div class="import-msg" id="importMsg"></div>
           <div class="import-actions">
@@ -2930,9 +2985,9 @@
             </button>
             <button class="btn-clear" id="clearBtn">
               <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
               </svg>
-              Clear All
+              Clear
             </button>
           </div>
         </div>
