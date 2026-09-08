@@ -265,13 +265,16 @@
     .body::-webkit-scrollbar {
       width: 5px;
     }
+
     .body::-webkit-scrollbar-track {
       background: transparent;
     }
+
     .body::-webkit-scrollbar-thumb {
       background: var(--border-color);
       border-radius: 99px;
     }
+
     .body::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
@@ -1375,13 +1378,16 @@
     .course-scroll::-webkit-scrollbar {
       width: 5px;
     }
+
     .course-scroll::-webkit-scrollbar-track {
       background: transparent;
     }
+
     .course-scroll::-webkit-scrollbar-thumb {
       background: var(--border-color);
       border-radius: 99px;
     }
+
     .course-scroll::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
@@ -1670,13 +1676,16 @@
     .details-view .body::-webkit-scrollbar {
       width: 5px;
     }
+
     .details-view .body::-webkit-scrollbar-track {
       background: transparent;
     }
+
     .details-view .body::-webkit-scrollbar-thumb {
       background: var(--border-color);
       border-radius: 99px;
     }
+
     .details-view .body::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
@@ -2217,6 +2226,7 @@
         opacity: 0;
         transform: translateY(-2px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -2556,7 +2566,8 @@
         </div>
         <button class="header-btn" id="openSettingsBtn" title="Settings &amp; Preferences">
           <svg style="width:17px;height:17px;fill:white;" viewBox="0 0 24 24">
-            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+            <path
+              d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
           </svg>
           <span id="settingsBadge" class="settings-badge" style="display: none;"></span>
         </button>
@@ -2566,13 +2577,16 @@
       <div id="homeSyncAlert" class="home-sync-alert" style="display: none;" title="Open Catalog Sync">
         <div class="home-sync-alert-content">
           <svg viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
           </svg>
           <span>Catalog has not been updated in over 2 months</span>
         </div>
         <span class="home-sync-alert-link">
           Sync database
-          <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+          </svg>
         </span>
       </div>
 
@@ -2660,9 +2674,11 @@
       <div class="footer">
         <div class="footer-left">
           <span>Developed by</span>
-          <a href="https://github.com/litch07" target="_blank" rel="noopener noreferrer" class="footer-author">Sadid Ahmed</a>
+          <a href="https://github.com/litch07" target="_blank" rel="noopener noreferrer" class="footer-author">Sadid
+            Ahmed</a>
         </div>
-        <a href="https://github.com/litch07/uiu-course-decoder" target="_blank" rel="noopener noreferrer" class="footer-github-btn" title="View Source on GitHub">
+        <a href="https://github.com/litch07/uiu-course-decoder" target="_blank" rel="noopener noreferrer"
+          class="footer-github-btn" title="View Source on GitHub">
           <svg viewBox="0 0 24 24">
             <path
               d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
@@ -2685,9 +2701,7 @@
           <h1 id="coursesPanelTitle">Course Database</h1>
           <p id="coursesPanelCount">— courses loaded</p>
         </div>
-        <button id="viewTrashBtn"
-          class="header-trash-btn"
-          title="Trash Bin">
+        <button id="viewTrashBtn" class="header-trash-btn" title="Trash Bin">
           <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
           </svg>
@@ -2707,10 +2721,13 @@
                 d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
             </svg>
           </span>
-          <input type="text" id="courseSearch" placeholder="Search by code or name…" autocomplete="off" spellcheck="false" />
-          <button type="button" class="search-clear-btn" id="searchClearBtn" title="Clear search" aria-label="Clear search">
+          <input type="text" id="courseSearch" placeholder="Search by code or name…" autocomplete="off"
+            spellcheck="false" />
+          <button type="button" class="search-clear-btn" id="searchClearBtn" title="Clear search"
+            aria-label="Clear search">
             <svg viewBox="0 0 24 24">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
             </svg>
           </button>
         </div>
@@ -2720,7 +2737,8 @@
           <button class="filter-btn active" data-filter="all">All</button>
           <button class="filter-btn" data-filter="user"><span class="filter-dot dot-user"></span>User Added</button>
           <button class="filter-btn" data-filter="edited"><span class="filter-dot dot-edited"></span>Edited</button>
-          <button class="filter-btn" data-filter="official"><span class="filter-dot dot-official"></span>Official</button>
+          <button class="filter-btn" data-filter="official"><span
+              class="filter-dot dot-official"></span>Official</button>
         </div>
 
         <!-- Trash actions row -->
@@ -2813,13 +2831,13 @@
           <div class="details-actions">
             <button class="btn-save-details" id="detailSaveBtn">
               <svg viewBox="0 0 24 24">
-                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
               </svg>
               Save Changes
             </button>
             <button class="btn-del-details" id="detailDelBtn">
               <svg viewBox="0 0 24 24">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
               </svg>
               Delete Course
             </button>
@@ -2829,21 +2847,24 @@
         <div class="contribution-card">
           <div class="contribution-card-header">
             <svg viewBox="0 0 24 24">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              <path
+                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
             </svg>
             <span>Help Fellow UIU Students</span>
           </div>
           <div class="contribution-card-body">
-            Changes are saved locally to this browser. If you corrected an error or added missing course details, consider contributing your fix to the official repository to benefit all UIU students.
+            Changes are saved locally to this browser. If you corrected an error or added missing course details,
+            consider contributing your fix to the official repository to benefit all UIU students.
           </div>
           <a href="https://github.com/litch07/uiu-course-decoder/blob/main/CONTRIBUTING.md" target="_blank"
             rel="noopener noreferrer" class="contribution-btn">
             <svg class="github-mark" viewBox="0 0 24 24">
-              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+              <path
+                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
             </svg>
             <span>Contribute Fix on GitHub</span>
             <svg style="width:11px;height:11px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M5 17.59L15.59 7H9V5h10v10h-2V8.41L6.41 19 5 17.59z"/>
+              <path d="M5 17.59L15.59 7H9V5h10v10h-2V8.41L6.41 19 5 17.59z" />
             </svg>
           </a>
         </div>
@@ -2867,11 +2888,16 @@
         <!-- Segmented Tab Navigation -->
         <div class="import-tab-nav">
           <button type="button" class="import-tab-btn active" id="tabSingleCourse">
-            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
             Single Course
           </button>
           <button type="button" class="import-tab-btn" id="tabBulkImport">
-            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
+              <path
+                d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+            </svg>
             Batch Upload
           </button>
         </div>
@@ -2881,7 +2907,10 @@
           <!-- Section A: Identity -->
           <div class="form-section-header">
             <div class="form-section-title">
-              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+              </svg>
               <span>Course Identity</span>
             </div>
             <span class="section-tag-required">Required</span>
@@ -2889,24 +2918,34 @@
 
           <div class="form-group">
             <label class="form-label" for="singleCourseCode">
-              <svg class="label-icon" viewBox="0 0 24 24"><path d="M20 10V8h-4V4h-2v4h-4V4H8v4H4v2h4v4H4v2h4v4h2v-4h4v4h2v-4h4v-2h-4v-4h4zm-6 4h-4v-4h4v4z"/></svg>
+              <svg class="label-icon" viewBox="0 0 24 24">
+                <path d="M20 10V8h-4V4h-2v4h-4V4H8v4H4v2h4v4H4v2h4v4h2v-4h4v4h2v-4h4v-2h-4v-4h4zm-6 4h-4v-4h4v4z" />
+              </svg>
               Course Code <span class="required-star">*</span>
             </label>
-            <input type="text" class="form-input" id="singleCourseCode" placeholder="e.g. CSE 3715 or ACT 1111" autocomplete="off" spellcheck="false" />
+            <input type="text" class="form-input" id="singleCourseCode" placeholder="e.g. CSE 3715 or ACT 1111"
+              autocomplete="off" spellcheck="false" />
           </div>
 
           <div class="form-group">
             <label class="form-label" for="singleCourseName">
-              <svg class="label-icon" viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+              <svg class="label-icon" viewBox="0 0 24 24">
+                <path
+                  d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z" />
+              </svg>
               Course Title / Name <span class="required-star">*</span>
             </label>
-            <input type="text" class="form-input" id="singleCourseName" placeholder="e.g. Software Engineering" autocomplete="off" />
+            <input type="text" class="form-input" id="singleCourseName" placeholder="e.g. Software Engineering"
+              autocomplete="off" />
           </div>
 
           <!-- Section B: Schedule & Prerequisites -->
           <div class="form-section-header is-secondary">
             <div class="form-section-title">
-              <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+              </svg>
               <span>Schedule &amp; Prerequisites</span>
             </div>
             <span class="section-tag-optional">Optional</span>
@@ -2915,27 +2954,39 @@
           <div class="form-row-2col">
             <div class="form-group">
               <label class="form-label" for="singleCourseDay">
-                <svg class="label-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/></svg>
+                <svg class="label-icon" viewBox="0 0 24 24">
+                  <path
+                    d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z" />
+                </svg>
                 Exam Day
               </label>
-              <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. D1, D2, or D3" autocomplete="off" />
+              <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. D1, D2, or D3"
+                autocomplete="off" />
             </div>
 
             <div class="form-group">
               <label class="form-label" for="singleCourseSlot">
-                <svg class="label-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                <svg class="label-icon" viewBox="0 0 24 24">
+                  <path
+                    d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                </svg>
                 Exam Slot
               </label>
-              <input type="text" class="form-input" id="singleCourseSlot" placeholder="e.g. T1, T2, or T3" autocomplete="off" />
+              <input type="text" class="form-input" id="singleCourseSlot" placeholder="e.g. T1, T2, or T3"
+                autocomplete="off" />
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="singleCoursePrereq">
-              <svg class="label-icon" viewBox="0 0 24 24"><path d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h8v2H8z"/></svg>
+              <svg class="label-icon" viewBox="0 0 24 24">
+                <path
+                  d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h8v2H8z" />
+              </svg>
               Prerequisites
             </label>
-            <input type="text" class="form-input" id="singleCoursePrereq" placeholder="e.g. CSE 2215, CSE 2216 (comma separated)" autocomplete="off" />
+            <input type="text" class="form-input" id="singleCoursePrereq"
+              placeholder="e.g. CSE 2215, CSE 2216 (comma separated)" autocomplete="off" />
           </div>
 
           <div class="import-msg" id="singleCourseMsg"></div>
@@ -2949,7 +3000,8 @@
             </button>
             <button class="btn-clear" id="clearSingleFormBtn">
               <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
               </svg>
               Clear
             </button>
@@ -2960,18 +3012,22 @@
         <div class="card bulk-import-card" id="bulkImportSection" style="display: none;">
           <div class="bulk-import-header">
             <div class="form-section-title">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+              </svg>
               <span>Batch Upload (JSON)</span>
             </div>
             <button type="button" class="btn-copy-sample" id="copySampleBtn" title="Copy Sample JSON">
               <svg viewBox="0 0 24 24">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                <path
+                  d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
               </svg>
               <span>Copy</span>
             </button>
           </div>
           <div class="import-hint">
-            Paste a JSON object of courses below, or click <strong>Copy</strong> to use the 2-course template. Make sure to add the title of the course.
+            Import courses using a JSON object or click <strong>Copy</strong> for a sample template. Course code and title are required.
           </div>
           <div class="editor-header-bar">
             <span class="editor-label">JSON Editor</span>
@@ -2989,7 +3045,8 @@
             </button>
             <button class="btn-clear" id="clearBtn">
               <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
               </svg>
               Clear
             </button>
@@ -3017,7 +3074,8 @@
         <div class="card">
           <span class="card-title">
             <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
             </svg>
             Allowed Domains (Supports *)
           </span>
@@ -3027,7 +3085,8 @@
           </div>
           <div id="allowlistContainer" class="allowlist-container"></div>
           <div style="font-size: 0.65rem; color: var(--text-muted); line-height: 1.35; margin-top: 2px;">
-            The extension only runs on websites in this list. Use <code>*</code> for wildcards (e.g. <code>*.uiu.ac.bd</code>).
+            The extension only runs on websites in this list. Use <code>*</code> for wildcards (e.g.
+            <code>*.uiu.ac.bd</code>).
           </div>
         </div>
 
@@ -3035,16 +3094,19 @@
         <div class="card">
           <span class="card-title">
             <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+              <path
+                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
             </svg>
             Official Catalog Sync
           </span>
 
           <div id="syncReminderBanner" class="sync-reminder-banner" style="display: none; margin-bottom: 8px;">
             <svg style="width:14px;height:14px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
             </svg>
-            <span>Course catalog has not been updated in over 2 months. Sync database to fetch the latest official course mappings &amp; exam schedules.</span>
+            <span>Course catalog has not been updated in over 2 months. Sync database to fetch the latest official
+              course mappings &amp; exam schedules.</span>
           </div>
 
           <button class="btn-courses btn-sync" id="syncBtn">
@@ -3054,7 +3116,8 @@
             </svg>
             <span id="syncBtnText">Sync Course Database</span>
           </button>
-          <div id="syncTime" style="font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: -4px;">
+          <div id="syncTime"
+            style="font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: -4px;">
             Never synced</div>
 
           <!-- Sync result diff summary box -->
@@ -3069,12 +3132,17 @@
                   <span class="sync-card-time-label">Last synced</span>
                   <span id="syncResultTime" class="sync-card-time"></span>
                 </div>
-                <button type="button" class="sync-card-dismiss-btn" id="syncResultDismissBtn" title="Dismiss summary" aria-label="Dismiss summary">
-                  <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                <button type="button" class="sync-card-dismiss-btn" id="syncResultDismissBtn" title="Dismiss summary"
+                  aria-label="Dismiss summary">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                  </svg>
                 </button>
               </div>
             </div>
-            <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.</div>
+            <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.
+            </div>
             <div id="syncResultBadges" class="sync-metrics-row" style="display: none;"></div>
             <div id="syncResultDetails" class="sync-diff-section" style="display: none;"></div>
           </div>
@@ -3084,12 +3152,14 @@
         <div class="card" style="border-color: #fecaca; background: #fffbfb;">
           <span class="card-title" style="color: #b91c1c;">
             <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
             </svg>
             Reset Official Catalog
           </span>
-          <div style="font-size: 0.67rem; color: var(--text-muted); line-height: 1.45; text-align: justify; text-justify: inter-word;">
-            Restores official course codes, titles, and exam schedules to repository defaults, discarding any local modifications. Custom user-added courses remain safely unaffected.
+          <div
+            style="font-size: 0.67rem; color: var(--text-muted); line-height: 1.45; text-align: justify; text-justify: inter-word;">
+            Restores official course codes, titles, and exam schedules to repository defaults, discarding any local
+            modifications. Custom user-added courses remain safely unaffected.
           </div>
           <button class="btn-reset-danger" id="resetDefaultsBtn"
             title="Restore all official courses to their default catalog state">
@@ -3111,8 +3181,12 @@
                   <span class="sync-card-time-label">Status</span>
                   <span id="resetResultTime" class="sync-card-time">Just now</span>
                 </div>
-                <button type="button" class="sync-card-dismiss-btn" id="resetResultDismissBtn" title="Dismiss summary" aria-label="Dismiss summary">
-                  <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                <button type="button" class="sync-card-dismiss-btn" id="resetResultDismissBtn" title="Dismiss summary"
+                  aria-label="Dismiss summary">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -3126,21 +3200,29 @@
         <div class="card">
           <span class="card-title">
             <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
             </svg>
             About
           </span>
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem;">
             <span style="color: var(--text-muted); font-weight: 500;">Version</span>
-            <span id="extVersion" style="font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 2px 7px; border-radius: 6px; font-size: 0.7rem;">v2.0.0</span>
+            <span id="extVersion"
+              style="font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 2px 7px; border-radius: 6px; font-size: 0.7rem;">v2.0.0</span>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; margin-top: 4px;">
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; margin-top: 4px;">
             <span style="color: var(--text-muted); font-weight: 500;">Developer</span>
-            <a href="https://github.com/litch07" target="_blank" rel="noopener noreferrer" style="color: var(--accent); font-weight: 600; text-decoration: none; font-size: 0.72rem;">Sadid Ahmed ↗</a>
+            <a href="https://github.com/litch07" target="_blank" rel="noopener noreferrer"
+              style="color: var(--accent); font-weight: 600; text-decoration: none; font-size: 0.72rem;">Sadid Ahmed
+              ↗</a>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; margin-top: 4px;">
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; margin-top: 4px;">
             <span style="color: var(--text-muted); font-weight: 500;">Repository</span>
-            <a href="https://github.com/litch07/uiu-course-decoder" target="_blank" rel="noopener noreferrer" style="color: var(--accent); font-weight: 600; text-decoration: none; font-size: 0.72rem;">GitHub Project ↗</a>
+            <a href="https://github.com/litch07/uiu-course-decoder" target="_blank" rel="noopener noreferrer"
+              style="color: var(--accent); font-weight: 600; text-decoration: none; font-size: 0.72rem;">GitHub Project
+              ↗</a>
           </div>
         </div>
       </div>
