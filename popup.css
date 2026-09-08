@@ -504,23 +504,43 @@
     }
 
     .allowlist-container {
-      max-height: 76px;
+      max-height: 120px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 5px;
-      margin-top: 2px;
+      margin-top: 3px;
+      padding-right: 2px;
+    }
+
+    .allowlist-container::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .allowlist-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .allowlist-container::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .allowlist-container::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
     }
 
     .allowlist-item {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 5px;
-      background: #f1f5f9;
+      justify-content: space-between;
+      width: 100%;
+      box-sizing: border-box;
+      background: #f8fafc;
       border: 1px solid var(--border-color);
-      padding: 4px 6px 4px 8px;
+      padding: 5px 8px 5px 10px;
       border-radius: 6px;
-      font-size: 0.72rem;
+      font-size: 0.73rem;
       font-weight: 500;
       color: var(--text-main);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -529,8 +549,16 @@
     }
 
     .allowlist-item:hover {
-      background: #e2e8f0;
+      background: #f1f5f9;
       border-color: #cbd5e1;
+    }
+
+    .allowlist-item-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      flex: 1;
     }
 
     .allowlist-item-icon {
@@ -542,7 +570,9 @@
 
     .allowlist-item-text {
       line-height: 1.25;
-      word-break: break-all;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .allowlist-item button {
@@ -553,9 +583,9 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 2px;
+      padding: 3px;
       border-radius: 4px;
-      margin-left: 2px;
+      margin-left: 8px;
       transition: all 0.15s ease;
       flex-shrink: 0;
     }
@@ -566,8 +596,8 @@
     }
 
     .allowlist-item button svg {
-      width: 10px;
-      height: 10px;
+      width: 11px;
+      height: 11px;
       fill: currentColor;
     }
 

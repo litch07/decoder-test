@@ -350,8 +350,11 @@
 
     const frag = document.createDocumentFragment();
     allowedSites.forEach(site => {
-      const chip = document.createElement("div");
-      chip.className = "allowlist-item";
+      const row = document.createElement("div");
+      row.className = "allowlist-item";
+
+      const left = document.createElement("div");
+      left.className = "allowlist-item-left";
 
       const iconSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       iconSvg.setAttribute("class", "allowlist-item-icon");
@@ -363,6 +366,9 @@
       const span = document.createElement("span");
       span.className = "allowlist-item-text";
       span.textContent = site;
+
+      left.appendChild(iconSvg);
+      left.appendChild(span);
 
       const btn = document.createElement("button");
       btn.type = "button";
@@ -376,10 +382,9 @@
         updateToggleAndStatus();
       });
 
-      chip.appendChild(iconSvg);
-      chip.appendChild(span);
-      chip.appendChild(btn);
-      frag.appendChild(chip);
+      row.appendChild(left);
+      row.appendChild(btn);
+      frag.appendChild(row);
     });
 
     els.allowlistContainer.appendChild(frag);
