@@ -2446,17 +2446,16 @@
 
     .contribution-card {
       margin-top: 0;
-      padding: 11px 13px;
-      background: #fffaf7;
-      border: 1px solid rgba(242, 101, 34, 0.22);
-      border-left: 3.5px solid var(--accent);
-      border-radius: 9px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       text-align: left;
-      gap: 6px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
     .contribution-card-header {
@@ -2464,7 +2463,7 @@
       align-items: center;
       justify-content: flex-start;
       gap: 6px;
-      color: var(--accent);
+      color: var(--text-main);
       font-size: 0.74rem;
       font-weight: 700;
     }
@@ -2472,7 +2471,7 @@
     .contribution-card-header svg {
       width: 14px;
       height: 14px;
-      fill: currentColor;
+      fill: var(--accent);
       flex-shrink: 0;
     }
 
@@ -2480,7 +2479,8 @@
       font-size: 0.69rem;
       color: var(--text-muted);
       line-height: 1.45;
-      text-align: left;
+      text-align: justify;
+      text-justify: inter-word;
     }
 
     .contribution-btn {
@@ -2490,10 +2490,10 @@
       gap: 6px;
       padding: 7px 12px;
       margin-top: 2px;
-      background: #ffffff;
-      border: 1px solid rgba(242, 101, 34, 0.35);
-      border-radius: 7px;
-      color: var(--accent);
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
       font-size: 0.70rem;
       font-weight: 600;
       text-decoration: none;
@@ -2504,10 +2504,10 @@
     }
 
     .contribution-btn:hover {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-      box-shadow: 0 2px 6px rgba(242, 101, 34, 0.25);
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: var(--text-main);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
 
     .contribution-btn svg {
@@ -2523,7 +2523,7 @@
     }
 
     .contribution-btn:hover svg.github-mark {
-      fill: #ffffff;
+      fill: #000000;
     }
   </style>
 </head>
