@@ -16,10 +16,10 @@ All core operations occur **100% locally** in the browser using `chrome.storage.
 ### Rich Academic Data Representation
 - **Course Title Expansion**: Replaces or supplements raw codes with official course titles.
 - **Exam Schedule Decoding**: Decodes university exam periods into normalized UIU formats:
-  - **Exam Day**: Formatted as university exam days (`D1`, `D2`, `D3`, `D4`...).
-  - **Exam Slot**: Formatted as standard time slots (`T1`, `T2`, `T3`...).
+  - **Exam Day**: Formatted as university exam days (`Day 1` - `Day 8` or shorthand `D1` - `D8`).
+  - **Exam Slot**: Formatted as standard time slots (`T1`, `T2`, `T3`).
   - **In-Class Fallback**: Displays `"In-Class"` when an exam does not have a centralized routine slot.
-- **Recursive Prerequisite Resolution**: Parses prerequisite codes and recursively decodes them to their full course titles (e.g., `CSE 2215` $\rightarrow$ *"Data Structures and Algorithms"* instead of just printing the code).
+- **Direct Prerequisite Name Resolution**: Decodes direct prerequisite codes into their full course names (e.g. `CSE 2215` $\rightarrow$ *"Data Structures and Algorithms"*). Full multi-level recursive chain traversal and reverse "Unlocks" trees are scheduled for Phase 2.
 
 ### Three Display Modes
 Users can choose how decoded course data appears on university pages:
@@ -145,8 +145,10 @@ To allow students to customize schedules, rename courses, or add unlisted course
 | Category | Specification |
 |---|---|
 | **Manifest Version** | Chrome Manifest V3 |
-| **Permissions** | `storage`, `activeTab`, `scripting` (least privilege) |
+| **API Permissions** | `storage`, `activeTab`, `scripting` |
+| **Host Permissions** | `<all_urls>` (injected content script), `https://raw.githubusercontent.com/*` (catalog sync) — *Transitioning to optional per-site permissions in Phase 1* |
 | **Data Collection** | **Zero**. No tracking, telemetry, user identifiers, or analytics |
-| **Remote Connections** | Restricted to `raw.githubusercontent.com` (user-initiated sync only) |
+| **Remote Connections** | Restricted strictly to `raw.githubusercontent.com` (user-initiated sync only) |
 | **Accessibility** | Complete `@media (prefers-reduced-motion: reduce)` support disabling motion for sensitive users |
 | **Code Modularity** | Extracted styling (`popup.css`), semantic markup (`popup.html`), service worker (`background.js`), and isolated client logic (`popup.js`) |
+
