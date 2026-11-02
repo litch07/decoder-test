@@ -1,0 +1,102 @@
+# .github/workflows/validate-catalog.yml
+# Validates the integrity of courses.json and executes test suite on push and PRs.
+
+name: Validate Course Catalog
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate courses.json & Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate courses.json schema & integrity
+        run: |
+          echo "Validating courses.json..."
+          node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('courses.json', 'utf8'));
+            if (typeof data !== 'object' || Array.isArray(data) || data === null) {
+              console.error('FAIL: courses.json must be a JSON object');
+              process.exit(1);
+            }
+            let errors = 0;
+            for (const [code, val] of Object.entries(data)) {
+              if (typeof val === 'string') continue;
+              if (typeof val !== 'object' || !val.name) {
+                console.error('FAIL: Course ' + code + ' missing name field');
+                errors++;
+              }
+              if (val.prerequisites && !Array.isArray(val.prerequisites)) {
+                console.error('FAIL: Course ' + code + ' prerequisites must be an array');
+                errors++;
+              }
+              if (val.examDay && typeof val.examDay !== 'string') {
+                console.error('FAIL: Course ' + code + ' examDay must be a string');
+                errors++;
+              }
+              if (val.examSlot && typeof val.examSlot !== 'string') {
+                console.error('FAIL: Course ' + code + ' examSlot must be a string');
+                errors++;
+              }
+              if (val.prerequisiteNote && typeof val.prerequisiteNote !== 'string') {
+                console.error('FAIL: Course ' + code + ' prerequisiteNote must be a string');
+                errors++;
+              }
+            }
+            if (errors > 0) {
+              console.error('Found ' + errors + ' validation error(s)');
+              process.exit(1);
+            }
+            console.log('OK: courses.json is valid (' + Object.keys(data).length + ' courses)');
+          "
+
+      - name: Verify zero misplaced credit notes in prerequisites arrays
+        run: |
+          node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('courses.json', 'utf8'));
+            const CREDIT_PATTERN = /minimum|credit/i;
+            let issues = 0;
+            for (const [code, val] of Object.entries(data)) {
+              if (typeof val === 'object' && Array.isArray(val.prerequisites)) {
+                for (const p of val.prerequisites) {
+                  if (CREDIT_PATTERN.test(p)) {
+                    console.error('FAIL: ' + code + ' has misplaced credit note in prerequisites: \"' + p + '\". Move to prerequisiteNote field.');
+                    issues++;
+                  }
+                }
+              }
+            }
+            if (issues > 0) process.exit(1);
+            console.log('OK: No misplaced credit notes in prerequisites arrays');
+          "
+
+      - name: Run test suite
+        run: |
+          echo "Running test suite..."
+          node tests/test_batch_upload.js
+          node tests/test_empty_trash_all.js
+          node tests/test_merge.js
+          node tests/test_merge_v2.js
+          node tests/test_migration.js
+          node tests/test_official_hard_delete.js
+          node tests/test_restore_official.js
+          node tests/test_single_and_batch_integration.js
+          node tests/test_single_course_add.js
+          node tests/test_sync_diff.js
+          node tests/test_release1.js
+          echo "All tests passed successfully."

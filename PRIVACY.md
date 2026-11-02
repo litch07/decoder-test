@@ -1,46 +1,113 @@
-# Privacy Policy
+# Privacy Policy — UIU Course Code Decoder
 
-**Effective Date:** June 6, 2026  
-**Last Updated:** June 6, 2026  
+**Effective Date**: November 2026  
+**Extension Version**: 2.0.0+  
+**Publisher**: Sadid Ahmed ([@litch07](https://github.com/litch07))
 
-This Privacy Policy describes how the "UIU Course Code Decoder" browser extension ("the Extension") collects, uses, and protects your information. By installing and using the Extension, you agree to the practices outlined in this policy.
+---
 
-## 1. Information Collection and Use
+## Summary
 
-**We do not collect, transmit, distribute, or sell your personal data.** 
+**UIU Course Code Decoder** is an **offline-first**, **privacy-respecting** browser extension engineered for students and faculty of United International University (UIU). It decodes cryptic academic course codes (e.g., `CSE 3421`, `ACT 1111`) into readable course names, exam schedules, and prerequisites on university web portals.
 
-The Extension is designed with a strict "local-only" architecture. It operates entirely within your local browser environment. We do not employ any analytics tools, usage trackers, or remote servers. Consequently, no personally identifiable information (PII) or usage data is ever collected or transmitted to the developer or any third parties.
+**The extension collects ZERO personal data, transmits zero analytics, and runs entirely in your local browser.**
 
-## 2. Data Storage and Security
+---
 
-All user-generated data, including but not limited to:
-- Custom course additions and modifications
-- Display mode preferences
-- Website domain allowlists
+## Data Collection & Telemetry
 
-...are stored securely and exclusively in your browser's local storage using the `chrome.storage.local` API. This data is fully controlled by you and can be permanently deleted at any time by uninstalling the Extension or clearing the Extension's local database via its native dashboard.
+| Category | Status |
+|----------|--------|
+| Telemetry / Usage Tracking | ❌ None collected |
+| User Identifiers / UUIDs | ❌ Never generated or collected |
+| Browsing History | ❌ Not accessed or collected |
+| Page Content (beyond course codes) | ❌ Never read, stored, or transmitted |
+| Personal Credentials / Form Data | ❌ Never accessed |
+| Crash Reporting Services | ❌ None used |
 
-## 3. Required Permissions and Justification
+---
 
-The Extension requests specific browser permissions strictly to provide its core functionality. The justifications for these permissions are as follows:
+## Local Storage Architecture
 
-*   **`storage`**: Required to save your user preferences and custom course dictionary locally within the browser.
-*   **`activeTab` & `scripting`**: Required to execute the DOM parsing script exclusively on the active tab when you explicitly enable the Extension, allowing it to locate and decode course codes.
-*   **`host_permissions` (`<all_urls>` & `https://docs.google.com/*`)**: Required to inject the decoding script into web pages and nested iframes (such as embedded Google Sheets). The Extension respects a strict user-defined allowlist and will not execute on any domain unless you explicitly grant it permission via the interface.
+All extension state is stored strictly in **`chrome.storage.local`** on your device:
 
-## 4. Third-Party Services
+| Storage Key | Purpose |
+|-------------|---------|
+| `courses` | Merged active course catalog (bundled + remote sync + user edits) |
+| `userCourses` | User-added courses or local custom overrides |
+| `softDeletedCourses` | Courses sent to Trash (restorable) |
+| `hardDeletedCourses` | Permanently deleted course codes (prevents sync resurrection) |
+| `allowedSites` | Allowlist of user-approved domains where the extension executes |
+| `remoteCourses` | Cached official catalog fetched from GitHub (user-initiated only) |
+| `mode` | Visual presentation mode (`highlight`, `tooltip`, `inline`) |
+| `showExamInfo` | Exam routine display toggle preference |
+| `showPrerequisites` | Prerequisite display toggle preference |
+| `lastSyncedAt` | Timestamp of last successful catalog synchronization |
+| `lastSyncResult` | Summary diff of last catalog update (cleared automatically after viewing) |
+| `onboardingDone` | State flag tracking first-run welcome card dismissal |
 
-The Extension does not integrate with or transmit data to any third-party services, APIs, or advertising networks.
+No data leaves your local device except for voluntary catalog sync requests described below.
 
-## 5. Changes to This Privacy Policy
+---
 
-We may update this Privacy Policy periodically to reflect changes in functionality or legal requirements. Any modifications will be published directly within the Extension's repository and on the Chrome Web Store listing. Because of our fundamental commitment to local-only data processing, future updates will not diminish your privacy rights.
+## Network Communication
 
-## 6. Contact Information
+The extension makes **one optional, user-initiated outbound request**:
 
-If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
+- **"Sync Course Database"** button in Settings:  
+  Downloads the community-maintained course catalog from the official GitHub repository:
+  ```
+  https://raw.githubusercontent.com/litch07/uiu-course-decoder/main/courses.json
+  ```
+  - **No user identifiers, tokens, or cookies** are transmitted with this request.
+  - Payloads are subject to strict schema validation and a **2 MB payload size cap**.
+  - No background periodic network polling occurs; sync happens only when manually clicked by the user.
 
-*   **Email:** [ssadidahmed01@gmail.com](mailto:ssadidahmed01@gmail.com)
-*   **GitHub Repository:** [https://github.com/litch07/uiu-course-decoder/issues](https://github.com/litch07/uiu-course-decoder/issues)
+No other network connections are initiated. The extension never contacts analytics providers, ad networks, or external telemetry endpoints.
 
-We are committed to addressing your privacy-related inquiries promptly and transparently.
+---
+
+## Host Permissions (Per-Site Model)
+
+In compliance with Chrome Web Store least-privilege standards, the extension operates under an **optional host permissions model**:
+
+- The extension does **not** possess blanket access to all websites (`<all_urls>` is omitted).
+- Execution is strictly restricted to domains you explicitly grant access to via the popup toggle or Settings allowlist.
+- You can revoke permission for any site at any time via the extension popup or browser settings (`chrome://extensions`).
+
+**Default UIU portals suggested on first launch:**
+- `ucam.uiu.ac.bd` (UCAM Student Portal)
+- `elms.uiu.ac.bd` (eLMS / LMS)
+- `docs.google.com` (Google Docs, optional for routine sheets)
+
+---
+
+## Content Script Behavior & Security
+
+The content script (`content.js`):
+1. Traverses text nodes solely looking for valid UIU course code patterns.
+2. Decorates matched codes with course titles, exam routines, and prerequisites.
+3. Operates with a **Zero-`innerHTML` policy**: all DOM modifications are performed via programmatic nodes (`createElement`, `createTextNode`, `textContent`), preventing DOM-based Cross-Site Scripting (XSS).
+4. **Explicitly ignores** input elements (`<input>`, `<textarea>`, `contenteditable`), passwords, script tags, styles, and PDF documents.
+
+---
+
+## Third-Party Services
+
+This extension integrates zero third-party SDKs, tracking libraries, advertising networks, or analytics frameworks.
+
+---
+
+## Your Rights & Data Erasure
+
+Because no user data is collected or sent to remote servers, there are no remote accounts or server-side records to delete. To completely erase all local data:
+- Go to `chrome://extensions` → **UIU Course Code Decoder** → **Details** → **Clear storage**.
+- Or uninstalling the extension instantly purges all local storage data from your device.
+
+---
+
+## Contact & Security Inquiries
+
+For privacy concerns, questions, or bug reports, please open an issue or private advisory:
+- GitHub: [https://github.com/litch07/uiu-course-decoder](https://github.com/litch07/uiu-course-decoder)
+- Security Advisories: [https://github.com/litch07/uiu-course-decoder/security/advisories/new](https://github.com/litch07/uiu-course-decoder/security/advisories/new)

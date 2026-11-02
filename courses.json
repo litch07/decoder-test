@@ -407,9 +407,8 @@
     "name": "Final Year Design Project - I",
     "examDay": "",
     "examSlot": "",
-    "prerequisites": [
-      "MINIMUM 85 credits"
-    ]
+    "prerequisites": [],
+    "prerequisiteNote": "MINIMUM 85 credits"
   },
   "CSE 4000B": {
     "name": "Final Year Design Project - II",
@@ -522,9 +521,8 @@
     "name": "Human Computer Interaction",
     "examDay": "Day 3",
     "examSlot": "T1",
-    "prerequisites": [
-      "MINIMUM COMPLETED CREDIT 70"
-    ]
+    "prerequisites": [],
+    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 70"
   },
   "CSE 4495": {
     "name": "Software Testing and Quality Assurance",
@@ -744,9 +742,8 @@
     "name": "Technical Report Writing and Presentation",
     "examDay": "Day 6",
     "examSlot": "T3",
-    "prerequisites": [
-      "MINIMUM COMPLETED CREDIT 55"
-    ]
+    "prerequisites": [],
+    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 55"
   },
   "DS 3521": {
     "name": "Data Visualization",
@@ -785,9 +782,8 @@
     "name": "Capstone Project - I",
     "examDay": "",
     "examSlot": "",
-    "prerequisites": [
-      "MINIMUM COMPLETED CREDIT 85"
-    ]
+    "prerequisites": [],
+    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 85"
   },
   "DS 4000B": {
     "name": "Capstone Project - II",
@@ -843,9 +839,8 @@
     "name": "Human Computer Interaction",
     "examDay": "Day 3",
     "examSlot": "T1",
-    "prerequisites": [
-      "MINIMUM COMPLETED CREDIT 70"
-    ]
+    "prerequisites": [],
+    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 70"
   },
   "DS 4125": {
     "name": "Medical Image and Signal Processing",

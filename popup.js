@@ -56,6 +56,7 @@
     singleCourseDay: document.getElementById("singleCourseDay"),
     singleCourseSlot: document.getElementById("singleCourseSlot"),
     singleCoursePrereq: document.getElementById("singleCoursePrereq"),
+    singleCoursePrereqNote: document.getElementById("singleCoursePrereqNote"),
     addSingleCourseBtn: document.getElementById("addSingleCourseBtn"),
     clearSingleFormBtn: document.getElementById("clearSingleFormBtn"),
     singleCourseMsg: document.getElementById("singleCourseMsg"),
@@ -65,10 +66,12 @@
     detailsCourseCode: document.getElementById("detailsCourseCode"),
     detailName: document.getElementById("detailName"),
     detailPrereq: document.getElementById("detailPrereq"),
+    detailPrereqNote: document.getElementById("detailPrereqNote"),
     detailDay: document.getElementById("detailDay"),
     detailSlot: document.getElementById("detailSlot"),
     detailSaveBtn: document.getElementById("detailSaveBtn"),
     detailDelBtn: document.getElementById("detailDelBtn"),
+    reportIssueBtn: document.getElementById("reportIssueBtn"),
     confirmModal: document.getElementById("confirmModal"),
     modalText: document.getElementById("modalText"),
     modalCancelBtn: document.getElementById("modalCancelBtn"),
@@ -125,6 +128,9 @@
     } else if (type === 'error') {
       svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
       path.setAttribute("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
+    } else if (type === 'restore') {
+      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
+      path.setAttribute("d", "M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.896 8.896 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z");
     } else if (type === 'delete') {
       svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
       path.setAttribute("d", "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z");
@@ -241,6 +247,89 @@
     if (badge) badge.style.display = isOverdue ? "block" : "none";
   }
 
+  const UIU_PORTALS = [
+    { domain: "ucam.uiu.ac.bd", label: "UCAM Portal" },
+    { domain: "elms.uiu.ac.bd", label: "eLMS / LMS" },
+    { domain: "docs.google.com", label: "Google Docs (Optional)" }
+  ];
+
+  async function checkOnboarding() {
+    const stored = await chrome.storage.local.get(["onboardingDone", "allowedSites"]);
+    const isFirstRun = !stored.onboardingDone;
+    const savedSites = stored.allowedSites || [];
+
+    const regrantBanner = document.getElementById("regrantBanner");
+    const onboardingCard = document.getElementById("onboardingCard");
+
+    if (isFirstRun && savedSites.length === 0) {
+      if (onboardingCard) {
+        onboardingCard.style.display = "block";
+        const grantBtns = document.getElementById("onboardingGrantBtns");
+        if (grantBtns) {
+          grantBtns.textContent = "";
+          for (const portal of UIU_PORTALS) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.style.cssText = "display:flex; align-items:center; gap:6px; background:var(--accent-light); color:var(--accent); border:1px solid var(--accent); border-radius:8px; padding:6px 10px; font-size:0.72rem; cursor:pointer; width:100%; font-weight:600;";
+            btn.textContent = `Enable on ${portal.label} (${portal.domain})`;
+            btn.addEventListener("click", async () => {
+              const origin = `*://${portal.domain}/*`;
+              try {
+                const granted = await chrome.permissions.request({ origins: [origin] });
+                if (granted) {
+                  if (!allowedSites.includes(portal.domain)) {
+                    allowedSites.push(portal.domain);
+                    await chrome.storage.local.set({ allowedSites });
+                    renderAllowlist();
+                    updateToggleAndStatus();
+                  }
+                  btn.textContent = `✓ ${portal.label} enabled`;
+                  btn.disabled = true;
+                  btn.style.opacity = "0.6";
+                }
+              } catch (e) {
+                console.warn("Permission request failed:", e);
+              }
+            });
+            grantBtns.appendChild(btn);
+          }
+        }
+      }
+    } else if (savedSites.length > 0) {
+      const needsRegrant = [];
+      for (const site of savedSites) {
+        const origin = `*://${site.replace(/^\*\./, "")}/*`;
+        try {
+          const hasPermission = await chrome.permissions.contains({ origins: [origin] });
+          if (!hasPermission) needsRegrant.push(site);
+        } catch (_) {}
+      }
+      if (needsRegrant.length > 0 && regrantBanner) {
+        regrantBanner.style.display = "flex";
+        const regrantLink = document.getElementById("regrantLink");
+        if (regrantLink) {
+          regrantLink.addEventListener("click", async () => {
+            for (const site of needsRegrant) {
+              const origin = `*://${site.replace(/^\*\./, "")}/*`;
+              try {
+                await chrome.permissions.request({ origins: [origin] });
+              } catch (_) {}
+            }
+            regrantBanner.style.display = "none";
+          });
+        }
+      }
+    }
+
+    const dismissBtn = document.getElementById("onboardingDismissBtn");
+    if (dismissBtn) {
+      dismissBtn.addEventListener("click", async () => {
+        if (onboardingCard) onboardingCard.style.display = "none";
+        await chrome.storage.local.set({ onboardingDone: true });
+      });
+    }
+  }
+
   function setupUI() {
     els.currentSite.textContent = currentHost || "Unsupported page";
 
@@ -319,8 +408,17 @@
     });
   }
 
-  function updateToggleAndStatus() {
-    const enabled = isHostAllowed(currentHost, allowedSites);
+  async function updateToggleAndStatus() {
+    let enabled = isHostAllowed(currentHost, allowedSites);
+    if (enabled && currentHost) {
+      try {
+        const origin = `*://${currentHost}/*`;
+        const hasPerm = await chrome.permissions.contains({ origins: [origin] });
+        if (!hasPerm) {
+          enabled = false;
+        }
+      } catch (_) {}
+    }
     els.siteToggle.checked = enabled;
 
     if (enabled) {
@@ -390,18 +488,34 @@
     els.allowlistContainer.appendChild(frag);
   }
 
+    function setModalText(title, desc) {
+    if (!els.modalText) return;
+    els.modalText.textContent = "";
+    const titleDiv = document.createElement("div");
+    titleDiv.style.cssText = "font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;";
+    titleDiv.textContent = title;
+    els.modalText.appendChild(titleDiv);
+    if (desc) {
+      const descDiv = document.createElement("div");
+      descDiv.style.cssText = "font-size:0.72rem; color:var(--text-muted); line-height:1.4;";
+      descDiv.textContent = desc;
+      els.modalText.appendChild(descDiv);
+    }
+  }
+
   function normalizeCourseData(val) {
-    if (!val) return { name: "", examDay: "", examSlot: "", prerequisites: [] };
+    if (!val) return { name: "", examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "" };
     if (typeof val === "string") {
-      return { name: val.trim(), examDay: "", examSlot: "", prerequisites: [] };
+      return { name: val.trim(), examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "" };
     }
     const name = (val.name || "").trim();
     const examDay = (val.examDay || "").trim();
     const examSlot = (val.examSlot || "").trim();
+    const prerequisiteNote = (val.prerequisiteNote || "").trim();
     const prerequisites = Array.isArray(val.prerequisites)
       ? val.prerequisites.map(p => String(p).trim()).filter(Boolean).sort()
       : [];
-    return { name, examDay, examSlot, prerequisites };
+    return { name, examDay, examSlot, prerequisites, prerequisiteNote };
   }
 
   function areCourseDataEqual(val1, val2) {
@@ -414,6 +528,7 @@
     for (let i = 0; i < a.prerequisites.length; i++) {
       if (a.prerequisites[i] !== b.prerequisites[i]) return false;
     }
+    if (a.prerequisiteNote !== b.prerequisiteNote) return false;
     return true;
   }
 
@@ -565,15 +680,12 @@
       restoreBtn.type = "button";
       restoreBtn.className = "btn-trash-action-item restore";
       restoreBtn.title = `Restore ${code} to catalog`;
-      restoreBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.896 8.896 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>';
+      restoreBtn.appendChild(createIcon('restore'));
       restoreBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         pendingAction = "restore";
         pendingTarget = code;
-        els.modalText.innerHTML = `
-          <div style="font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;">Restore ${escapeHtml(code)} to catalog?</div>
-          <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">This course will be returned to your active course database and decoder immediately.</div>
-        `;
+        setModalText(`Restore ${code} to catalog?`, "This course will be returned to your active course database and decoder immediately.");
         els.confirmModal.classList.add("show");
       });
 
@@ -581,15 +693,12 @@
       permDelBtn.type = "button";
       permDelBtn.className = "btn-trash-action-item delete";
       permDelBtn.title = `Permanently delete ${code}`;
-      permDelBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+      permDelBtn.appendChild(createIcon('delete'));
       permDelBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         pendingAction = "perm-delete";
         pendingTarget = code;
-        els.modalText.innerHTML = `
-          <div style="font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;">Permanently delete ${escapeHtml(code)}?</div>
-          <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">This course will be permanently removed from storage and cannot be restored.</div>
-        `;
+        setModalText(`Permanently delete ${code}?`, "This course will be permanently removed from storage and cannot be restored.");
         els.confirmModal.classList.add("show");
       });
 
@@ -744,7 +853,12 @@
 
       const arrowEl = document.createElement("div");
       arrowEl.className = "course-row-arrow";
-      arrowEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>';
+      const arrowSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      arrowSvg.setAttribute("viewBox", "0 0 24 24");
+      const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      arrowPath.setAttribute("d", "M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z");
+      arrowSvg.appendChild(arrowPath);
+      arrowEl.appendChild(arrowSvg);
 
       row.appendChild(codeEl);
       row.appendChild(nameEl);
@@ -791,6 +905,7 @@
     els.detailDay.value = examDay;
     els.detailSlot.value = examSlot;
     els.detailPrereq.value = prerequisites;
+    if (els.detailPrereqNote) els.detailPrereqNote.value = (typeof courseData === "object" && courseData !== null) ? (courseData.prerequisiteNote || "") : "";
 
     els.detailName.style.borderColor = "";
 
@@ -838,25 +953,38 @@
     })();
   }
 
+  function renderMsgDom(container, type, text) {
+    container.textContent = "";
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "import-msg-icon");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    if (type === "success") {
+      path.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z");
+    } else if (type === "error") {
+      path.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z");
+    } else {
+      path.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z");
+    }
+    svg.appendChild(path);
+    container.appendChild(svg);
+    const span = document.createElement("span");
+    span.textContent = text;
+    container.appendChild(span);
+  }
+
   let importMsgTimer = null;
   function showImportMsg(type, text) {
     if (!els.importMsg) return;
     if (importMsgTimer) clearTimeout(importMsgTimer);
-
-    const icons = {
-      success: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
-      error: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>',
-      info: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
-    };
-    const iconSvg = icons[type] || icons.info;
     els.importMsg.className = `import-msg ${type}`;
-    els.importMsg.innerHTML = `${iconSvg}<span>${text}</span>`;
+    renderMsgDom(els.importMsg, type, text);
     els.importMsg.style.display = "flex";
     importMsgTimer = setTimeout(() => {
       if (els.importMsg) {
         els.importMsg.className = "import-msg";
         els.importMsg.style.display = "none";
-        els.importMsg.innerHTML = "";
+        els.importMsg.textContent = "";
       }
     }, 4500);
   }
@@ -865,21 +993,14 @@
   function showSingleCourseMsg(type, text) {
     if (!els.singleCourseMsg) return;
     if (singleCourseMsgTimer) clearTimeout(singleCourseMsgTimer);
-
-    const icons = {
-      success: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
-      error: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>',
-      info: '<svg class="import-msg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
-    };
-    const iconSvg = icons[type] || icons.info;
     els.singleCourseMsg.className = `import-msg ${type}`;
-    els.singleCourseMsg.innerHTML = `${iconSvg}<span>${text}</span>`;
+    renderMsgDom(els.singleCourseMsg, type, text);
     els.singleCourseMsg.style.display = "flex";
     singleCourseMsgTimer = setTimeout(() => {
       if (els.singleCourseMsg) {
         els.singleCourseMsg.className = "import-msg";
         els.singleCourseMsg.style.display = "none";
-        els.singleCourseMsg.innerHTML = "";
+        els.singleCourseMsg.textContent = "";
       }
     }, 4500);
   }
@@ -952,7 +1073,14 @@
       badgeHtml = '<span style="display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#64748b;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;">ℹ</span>';
     }
 
-    toast.innerHTML = `${badgeHtml}<span>${escapeHtml(message)}</span>`;
+    toast.textContent = "";
+    const badgeSpan = document.createElement("span");
+    badgeSpan.style.cssText = `display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;background:${type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#64748b')};`;
+    badgeSpan.textContent = type === 'success' ? '✓' : (type === 'error' ? '✕' : 'ℹ');
+    toast.appendChild(badgeSpan);
+    const msgSpan = document.createElement("span");
+    msgSpan.textContent = message;
+    toast.appendChild(msgSpan);
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%) translateY(0)";
     clearTimeout(toast._timeout);
@@ -964,45 +1092,100 @@
 
   function renderDiffChip(code, detailsMap, type) {
     const isRemoved = type === "remove";
-    let badgeHtml = "";
+    const el = document.createElement(isRemoved ? "span" : "button");
+    el.className = "sync-code-chip" + (isRemoved ? " is-removed" : "");
+    if (!isRemoved) {
+      el.type = "button";
+      el.setAttribute("data-code", code);
+      el.title = `Click to view details for ${code}`;
+    } else {
+      el.title = "Course removed from catalog";
+    }
+
+    const codeSpan = document.createElement("span");
+    codeSpan.textContent = code;
+    el.appendChild(codeSpan);
+
+    let badgeText = "";
+    let pillClass = "";
     if (detailsMap && detailsMap[code]) {
-      const detailText = Array.isArray(detailsMap[code]) 
-        ? detailsMap[code].join(" & ") 
-        : detailsMap[code];
-      const pillClass = type === "add" ? "add" : (type === "revert" ? "revert" : "");
-      badgeHtml = `<span class="sync-field-pill ${pillClass}">${escapeHtml(detailText)}</span>`;
+      badgeText = Array.isArray(detailsMap[code]) ? detailsMap[code].join(" & ") : detailsMap[code];
+      pillClass = type === "add" ? "add" : (type === "revert" ? "revert" : "");
     } else if (type === "add") {
-      badgeHtml = `<span class="sync-field-pill add">New</span>`;
+      badgeText = "New";
+      pillClass = "add";
     } else if (type === "remove") {
-      badgeHtml = `<span class="sync-field-pill">Removed</span>`;
+      badgeText = "Removed";
     } else if (type === "restore") {
-      badgeHtml = `<span class="sync-field-pill add">Restored</span>`;
+      badgeText = "Restored";
+      pillClass = "add";
     } else if (type === "revert") {
-      badgeHtml = `<span class="sync-field-pill revert">Reverted</span>`;
+      badgeText = "Reverted";
+      pillClass = "revert";
     }
 
-    if (isRemoved) {
-      return `<span class="sync-code-chip is-removed" title="Course removed from catalog"><span>${escapeHtml(code)}</span>${badgeHtml}</span>`;
+    if (badgeText) {
+      const pill = document.createElement("span");
+      pill.className = "sync-field-pill" + (pillClass ? " " + pillClass : "");
+      pill.textContent = badgeText;
+      el.appendChild(pill);
     }
 
-    return `<button type="button" class="sync-code-chip" data-code="${escapeHtml(code)}" title="Click to view details for ${escapeHtml(code)}"><span>${escapeHtml(code)}</span>${badgeHtml}<svg class="sync-chip-arrow" viewBox="0 0 24 24"><path d="M5 19L19 5M19 5H9M19 5V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>`;
+    if (!isRemoved) {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "sync-chip-arrow");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", "M5 19L19 5M19 5H9M19 5V15");
+      path.setAttribute("stroke", "currentColor");
+      path.setAttribute("stroke-width", "2.2");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
+      path.setAttribute("fill", "none");
+      svg.appendChild(path);
+      el.appendChild(svg);
+    }
+
+    return el;
   }
 
   function formatInteractiveDiffRow(label, codes, detailsMap, type) {
-    if (!codes || codes.length === 0) return "";
+    if (!codes || codes.length === 0) return null;
+    const row = document.createElement("div");
+    row.className = "sync-diff-row";
+
+    const strong = document.createElement("strong");
+    strong.textContent = label + ":";
+    row.appendChild(strong);
+
     if (codes.length <= 6) {
-      const chips = codes.map(c => renderDiffChip(c, detailsMap, type)).join("");
-      return `<div class="sync-diff-row"><strong>${label}:</strong> <div class="sync-diff-chips">${chips}</div></div>`;
+      const chipsDiv = document.createElement("div");
+      chipsDiv.className = "sync-diff-chips";
+      codes.forEach(c => chipsDiv.appendChild(renderDiffChip(c, detailsMap, type)));
+      row.appendChild(chipsDiv);
+      return row;
     }
-    const preview = codes.slice(0, 6).map(c => renderDiffChip(c, detailsMap, type)).join("");
-    const full = codes.map(c => renderDiffChip(c, detailsMap, type)).join("");
+
+    const previewDiv = document.createElement("div");
+    previewDiv.className = "sync-diff-chips sync-codes-preview";
+    codes.slice(0, 6).forEach(c => previewDiv.appendChild(renderDiffChip(c, detailsMap, type)));
+    row.appendChild(previewDiv);
+
+    const fullDiv = document.createElement("div");
+    fullDiv.className = "sync-diff-chips sync-codes-full";
+    fullDiv.style.display = "none";
+    codes.forEach(c => fullDiv.appendChild(renderDiffChip(c, detailsMap, type)));
+    row.appendChild(fullDiv);
+
     const moreCount = codes.length - 6;
-    return `<div class="sync-diff-row">
-      <strong>${label}:</strong>
-      <div class="sync-diff-chips sync-codes-preview">${preview}</div>
-      <div class="sync-diff-chips sync-codes-full" style="display:none;">${full}</div>
-      <button class="btn-more-codes" type="button" data-more-count="${moreCount}">+${moreCount} more</button>
-    </div>`;
+    const btn = document.createElement("button");
+    btn.className = "btn-more-codes";
+    btn.type = "button";
+    btn.setAttribute("data-more-count", String(moreCount));
+    btn.textContent = `+${moreCount} more`;
+    row.appendChild(btn);
+
+    return row;
   }
 
   function bindDiffContainerEvents(container) {
@@ -1086,11 +1269,11 @@
       }
       if (els.syncResultBadges) {
         els.syncResultBadges.style.display = "none";
-        els.syncResultBadges.innerHTML = "";
+        els.syncResultBadges.textContent = "";
       }
       if (els.syncResultDetails) {
         els.syncResultDetails.style.display = "none";
-        els.syncResultDetails.innerHTML = "";
+        els.syncResultDetails.textContent = "";
       }
     } else {
       if (dot) dot.className = "sync-card-dot has-updates";
@@ -1100,40 +1283,49 @@
         desc.textContent = "Successfully applied changes from the repository:";
       }
 
-      let badgesHtml = "";
-      if (added > 0) {
-        badgesHtml += `<span class="sync-metric-chip add">+${added} new</span>`;
-      }
-      if (updated > 0) {
-        badgesHtml += `<span class="sync-metric-chip update">${updated} updated</span>`;
-      }
-      if (removed > 0) {
-        badgesHtml += `<span class="sync-metric-chip remove">${removed} removed</span>`;
-      }
       if (els.syncResultBadges) {
-        els.syncResultBadges.style.display = "flex";
-        els.syncResultBadges.innerHTML = badgesHtml;
-      }
-
-      const diffRows = [];
-      if (addedCodes.length > 0) {
-        diffRows.push(formatInteractiveDiffRow("Added", addedCodes, null, "add"));
-      }
-      if (updatedCodes.length > 0) {
-        diffRows.push(formatInteractiveDiffRow("Updated", updatedCodes, updatedDetails, "update"));
-      }
-      if (removedCodes.length > 0) {
-        diffRows.push(formatInteractiveDiffRow("Removed", removedCodes, null, "remove"));
+        els.syncResultBadges.textContent = "";
+        if (added > 0) {
+          const chip = document.createElement("span");
+          chip.className = "sync-metric-chip add";
+          chip.textContent = `+${added} new`;
+          els.syncResultBadges.appendChild(chip);
+        }
+        if (updated > 0) {
+          const chip = document.createElement("span");
+          chip.className = "sync-metric-chip update";
+          chip.textContent = `${updated} updated`;
+          els.syncResultBadges.appendChild(chip);
+        }
+        if (removed > 0) {
+          const chip = document.createElement("span");
+          chip.className = "sync-metric-chip remove";
+          chip.textContent = `${removed} removed`;
+          els.syncResultBadges.appendChild(chip);
+        }
+        els.syncResultBadges.style.display = (added > 0 || updated > 0 || removed > 0) ? "flex" : "none";
       }
 
       if (els.syncResultDetails) {
-        if (diffRows.length > 0) {
+        els.syncResultDetails.textContent = "";
+        let hasRows = false;
+        if (addedCodes.length > 0) {
+          const r = formatInteractiveDiffRow("Added", addedCodes, null, "add");
+          if (r) { els.syncResultDetails.appendChild(r); hasRows = true; }
+        }
+        if (updatedCodes.length > 0) {
+          const r = formatInteractiveDiffRow("Updated", updatedCodes, updatedDetails, "update");
+          if (r) { els.syncResultDetails.appendChild(r); hasRows = true; }
+        }
+        if (removedCodes.length > 0) {
+          const r = formatInteractiveDiffRow("Removed", removedCodes, null, "remove");
+          if (r) { els.syncResultDetails.appendChild(r); hasRows = true; }
+        }
+        if (hasRows) {
           els.syncResultDetails.style.display = "flex";
-          els.syncResultDetails.innerHTML = diffRows.join("");
           bindDiffContainerEvents(els.syncResultDetails);
         } else {
           els.syncResultDetails.style.display = "none";
-          els.syncResultDetails.innerHTML = "";
         }
       }
     }
@@ -1176,11 +1368,11 @@
       }
       if (els.resetResultBadges) {
         els.resetResultBadges.style.display = "none";
-        els.resetResultBadges.innerHTML = "";
+        els.resetResultBadges.textContent = "";
       }
       if (els.resetResultDetails) {
         els.resetResultDetails.style.display = "none";
-        els.resetResultDetails.innerHTML = "";
+        els.resetResultDetails.textContent = "";
       }
     } else {
       if (dot) dot.className = "sync-card-dot has-updates";
@@ -1190,40 +1382,85 @@
         desc.textContent = "Successfully restored official course mappings and discarded local modifications:";
       }
 
-      let badgesHtml = "";
-      if (restoredCodes.length > 0) {
-        badgesHtml += `<span class="sync-metric-chip add">+${restoredCodes.length} restored</span>`;
-      }
-      if (revertedCodes.length > 0) {
-        badgesHtml += `<span class="sync-metric-chip update">${revertedCodes.length} reverted</span>`;
-      }
       if (els.resetResultBadges) {
-        els.resetResultBadges.style.display = "flex";
-        els.resetResultBadges.innerHTML = badgesHtml;
-      }
-
-      const diffRows = [];
-      if (restoredCodes.length > 0) {
-        diffRows.push(formatInteractiveDiffRow("Restored", restoredCodes, null, "restore"));
-      }
-      if (revertedCodes.length > 0) {
-        diffRows.push(formatInteractiveDiffRow("Reverted", revertedCodes, revertedDetails, "revert"));
+        els.resetResultBadges.textContent = "";
+        if (restoredCodes.length > 0) {
+          const chip = document.createElement("span");
+          chip.className = "sync-metric-chip add";
+          chip.textContent = `+${restoredCodes.length} restored`;
+          els.resetResultBadges.appendChild(chip);
+        }
+        if (revertedCodes.length > 0) {
+          const chip = document.createElement("span");
+          chip.className = "sync-metric-chip update";
+          chip.textContent = `${revertedCodes.length} reverted`;
+          els.resetResultBadges.appendChild(chip);
+        }
+        els.resetResultBadges.style.display = (restoredCodes.length > 0 || revertedCodes.length > 0) ? "flex" : "none";
       }
 
       if (els.resetResultDetails) {
-        if (diffRows.length > 0) {
+        els.resetResultDetails.textContent = "";
+        let hasRows = false;
+        if (restoredCodes.length > 0) {
+          const r = formatInteractiveDiffRow("Restored", restoredCodes, null, "restore");
+          if (r) { els.resetResultDetails.appendChild(r); hasRows = true; }
+        }
+        if (revertedCodes.length > 0) {
+          const r = formatInteractiveDiffRow("Reverted", revertedCodes, revertedDetails, "revert");
+          if (r) { els.resetResultDetails.appendChild(r); hasRows = true; }
+        }
+        if (hasRows) {
           els.resetResultDetails.style.display = "flex";
-          els.resetResultDetails.innerHTML = diffRows.join("");
           bindDiffContainerEvents(els.resetResultDetails);
         } else {
           els.resetResultDetails.style.display = "none";
-          els.resetResultDetails.innerHTML = "";
         }
       }
     }
   }
 
   function attachEventListeners() {
+
+    // Report Wrong Data button in Course Details view
+    els.reportIssueBtn?.addEventListener("click", () => {
+      if (!currentEditingCode) return;
+      const courseData = courses[currentEditingCode];
+      const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
+      const examDay = typeof courseData === "object" && courseData !== null ? (courseData.examDay || "") : "";
+      const examSlot = typeof courseData === "object" && courseData !== null ? (courseData.examSlot || "") : "";
+      const prereqs = typeof courseData === "object" && courseData !== null && Array.isArray(courseData.prerequisites)
+        ? courseData.prerequisites.join(", ")
+        : "";
+      const note = typeof courseData === "object" && courseData !== null ? (courseData.prerequisiteNote || "") : "";
+
+      const title = encodeURIComponent(`[Data Correction] ${currentEditingCode} - ${name || "Course Details"}`);
+      let courseDetailsMd = `### 📚 Course Information\n` +
+        `- **Course:** \`${currentEditingCode}\` — ${name || "Untitled"}\n` +
+        `- **Exam Routine:** Day ${examDay || "—"}, Slot ${examSlot || "—"}\n` +
+        `- **Prerequisites:** ${prereqs || "None"}\n`;
+      if (note) {
+        courseDetailsMd += `- **Prerequisite Note:** ${note}\n`;
+      }
+
+      const body = encodeURIComponent(
+        courseDetailsMd +
+        `\n---\n\n` +
+        `### ✏️ What needs fixing?\n` +
+        `*(Describe what is incorrect, e.g. wrong course name, missing prerequisite, outdated exam slot)*\n\n\n\n` +
+        `### 💡 Correct Information (if known)\n` +
+        `*(Provide the correct details from UCAM, official routine, or syllabus)*\n\n\n\n` +
+        `---\n` +
+        `*Thanks for helping keep the UIU course catalog accurate for everyone!*`
+      );
+
+      const issueUrl = `https://github.com/litch07/uiu-course-decoder/issues/new?title=${title}&body=${body}&labels=data-correction`;
+      try {
+        chrome.tabs.create({ url: issueUrl });
+      } catch (_) {
+        window.open(issueUrl, "_blank", "noopener,noreferrer");
+      }
+    });
 
     // Panel sliding animations
     els.openCoursesBtn?.addEventListener("click", () => {
@@ -1342,10 +1579,7 @@
       if (softDeletedCourses.length === 0) return;
       pendingAction = "restore-all";
       const count = softDeletedCourses.length;
-      els.modalText.innerHTML = `
-        <div style="font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;">Restore ${count === 1 ? 'course' : `all ${count} courses`}?</div>
-        <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">${count === 1 ? 'This course' : 'All courses in Trash'} will be returned to your active course catalog.</div>
-      `;
+      setModalText(`Restore ${count === 1 ? 'course' : `all ${count} courses`}?`, `${count === 1 ? 'This course' : 'All courses in Trash'} will be returned to your active course catalog.`);
       els.confirmModal.classList.add("show");
     });
 
@@ -1353,10 +1587,7 @@
       if (softDeletedCourses.length === 0) return;
       pendingAction = "empty-trash";
       const count = softDeletedCourses.length;
-      els.modalText.innerHTML = `
-        <div style="font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;">Permanently delete ${count === 1 ? 'course' : `all ${count} courses`}?</div>
-        <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">${count === 1 ? 'This course' : 'All courses in Trash'} will be permanently removed from storage and cannot be restored.</div>
-      `;
+      setModalText(`Permanently delete ${count === 1 ? 'course' : `all ${count} courses`}?`, `${count === 1 ? 'This course' : 'All courses in Trash'} will be permanently removed from storage and cannot be restored.`);
       els.confirmModal.classList.add("show");
     });
 
@@ -1376,6 +1607,7 @@
       const newDay = els.detailDay.value.trim();
       const newSlot = els.detailSlot.value.trim();
       const newPrereqRaw = els.detailPrereq.value.trim();
+      const newPrereqNote = els.detailPrereqNote ? els.detailPrereqNote.value.trim() : "";
 
       let newPrereqs = [];
       if (newPrereqRaw) {
@@ -1383,8 +1615,8 @@
       }
 
       let newVal;
-      if (newDay || newSlot || newPrereqs.length > 0) {
-        newVal = { name: newName, examDay: newDay, examSlot: newSlot, prerequisites: newPrereqs };
+      if (newDay || newSlot || newPrereqs.length > 0 || newPrereqNote) {
+        newVal = { name: newName, examDay: newDay, examSlot: newSlot, prerequisites: newPrereqs, prerequisiteNote: newPrereqNote };
       } else {
         newVal = newName;
       }
@@ -1399,10 +1631,7 @@
 
       pendingSaveVal = newVal;
       pendingAction = "save";
-      els.modalText.innerHTML = `
-        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 6px;">Save Changes to ${escapeHtml(currentEditingCode)}?</div>
-        <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.5; text-align: justify; text-justify: inter-word;">Updated course title, prerequisites, and exam schedules will be stored locally on this device and applied immediately across all active pages.</div>
-      `;
+      setModalText(`Save Changes to ${currentEditingCode}?`, "Updated course title, prerequisites, and exam schedules will be stored locally on this device and applied immediately across all active pages.");
       els.confirmModal.classList.add("show");
     });
 
@@ -1410,10 +1639,7 @@
       if (!currentEditingCode || els.detailDelBtn.disabled) return;
 
       pendingAction = "delete";
-      els.modalText.innerHTML = `
-        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 6px;">Move ${escapeHtml(currentEditingCode)} to Trash?</div>
-        <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.5; text-align: justify; text-justify: inter-word;">This course will be excluded from active decoding. You can review or restore it from the Trash Bin at any time.</div>
-      `;
+      setModalText(`Move ${currentEditingCode} to Trash?`, "This course will be excluded from active decoding. You can review or restore it from the Trash Bin at any time.");
       els.confirmModal.classList.add("show");
     });
 
@@ -1677,17 +1903,15 @@
     els.copySampleBtn?.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(SAMPLE_TWO_COURSES);
-        const originalHtml = els.copySampleBtn.innerHTML;
-        els.copySampleBtn.innerHTML = `
-          <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:currentColor;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-          <span>Copied!</span>
-        `;
+        const textSpan = els.copySampleBtn.querySelector("span");
+        if (textSpan) textSpan.textContent = "Copied!";
         els.copySampleBtn.style.background = "var(--accent)";
         els.copySampleBtn.style.color = "#fff";
         showImportMsg("success", "2-course sample JSON copied to clipboard. Customize and click Import & Merge.");
         setTimeout(() => {
           if (els.copySampleBtn) {
-            els.copySampleBtn.innerHTML = originalHtml;
+            const span = els.copySampleBtn.querySelector("span");
+            if (span) span.textContent = "Copy";
             els.copySampleBtn.style.background = "";
             els.copySampleBtn.style.color = "";
           }
@@ -1757,6 +1981,7 @@
       const rawDay = els.singleCourseDay?.value.trim() || "";
       const rawSlot = els.singleCourseSlot?.value.trim() || "";
       const rawPrereq = els.singleCoursePrereq?.value.trim() || "";
+      const prereqNote = els.singleCoursePrereqNote ? els.singleCoursePrereqNote.value.trim() : "";
 
       if (!rawCode && !rawName) {
         els.singleCourseCode?.classList.add("input-error");
@@ -1788,7 +2013,8 @@
         name: rawName,
         examDay: rawDay || "",
         examSlot: rawSlot || "",
-        prerequisites: prereqs
+        prerequisites: prereqs,
+        prerequisiteNote: prereqNote
       };
 
       // Un-delete if this course was previously soft or hard deleted
@@ -1823,6 +2049,7 @@
         if (els.singleCourseDay) els.singleCourseDay.value = "";
         if (els.singleCourseSlot) els.singleCourseSlot.value = "";
         if (els.singleCoursePrereq) els.singleCoursePrereq.value = "";
+        if (els.singleCoursePrereqNote) els.singleCoursePrereqNote.value = "";
         els.singleCourseCode?.focus();
       } catch (err) {
         console.error("Failed to add course:", err);
@@ -1846,7 +2073,7 @@
       if (els.singleCourseMsg) {
         els.singleCourseMsg.className = "import-msg";
         els.singleCourseMsg.style.display = "none";
-        els.singleCourseMsg.innerHTML = "";
+        els.singleCourseMsg.textContent = "";
       }
       els.singleCourseCode?.focus();
     });
@@ -1857,6 +2084,12 @@
       if (!raw) {
         showImportMsg("error", "Please paste or enter JSON course data before importing.");
         els.jsonInput.focus();
+        return;
+      }
+
+      const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
+      if (new Blob([raw]).size > MAX_IMPORT_BYTES) {
+        showImportMsg("error", "Import payload too large (exceeds 2 MB limit). Please reduce the file size.");
         return;
       }
 
@@ -1889,11 +2122,16 @@
           val = v.trim();
           isNameOnly = true;
         } else if (typeof v === "object" && v !== null && typeof v.name === "string" && v.name.trim()) {
-          val = { ...v, name: v.name.trim() };
+          val = {
+            ...v,
+            name: v.name.trim(),
+            prerequisiteNote: (typeof v.prerequisiteNote === "string") ? v.prerequisiteNote.trim() : (val && val.prerequisiteNote ? val.prerequisiteNote : "")
+          };
           const hasExamDay = !!val.examDay;
           const hasExamSlot = !!val.examSlot;
           const hasPrereqs = Array.isArray(val.prerequisites) && val.prerequisites.length > 0;
-          if (!hasExamDay && !hasExamSlot && !hasPrereqs) {
+          const hasPrereqNote = !!val.prerequisiteNote;
+          if (!hasExamDay && !hasExamSlot && !hasPrereqs && !hasPrereqNote) {
             isNameOnly = true;
           }
         } else {
@@ -1955,30 +2193,81 @@
       showImportMsg("info", "Editor cleared.");
     });
 
-    // Adding sites to the allowlist
+    // Adding sites to the allowlist with dynamic permissions
     const addSite = async () => {
       const val = els.allowlistInput.value.trim().toLowerCase();
-      if (val && !allowedSites.includes(val)) {
+      if (!val) return;
+      if (!val.includes(".")) {
+        showToast("Invalid domain format", "error");
+        return;
+      }
+      if (!allowedSites.includes(val)) {
+        const origin = val.startsWith("*") ? `*://${val.replace(/^\*\./, "")}/*` : `*://${val}/*`;
         allowedSites.push(val);
         await chrome.storage.local.set({ allowedSites });
         els.allowlistInput.value = "";
         renderAllowlist();
-        updateToggleAndStatus();
+        await updateToggleAndStatus();
+        try {
+          await chrome.permissions.request({ origins: [origin] });
+        } catch (_) {}
       }
     };
     els.allowlistBtn?.addEventListener("click", addSite);
     els.allowlistInput?.addEventListener("keypress", e => { if (e.key === "Enter") addSite(); });
 
-    // Enable/disable the extension on the current site
+    // Enable/disable the extension on the current site with dynamic host permissions
     els.siteToggle?.addEventListener("change", async () => {
-      if (els.siteToggle.checked) {
-        if (currentHost && !allowedSites.includes(currentHost)) allowedSites.push(currentHost);
+      const isNowEnabled = els.siteToggle.checked;
+      if (!currentHost) {
+        els.siteToggle.checked = false;
+        return;
+      }
+
+      const origin = `*://${currentHost}/*`;
+
+      if (isNowEnabled) {
+        // Pre-save allowedSites so state is preserved even if Chrome closes popup on permission prompt
+        if (!allowedSites.includes(currentHost)) {
+          allowedSites.push(currentHost);
+          await chrome.storage.local.set({ allowedSites });
+        }
+        await updateToggleAndStatus();
+        renderAllowlist();
+
+        let granted = false;
+        try {
+          granted = await chrome.permissions.request({ origins: [origin] });
+        } catch (e) {
+          granted = false;
+        }
+
+        if (!granted) {
+          // If permission was denied or cancelled, revert state
+          allowedSites = allowedSites.filter(s => s !== currentHost);
+          await chrome.storage.local.set({ allowedSites });
+          els.siteToggle.checked = false;
+          await updateToggleAndStatus();
+          renderAllowlist();
+          return;
+        }
+
+        // Permission granted — inject immediately into active tab
+        if (currentTabId) {
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: currentTabId, allFrames: true },
+              files: ["content.js"]
+            });
+          } catch (_) {}
+        }
       } else {
         allowedSites = allowedSites.filter(h => h !== currentHost);
+        await chrome.storage.local.set({ allowedSites });
       }
-      await chrome.storage.local.set({ allowedSites });
+
       renderAllowlist();
-      updateToggleAndStatus();
+      await updateToggleAndStatus();
     });
 
     els.modeRadios?.forEach(radio => {
@@ -2093,10 +2382,7 @@
 
     els.resetDefaultsBtn?.addEventListener("click", () => {
       pendingAction = "reset-defaults";
-      els.modalText.innerHTML = `
-        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 6px;">Reset Official Catalog?</div>
-        <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.5; text-align: justify; text-justify: inter-word;">This will restore all official course mappings and exam schedules to standard repository defaults, discarding any local modifications. Custom user-added courses will remain unaffected.</div>
-      `;
+      setModalText("Reset Official Catalog?", "This will restore all official course mappings and exam schedules to standard repository defaults, discarding any local modifications. Custom user-added courses will remain unaffected.");
       els.confirmModal.classList.add("show");
     });
   }

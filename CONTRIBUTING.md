@@ -4,7 +4,7 @@ First off, thank you for considering contributing to this project! This tool is 
 
 ## 📚 Adding Missing Courses
 
-Currently, the extension is pre-loaded with **CSE, EEE, BBA, and Data Science** courses. However, there are many other department courses that we haven't been able to extract yet!
+Currently, the extension is pre-loaded with **CSE, EEE, BBA, and Data Science** courses. However, there are many courses across other departments that haven't been added yet!
 
 The single most helpful way to contribute is by adding these missing course codes to our database (`courses.json`). Whether you want to add your entire department's curriculum or just a few electives, every bit helps! 
 
@@ -92,4 +92,4 @@ If you are adding many courses at once, here are a few tips:
 - Before adding duplicates, do a quick search (`Ctrl+F` or `Cmd+F`) in `courses.json` to check for course codes that might already exist. This reduces merge conflicts and review back-and-forth.
 - If two contributors work on different departments at the same time, this is usually fine since edits to different course code keys rarely conflict. If GitHub does show a merge conflict, just mention it in the pull request and a maintainer will help you resolve it.
 
-We will review your PR as soon as possible. Thank you for making UIU student life a bit easier!
+Pull requests are reviewed promptly. Thank you for making UIU student life a bit easier!

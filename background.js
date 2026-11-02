@@ -4,10 +4,10 @@ const COURSES_URL = chrome.runtime.getURL("courses.json");
 
 // Helper to defensively merge a single course entry, handling legacy string formats
 function mergeCourseEntry(baseValue, overrideValue) {
-  let bVal = baseValue || { examDay: "", examSlot: "", prerequisites: [] };
+  let bVal = baseValue || { examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "" };
   // If baseValue itself happens to be a string, normalize it first
   if (typeof bVal === "string") {
-    bVal = { examDay: "", examSlot: "", prerequisites: [], name: bVal };
+    bVal = { examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", name: bVal };
   }
 
   if (overrideValue && typeof overrideValue === "object") {
@@ -99,6 +99,10 @@ async function syncCourses() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const text = await response.text();
+    const MAX_SYNC_BYTES = 2 * 1024 * 1024;
+    if (new Blob([text]).size > MAX_SYNC_BYTES) {
+      throw new Error("Remote catalog too large (exceeds 2 MB safety limit)");
+    }
     let data;
     try {
       data = JSON.parse(text);
@@ -148,11 +152,14 @@ async function syncCourses() {
         const currSlot = typeof curr === "object" && curr !== null ? (curr.examSlot || "") : "";
         const prevPrereq = (typeof prev === "object" && prev !== null && Array.isArray(prev.prerequisites)) ? prev.prerequisites.slice().sort().join(",") : "";
         const currPrereq = (typeof curr === "object" && curr !== null && Array.isArray(curr.prerequisites)) ? curr.prerequisites.slice().sort().join(",") : "";
+        const prevNote = (typeof prev === "object" && prev !== null) ? (prev.prerequisiteNote || "") : "";
+        const currNote = (typeof curr === "object" && curr !== null) ? (curr.prerequisiteNote || "") : "";
 
         const changedFields = [];
         if (prevName !== currName) changedFields.push("Title");
         if (prevDay !== currDay || prevSlot !== currSlot) changedFields.push("Exam Schedule");
         if (prevPrereq !== currPrereq) changedFields.push("Prerequisites");
+        if (prevNote !== currNote) changedFields.push("Prerequisite Note");
 
         if (changedFields.length > 0) {
           updatedCodes.push(code);
@@ -199,13 +206,41 @@ async function syncCourses() {
   }
 }
 
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   await loadAndStoreCourses();
+  await syncRegisteredContentScripts();
 
   // Set default settings if it's their first time installing
   const existing = await chrome.storage.local.get(["mode", "allowedSites"]);
   if (!existing.mode)         await chrome.storage.local.set({ mode: "highlight" });
   if (!existing.allowedSites) await chrome.storage.local.set({ allowedSites: [] });
+
+  // Inject content script into any already-permitted tabs
+  if (details && (details.reason === "update" || details.reason === "install")) {
+    const allowedSites = existing.allowedSites || [];
+    if (allowedSites.length > 0) {
+      try {
+        const tabs = await chrome.tabs.query({});
+        for (const tab of tabs) {
+          if (!tab.url || !tab.id) continue;
+          try {
+            const url = new URL(tab.url);
+            if (!url.protocol.startsWith("http")) continue;
+            const matchesSite = allowedSites.some(pattern => {
+              const re = "^" + pattern.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
+              return new RegExp(re, "i").test(url.hostname);
+            });
+            if (matchesSite) {
+              await chrome.scripting.executeScript({
+                target: { tabId: tab.id, allFrames: true },
+                files: ["content.js"]
+              }).catch(() => {});
+            }
+          } catch (_) {}
+        }
+      } catch (_) {}
+    }
+  }
 });
 
 // Refresh the course list every time Chrome starts to ensure we're up to date
@@ -226,4 +261,136 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     syncCourses().then(sendResponse);
     return true;
   }
+});
+
+// Synchronizes dynamically registered content scripts with user's allowedSites and granted permissions
+async function syncRegisteredContentScripts() {
+  if (!chrome.scripting || !chrome.scripting.registerContentScripts) return;
+
+  try {
+    const { allowedSites = [] } = await chrome.storage.local.get("allowedSites");
+
+    try {
+      await chrome.scripting.unregisterContentScripts({ ids: ["cce-dynamic-content-script"] });
+    } catch (_) {}
+
+    if (allowedSites.length === 0) return;
+
+    const validMatches = [];
+    for (const site of allowedSites) {
+      const matchPattern = site.startsWith("*.")
+        ? `*://${site}/*`
+        : (site.includes("://") ? site : `*://${site}/*`);
+
+      try {
+        const hasPerm = await chrome.permissions.contains({ origins: [matchPattern] });
+        if (hasPerm) {
+          validMatches.push(matchPattern);
+        }
+      } catch (_) {}
+    }
+
+    if (validMatches.length > 0) {
+      await chrome.scripting.registerContentScripts([
+        {
+          id: "cce-dynamic-content-script",
+          js: ["content.js"],
+          matches: validMatches,
+          excludeMatches: [
+            "*://*/*.pdf",
+            "*://*/*.svg",
+            "*://*/*.xml"
+          ],
+          allFrames: true,
+          runAt: "document_idle"
+        }
+      ]);
+    }
+  } catch (err) {
+    console.warn("[CourseDecoder] Failed to sync registered content scripts:", err);
+  }
+}
+
+// Update registered scripts whenever allowedSites changes
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.allowedSites) {
+    syncRegisteredContentScripts();
+  }
+});
+
+// Also re-sync on permissions added/removed
+chrome.permissions.onRemoved?.addListener(() => {
+  syncRegisteredContentScripts();
+});
+
+// Automatically activate extension when permission for a domain is granted
+chrome.permissions.onAdded.addListener(async (permissions) => {
+  if (!permissions || !permissions.origins) return;
+
+  const { allowedSites: currentSites = [] } = await chrome.storage.local.get("allowedSites");
+  let newSites = [...currentSites];
+  let changed = false;
+
+  for (const origin of permissions.origins) {
+    const match = origin.match(/:\/\/(?:www\.)?([^\/:]+)/);
+    if (match) {
+      const host = match[1];
+      if (!newSites.includes(host)) {
+        newSites.push(host);
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
+    await chrome.storage.local.set({ allowedSites: newSites });
+  }
+
+  await syncRegisteredContentScripts();
+
+  // Immediately inject content.js into any matching open tabs so it starts decoding instantly
+  try {
+    const tabs = await chrome.tabs.query({});
+    for (const tab of tabs) {
+      if (!tab.url || !tab.id) continue;
+      try {
+        const matchesOrigin = permissions.origins.some(origin => {
+          const pat = "^" + origin.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
+          return new RegExp(pat, "i").test(tab.url);
+        });
+        if (matchesOrigin) {
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id, allFrames: true },
+            files: ["content.js"]
+          }).catch(() => {});
+        }
+      } catch (_) {}
+    }
+  } catch (_) {}
+});
+
+// Automatically inject content.js on page reload or navigation for permitted sites
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (changeInfo.status !== "loading" && changeInfo.status !== "complete") return;
+  if (!tab.url || !tab.url.startsWith("http")) return;
+
+  try {
+    const url = new URL(tab.url);
+    const { allowedSites = [] } = await chrome.storage.local.get("allowedSites");
+    const isAllowed = allowedSites.some(pattern => {
+      const re = "^" + pattern.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
+      return new RegExp(re, "i").test(url.hostname);
+    });
+
+    if (isAllowed) {
+      const origin = `*://${url.hostname}/*`;
+      const hasPerm = await chrome.permissions.contains({ origins: [origin] });
+      if (hasPerm) {
+        await chrome.scripting.executeScript({
+          target: { tabId: tabId, allFrames: true },
+          files: ["content.js"]
+        }).catch(() => {});
+      }
+    }
+  } catch (_) {}
 });

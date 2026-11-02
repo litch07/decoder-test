@@ -205,3 +205,4 @@ To preserve the extension's core identityâ€”**fast, private, and local-first**â€
 | 3.3 Exam Week Schedule & `.ics` Export | R3 | Future | Medium |
 | 3.4 Dark Mode Palette | R3 | Future | Medium |
 | 3.5 Keyboard Accessibility & ARIA Support | R3 | Future | Medium |
+

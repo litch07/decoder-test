@@ -1,168 +1,110 @@
-<div align="center">
+# UIU Course Code Decoder
 
-# 🎓 UIU Course Code Decoder
+> **Never guess a course code again.** Instantly decode UIU academic course codes into readable course titles, exam schedules, and prerequisites on any university webpage.
 
-*Decode course codes into full course names instantly on any webpage!*
-
-[![Microsoft Edge Add-ons](https://img.shields.io/badge/Edge_Add--ons-Available_Now-blue?logo=microsoft-edge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/uiu-course-code-decoder/dnahpleadipkgknggmeeljcnmhcodpgk?hl=en-US)
-[![Firefox Add-ons](https://img.shields.io/badge/Firefox_Add--ons-Available_Now-orange?logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/uiu-course-code-decoder/)
-[![GitHub Release](https://img.shields.io/github/v/release/litch07/uiu-course-decoder?style=flat-square)](https://github.com/litch07/uiu-course-decoder/releases/latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-</div>
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-green.svg)](manifest.json)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Zero Telemetry](https://img.shields.io/badge/Telemetry-Zero-brightgreen.svg)](PRIVACY.md)
+[![Security Hardened](https://img.shields.io/badge/Security-Zero--innerHTML-success.svg)](SECURITY.md)
 
 ---
 
-Welcome to **UIU Course Code Decoder**! Are you tired of staring at abstract course codes like `CSE 3421` and trying to remember if it's "Database Management Systems" or something else? We've got you covered.
+## What It Does
 
-This lightweight, privacy-focused Chrome extension automatically replaces course codes with their full names on any webpage. While built with United International University (UIU) students in mind, it is entirely customizable for any university, department, or personal schedule.
+**UIU Course Code Decoder** is an offline-first, privacy-respecting Manifest V3 Chrome & Firefox extension built for students and faculty of **United International University (UIU)**. It transforms cryptic academic course codes (e.g., `CSE 3421`, `ACT 1111`) across university web portals into clear course titles, exam routines (`Day` & `Slot`), and direct prerequisite chains in real time.
 
-## 📑 Table of Contents
-
-- [Features](#-features)
-- [Installation](#-installation)
-- [How to Use](#-how-to-use)
-- [Configuration](#-configuration)
-- [Troubleshooting & FAQ](#-troubleshooting--faq)
-- [Privacy](#-privacy)
-- [Contributing](#-contributing)
-- [License](#-license)
+Works seamlessly across:
+- **UCAM Student Portal** (`ucam.uiu.ac.bd`)
+- **eLMS Learning Management System** (`elms.uiu.ac.bd`)
+- **Highcharts & SVG graphics** (grade distribution charts, schedule routines)
+- **Google Docs & Sheets** (exam schedules, advising rosters)
+- Any custom domain you authorize
 
 ---
 
-## ✨ Features
+## Key Highlights
 
-- **🪄 Automatic Decoding:** Instantly decodes course codes on the pages you visit.
-- **🎓 Pre-loaded Departments:** Comes fully packed with built-in databases for **CSE, EEE, BBA, and Data Science** courses right out of the box!
-- **🧠 Smart Parsing:** Seamlessly handles course codes split across multiple lines, missing spaces, or broken by HTML tags.
-- **🖼️ Iframe Support:** Works flawlessly inside embedded pages, such as Google Sheets routines!
-- **🎨 Multiple Display Modes:** Choose exactly how you want to see the course names:
-  - **Inline:** Adds the full name in parentheses next to the code.
-  - **Tooltip:** Hover over the code to see the name in a neat tooltip.
-  - **Highlight:** Highlights the code — hover to see the full name.
-- **📚 Built-in Course Manager:** Manage everything right from the extension popup. Browse, search, and delete courses without opening new tabs.
-- **💾 Persistent Custom Courses:** Import your own courses via JSON. Your custom additions are saved separately and won't be overwritten.
-- **✅ Smart Allowlist:** You have full control. The extension only runs on the websites you specifically allow.
-- **📊 Chart-Safe:** Automatically skips SVG elements so it won't break your Highcharts or other visual data elements.
-- **🔒 100% Private:** Runs entirely locally in your browser. No tracking, no data collection.
+- ⚡ **Offline-Ready**: Ships with a pre-indexed catalog of ~315 UIU courses. Zero internet connection required.
+- 🔒 **Zero Telemetry & 100% Private**: Zero analytics, zero cookies, zero user tracking. All data is kept strictly inside `chrome.storage.local`.
+- 🛡️ **Zero-`innerHTML` Security**: Completely purged of `innerHTML` / `insertAdjacentHTML` across content and popup scripts. All DOM operations use safe programmatic nodes (`textContent`, `createElement`).
+- 🌐 **Per-Site Permissions**: Follows least-privilege principles with optional host permissions. Only activates on sites you explicitly approve.
+- 🔄 **Differential Cloud Sync**: Sync official updates directly from the community-maintained GitHub repository with 1-click diff inspection (`+X new`, `~X updated`, `-X removed`).
+- ✏️ **Layered Data Architecture**: Add unlisted courses or customize exam slots. Your custom edits and additions are preserved across official catalog updates.
+- 🗑️ **Trash & Soft-Delete**: Safely move unwanted courses to Trash, restore them anytime, or permanently purge them.
 
 ---
 
-## 🚀 Installation
+## Display Modes
 
-You can install the extension directly from the Edge or Firefox Add-on stores, or manually via Developer Mode (for Chrome, Brave, Opera, etc).
+Choose how decoded course details appear on your university pages:
 
-### Method 1: Edge & Firefox Add-on Stores
-Install the extension directly in your browser:
-- **Microsoft Edge**: Get it from the [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/uiu-course-code-decoder/dnahpleadipkgknggmeeljcnmhcodpgk?hl=en-US)
-- **Firefox**: Get it from the [Mozilla Add-ons Store](https://addons.mozilla.org/en-US/firefox/addon/uiu-course-code-decoder/)
-
-### Method 2: Manual Installation (Developer Mode)
-If you want to try the latest version now:
-
-1. **Download the Extension:**
-   - Go to the **[Latest Release Page](https://github.com/litch07/uiu-course-decoder/releases/latest)** and download the `.zip` file.
-   - Extract the `.zip` file to a folder on your computer.
-
-2. **Install on Chrome / Edge / Brave / Opera:**
-   - Navigate to `chrome://extensions/` (or `edge://extensions/`).
-   - Turn on **Developer mode** in the top right corner.
-   - Click **"Load unpacked"** and select the extracted folder.
-
-3. **Install on Firefox (Temporary for testing):**
-   - Navigate to `about:debugging#/runtime/this-firefox`.
-   - Click **"Load Temporary Add-on..."** and select the `.zip` file directly.
-
-The extension is now installed and ready to use! 🎉
+| Mode | Visual Experience | Ideal For |
+|---|---|---|
+| ✨ **Highlight** | Subtle university-branded accent underline; hover reveals interactive card with exam schedule and prerequisites. | Daily browsing & registration |
+| 💬 **Tooltip** | Leaves webpage typography 100% unaltered; interactive tooltip card opens on hover. | Routine inspection & reading |
+| ✏️ **Inline** | Inserts full course name in parentheses directly following the code (`CSE 3715 (Software Engineering)`). | Fast glance reading without mouse interaction |
 
 ---
 
-## 🎮 How to Use
+## Installation & Setup
 
-![Demo: Highlight Mode](assets/demo.png)  
-*Course codes highlighted inline!*
+### Developer Mode (Local Installation)
 
-![Demo: Tooltip Mode](assets/demo-tooltip.png)  
-*Hover over the course code to see its name!*
+1. Clone or download this repository:
+   ```bash
+   git clone https://github.com/litch07/uiu-course-decoder.git
+   ```
+2. Open Google Chrome (or Edge / Brave) and navigate to `chrome://extensions`.
+3. Enable the **Developer mode** toggle in the top-right corner.
+4. Click **Load unpacked** and select the extension directory.
+5. The extension icon will appear in your browser toolbar!
 
-1. **Enable on a Website:**
-   - Visit a website where you want course codes decoded (like your routine sheet).
-   - Click the extension icon in your Chrome toolbar.
-   - Toggle **"Enable on this site"** to ON. The page will reload and start decoding!
+### Firefox Installation
 
-2. **Change Display Mode:**
-   - Click the extension icon.
-   - Under "Display Mode", choose **Highlight** ✨, **Tooltip** 💬, or **Inline** ✏️.
+1. Navigate to `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on...**
+3. Select `manifest.json` from this repository.
 
 ---
 
-## ⚙️ Configuration
+## Enabling on University Portals
 
-The extension provides a clean popup dashboard to manage your courses.
+To respect user privacy, the extension uses an optional per-site permission model:
+1. Navigate to your university portal (e.g., `ucam.uiu.ac.bd`, `elms.uiu.ac.bd`, or Google Docs routine sheets).
+2. Open the extension popup from your browser toolbar.
+3. Turn on the **Active on this page** toggle.
+4. The browser will ask you to confirm access for that site once — course codes are detected and decoded immediately!
+5. You can view, add, or revoke authorized domains anytime from the **Settings** panel.
 
-<p align="center">
-  <img src="assets/pop-up-1.png" width="48%" alt="Popup Top Half" />
-  <img src="assets/pop-up-2.png" width="48%" alt="Popup Bottom Half" /> 
-</p>
+---
 
-### Adding and Managing Courses
-1. Click the extension icon and select **"Manage Course Database"**.
-2. From the sliding panel, you can search, edit, or delete existing courses.
-3. **Add Custom Courses:** Look for the **"Add / Import Courses (JSON)"** section at the bottom.
-4. Paste your course list in JSON format and click **"Import & Merge"**:
+## Project Structure
 
-```json
-{
-  "CSE 3421": "Database Management Systems",
-  "CSE 1111": "Structured Programming Language",
-  "MATH 2183": "Calculus and Linear Algebra"
-}
+```
+├── manifest.json              # Extension manifest (MV3, optional host permissions)
+├── content.js                 # DOM scanning, Highcharts/SVG handling, zero-innerHTML renderer
+├── background.js              # Service worker: layered course merging, GitHub sync
+├── popup.html                 # 5-view sliding stack UI (Home, Courses, Details, Import, Settings)
+├── popup.js                   # UI state controller, search filtering, dynamic permissions
+├── popup.css                  # UI styling, iOS/Material slide transitions, reduced motion
+├── courses.json               # Baseline university catalog (~315 courses)
+├── tests/                     # Automated test suite (merging, imports, trash, sync diffs)
+├── .github/workflows/         # CI: automated catalog validation & test suite
+├── SECURITY.md                # Vulnerability disclosure policy
+├── PRIVACY.md                 # Complete transparent privacy documentation
+└── CONTRIBUTING.md            # Community contribution guide
 ```
 
-<p align="center">
-  <img src="assets/course-manager-pop-up.png" width="48%" alt="Course Manager Setup" />
-  <img src="assets/course-manager-pop-up-success.png" width="48%" alt="Course Manager Success" />
-</p>
+---
 
-*Courses are instantly merged and saved permanently! The active page will automatically refresh to show your new decodings.*
+## Contributing & Reporting Data Errors
+
+- **Report Data Errors in 1-Click**: Open any course in the extension's **Course Details** panel and click **Report Wrong Data**. This opens a pre-filled GitHub issue containing the course's exact metadata for community maintainers to review.
+- **Pull Requests**: Pull requests must pass the catalog validator (`.github/workflows/validate-catalog.yml`) and automated test suite. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
-## ❓ Troubleshooting & FAQ
+## License
 
-**Q: The extension isn't changing the course codes on a page.**
-- **A:** Make sure you have enabled the extension for that specific website (click the icon → toggle ON).
-
-**Q: It's not working inside an embedded Google Sheet or Document.**
-- **A:** Some embedded documents use "iframes". The extension supports iframes — just make sure the parent domain is in your allowlist.
-
-**Q: Will it break charts or graphs on my university portal?**
-- **A:** No! The extension intentionally skips SVG elements to avoid breaking charts (like Highcharts) and other visual data elements.
-
-**Q: I pasted JSON but my courses didn't update.**
-- **A:** Make sure your JSON is a valid, flat object (all keys and values in double quotes). A red error message will show if the format is incorrect.
-
-**Q: Will I lose my custom courses if I reload the file?**
-- **A:** No! Custom courses are saved in a separate persistent storage layer. They will survive updates and automatically merge with the default list.
-
----
-
-## 🔒 Privacy
-
-Your privacy is our priority. All settings and course lists are saved directly in your browser's local storage. **We do not track you, collect data, or send any information to external servers.** Read our complete [Privacy Policy](PRIVACY.md) for more details.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Currently, we are missing courses from several departments. If your department's courses aren't decoded yet, we would love your help to extract and add them!
-
-Whether you're adding missing courses, fixing a bug, or just improving the documentation, your help is deeply appreciated. 
-
-Please see our [Contributing Guidelines](CONTRIBUTING.md) for full details on how to get started, create a branch, and open a Pull Request. If you find a bug or have a suggestion, please [open an issue](https://github.com/litch07/uiu-course-decoder/issues).
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is open-source under the [MIT License](LICENSE).  
+Developed with ❤️ by [Sadid Ahmed](https://github.com/litch07) for the UIU community.

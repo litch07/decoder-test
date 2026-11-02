@@ -3,6 +3,10 @@
 (function () {
   "use strict";
 
+  // Prevent duplicate injections in the same frame
+  if (window.__UIU_COURSE_DECODER_INJECTED__) return;
+  window.__UIU_COURSE_DECODER_INJECTED__ = true;
+
   // Skip PDFs, our DOM scripts won't work there anyway
   if (document.contentType === "application/pdf") return;
   if (window.location.pathname.toLowerCase().endsWith(".pdf")) return;
@@ -55,16 +59,94 @@
       name: isObj ? courseData.name : courseData,
       examDay: (isObj && courseData.examDay) ? courseData.examDay : "",
       examSlot: (isObj && courseData.examSlot) ? courseData.examSlot : "",
-      prerequisites: (isObj && courseData.prerequisites) ? courseData.prerequisites : []
+      prerequisites: (isObj && courseData.prerequisites) ? courseData.prerequisites : [],
+      prerequisiteNote: (isObj && courseData.prerequisiteNote) ? courseData.prerequisiteNote : ""
     };
   }
 
-  function escapeHtml(str) {
-    if (!str) return "";
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+  // NOTE: escapeHtml, buildTooltipHtml, and buildInlineHtml have been removed.
+  // Tooltip and inline content are now built with safe DOM APIs (buildTooltipDom / buildInlineDom).
+
+  // Builds the tooltip DOM inside `container` using safe DOM APIs (no innerHTML).
+  function buildTooltipDom(data, container) {
+    const content = document.createElement("div");
+    content.className = "cce-tooltip-content";
+
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "cce-tooltip-name";
+    nameDiv.textContent = data.name;
+    content.appendChild(nameDiv);
+
+    if (data.exam || data.prereq) {
+      const details = document.createElement("div");
+      details.className = "cce-tooltip-details";
+
+      if (data.exam) {
+        const row = document.createElement("div");
+        row.className = "cce-detail-row";
+        const label = document.createElement("span");
+        label.className = "cce-detail-label";
+        label.textContent = "Exam:";
+        const text = document.createElement("span");
+        text.className = "cce-detail-text";
+        text.textContent = data.exam;
+        row.appendChild(label);
+        row.appendChild(text);
+        details.appendChild(row);
+      }
+
+      if (data.prereq) {
+        const row = document.createElement("div");
+        row.className = "cce-detail-row";
+        const label = document.createElement("span");
+        label.className = "cce-detail-label";
+        label.textContent = "Prereq:";
+        const text = document.createElement("span");
+        text.className = "cce-detail-text";
+        text.textContent = data.prereq;
+        row.appendChild(label);
+        row.appendChild(text);
+        details.appendChild(row);
+      }
+
+      content.appendChild(details);
+    }
+
+    container.appendChild(content);
+  }
+
+  // Builds the inline expansion DOM inside `wrapEl` using safe DOM APIs (no innerHTML).
+  function buildInlineDom(matchText, data, wrapEl) {
+    while (wrapEl.firstChild) wrapEl.removeChild(wrapEl.firstChild);
+
+    const titleSpan = document.createElement("span");
+    titleSpan.className = "cce-inline-title";
+    titleSpan.textContent = `${matchText} (${data.name})`;
+    wrapEl.appendChild(titleSpan);
+
+    if (data.exam) {
+      wrapEl.appendChild(document.createElement("br"));
+      const row = document.createElement("span");
+      row.className = "cce-inline-row";
+      const label = document.createElement("span");
+      label.className = "cce-inline-label cce-inline-exam";
+      label.textContent = "Exam:";
+      row.appendChild(label);
+      row.appendChild(document.createTextNode(" " + data.exam));
+      wrapEl.appendChild(row);
+    }
+
+    if (data.prereq) {
+      wrapEl.appendChild(document.createElement("br"));
+      const row = document.createElement("span");
+      row.className = "cce-inline-row";
+      const label = document.createElement("span");
+      label.className = "cce-inline-label cce-inline-prereq";
+      label.textContent = "Prereq:";
+      row.appendChild(label);
+      row.appendChild(document.createTextNode(" " + data.prereq));
+      wrapEl.appendChild(row);
+    }
   }
 
   function buildExtendedData(resolved) {
@@ -86,48 +168,27 @@
     }
 
     if (showPrerequisites) {
+      let decodedPrereqs = [];
       if (resolved.prerequisites && resolved.prerequisites.length > 0) {
-        let decodedPrereqs = [];
         for (const pCode of resolved.prerequisites) {
           const pResolved = resolve(pCode);
           if (pResolved && pResolved.name) {
             decodedPrereqs.push(pResolved.name);
+          } else {
+            decodedPrereqs.push(pCode);
           }
         }
-        if (decodedPrereqs.length > 0) {
-          data.prereq = decodedPrereqs.join(", ");
-        } else {
-          data.prereq = "None";
-        }
-      } else {
-        data.prereq = "None";
       }
+      let prereqText = decodedPrereqs.join(", ");
+      if (resolved.prerequisiteNote) {
+        prereqText = prereqText ? (prereqText + " (" + resolved.prerequisiteNote + ")") : resolved.prerequisiteNote;
+      }
+      data.prereq = prereqText || "None";
     }
     return data;
   }
 
-  function buildTooltipHtml(data) {
-    let html = `<div class="cce-tooltip-content"><div class="cce-tooltip-name">${escapeHtml(data.name)}</div>`;
-    if (data.exam || data.prereq) {
-      html += `<div class="cce-tooltip-details">`;
-      if (data.exam) {
-        html += `<div class="cce-detail-row"><span class="cce-detail-label">Exam:</span><span class="cce-detail-text">${escapeHtml(data.exam)}</span></div>`;
-      }
-      if (data.prereq) {
-        html += `<div class="cce-detail-row"><span class="cce-detail-label">Prereq:</span><span class="cce-detail-text">${escapeHtml(data.prereq)}</span></div>`;
-      }
-      html += `</div>`;
-    }
-    html += `</div>`;
-    return html;
-  }
-
-  function buildInlineHtml(matchText, data) {
-    let html = `<span class="cce-inline-title">${escapeHtml(matchText)} (${escapeHtml(data.name)})</span>`;
-    if (data.exam) html += `<br/><span class="cce-inline-row"><span class="cce-inline-label cce-inline-exam">Exam:</span> ${escapeHtml(data.exam)}</span>`;
-    if (data.prereq) html += `<br/><span class="cce-inline-row"><span class="cce-inline-label cce-inline-prereq">Prereq:</span> ${escapeHtml(data.prereq)}</span>`;
-    return html;
-  }
+  // buildTooltipHtml and buildInlineHtml removed — replaced by buildTooltipDom/buildInlineDom
 
   function splitTextToLines(text, maxChars = 26) {
     if (!text || text.length <= maxChars) return [text || ""];
@@ -346,13 +407,12 @@
       const data = buildExtendedData(resolved);
       const matchText = wrap.dataset.cceMatch;
 
-      if (wrap.dataset.cceName !== undefined || wrap.classList.contains("cce-inline")) {
-        wrap.dataset.cceName = buildTooltipHtml(data);
+      if (wrap.dataset.cceMatch !== undefined || wrap.classList.contains("cce-inline")) {
         wrap.title = `${matchText}: ${data.name}${data.exam ? ' | Exam: ' + data.exam : ''}${data.prereq ? ' | Prereq: ' + data.prereq : ''}`;
       }
 
       if (wrap.classList.contains("cce-inline")) {
-        wrap.innerHTML = buildInlineHtml(matchText, data);
+        buildInlineDom(matchText, data, wrap);
         let cell = wrap.closest ? wrap.closest("td, th, [role='cell'], [role='gridcell'], .grid-cell") : null;
         if (cell) {
           cell.style.setProperty("white-space", "normal", "important");
@@ -563,8 +623,12 @@
       const target = e.target.closest
         ? e.target.closest(".cce-tooltip-wrap, .cce-highlight, .cce-inline")
         : null;
-      if (target && target.dataset.cceName) {
-        globalTooltip.innerHTML = target.dataset.cceName;
+      if (target && target.dataset.cceKey) {
+        const resolved = resolve(target.dataset.cceKey);
+        if (!resolved) return;
+        const data = buildExtendedData(resolved);
+        globalTooltip.textContent = "";
+        buildTooltipDom(data, globalTooltip);
         globalTooltip.classList.add("cce-visible");
         const rect = target.getBoundingClientRect();
         const tipRect = globalTooltip.getBoundingClientRect();
@@ -753,8 +817,7 @@
         wrap.dataset.cceKey = resolved.key;
         wrap.dataset.cceMatch = text;
         wrap.classList.add("cce-highlight");
-        wrap.dataset.cceName = buildTooltipHtml(data);
-        wrap.style.cursor = "help";
+                wrap.style.cursor = "help";
         wrap.setAttribute("fill", "#ff8000");
         wrap.setAttribute("font-weight", "bold");
         wrap.textContent = text;
@@ -796,8 +859,7 @@
         } else {
           // Regular highlight in an SVG
           wrap.style.cursor = "help";
-          wrap.dataset.cceName = buildTooltipHtml(data);
-          wrap.setAttribute("fill", "#ff8000");
+                    wrap.setAttribute("fill", "#ff8000");
           if (effectiveMode === "highlight") {
             wrap.classList.add("cce-highlight");
             wrap.setAttribute("font-weight", "bold");
@@ -818,17 +880,14 @@
         const data = buildExtendedData(resolved);
         if (effectiveMode === "tooltip") {
           wrap.className = "cce-tooltip-wrap";
-          wrap.dataset.cceName = buildTooltipHtml(data);
-          wrap.textContent = match[0];
+                    wrap.textContent = match[0];
         } else if (effectiveMode === "highlight") {
           wrap.className = "cce-highlight";
-          wrap.dataset.cceName = buildTooltipHtml(data);
-          wrap.textContent = match[0];
+                    wrap.textContent = match[0];
         } else {
           wrap.className = "cce-inline";
-          wrap.dataset.cceName = buildTooltipHtml(data);
-          wrap.title = `${match[0]}: ${data.name}${data.exam ? ' | Exam: ' + data.exam : ''}${data.prereq ? ' | Prereq: ' + data.prereq : ''}`;
-          wrap.innerHTML = buildInlineHtml(match[0], data);
+                    wrap.title = `${match[0]}: ${data.name}${data.exam ? ' | Exam: ' + data.exam : ''}${data.prereq ? ' | Prereq: ' + data.prereq : ''}`;
+          buildInlineDom(match[0], data, wrap);
           lastMatchHadDetails = !!(data.exam || data.prereq);
         }
         frag.appendChild(wrap);
@@ -966,7 +1025,13 @@
             filter.setAttribute("y", "-20%");
             filter.setAttribute("width", "140%");
             filter.setAttribute("height", "140%");
-            filter.innerHTML = `<feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.12"/>`;
+            const feDropShadow = document.createElementNS("http://www.w3.org/2000/svg", "feDropShadow");
+            feDropShadow.setAttribute("dx", "0");
+            feDropShadow.setAttribute("dy", "6");
+            feDropShadow.setAttribute("stdDeviation", "5");
+            feDropShadow.setAttribute("flood-color", "#000000");
+            feDropShadow.setAttribute("flood-opacity", "0.12");
+            filter.appendChild(feDropShadow);
             defs.appendChild(filter);
           }
         }

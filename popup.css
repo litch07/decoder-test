@@ -2799,6 +2799,29 @@
       transform: scale(0.98);
     }
 
+    .btn-report-issue {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-report-issue:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+    .btn-report-issue:active {
+      transform: scale(0.97);
+    }
+
     /* ── ACCESSIBILITY: REDUCED MOTION ── */
     @media (prefers-reduced-motion: reduce) {
       *,
