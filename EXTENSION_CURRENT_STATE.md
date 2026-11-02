@@ -61,7 +61,15 @@
    - 1-click "Confirm & Merge" applying verified updates to storage and auto-cleansing soft and hard trash.
    - Zero-`innerHTML` security throughout with 2 MB safety cap and strict `.json` extension enforcement.
 
-3. **Content Script Context Resilience & Reload Defense**:
+3. **Allowed Domains Search & Bulk Management (Task 2.3)**:
+   - Added real-time domain filtering input (`#domainSearchInput`) with instant substring matching and clear button.
+   - Dynamic count badge (`#domainsCountBadge`) showing active filter status (e.g. `Showing 2 of 5` vs `5 domains`).
+   - Bulk selection toolbar (`#domainBulkToolbar`) featuring indeterminate "Select All" / "Deselect All" checkbox and dynamic "Remove (N)" button.
+   - Bulk remove confirmation modal integration (`#modalOverlay`) with automatic host permission revocation via `chrome.permissions.remove`.
+   - Multi-select row checkboxes with active row highlighting (`.allowlist-item.is-selected`) and individual removal preservation.
+   - Automated regression test suite `tests/test_allowed_domains_management.js` (6/6 passing).
+
+4. **Content Script Context Resilience & Reload Defense**:
    - Added top-level extension context guards in content.js verifying chrome, chrome.runtime, chrome.runtime.id, chrome.storage, and chrome.storage.local before script execution.
    - Defensively wrapped chrome.storage.local.get and chrome.storage.onChanged.addListener with try/catch and runtime validity checks, completely eliminating `TypeError: Cannot read properties of undefined (reading 'local')` when reloading the extension in chrome://extensions or navigating pages with unprivileged/sandboxed iframes.
    - Refined background.js tab update listener to inject strictly on `changeInfo.status === "complete"`, preventing premature script execution in unready frame states.

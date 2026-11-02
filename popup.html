@@ -406,6 +406,56 @@
           </div>
         </div>
 
+        <!-- Prerequisite Tree & Unlocks Explorer (Task 2.4) -->
+        <div class="prereq-tree-section" id="prereqTreeSection" style="display:none;">
+
+          <!-- Code / Name view toggle -->
+          <div class="prereq-view-toggle-row">
+            <span class="prereq-view-toggle-label">Show as</span>
+            <div class="prereq-view-toggle" id="prereqViewToggle" role="group" aria-label="Badge display mode">
+              <button type="button" class="prereq-toggle-btn is-active" id="prereqToggleCode"
+                aria-pressed="true" title="Show course codes">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
+                </svg>
+                Code
+              </button>
+              <button type="button" class="prereq-toggle-btn" id="prereqToggleName"
+                aria-pressed="false" title="Show course names">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2.5 4v3h5v12h3V7h5V4h-13zm19 5h-9v3h3v7h3v-7h3V9z"/>
+                </svg>
+                Name
+              </button>
+            </div>
+          </div>
+
+          <!-- Prerequisite Chain card -->
+          <div class="prereq-tree-card" id="prereqChainCard">
+            <div class="prereq-tree-header">
+              <svg class="prereq-tree-icon" viewBox="0 0 24 24">
+                <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/>
+              </svg>
+              <span class="prereq-tree-label">Prerequisite Chain</span>
+              <span class="prereq-tree-count" id="prereqChainCount"></span>
+            </div>
+            <div class="prereq-tree-body" id="prereqChainBody"></div>
+          </div>
+
+          <!-- Unlocks card -->
+          <div class="prereq-tree-card" id="unlocksCard">
+            <div class="prereq-tree-header">
+              <svg class="prereq-tree-icon" viewBox="0 0 24 24">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+              </svg>
+              <span class="prereq-tree-label">Unlocks</span>
+              <span class="prereq-tree-count" id="unlocksCount"></span>
+            </div>
+            <div class="prereq-tree-body" id="unlocksBody"></div>
+          </div>
+
+        </div>
+
         <div class="report-card">
           <div class="report-card-header">
             <svg class="report-card-icon" viewBox="0 0 24 24">
@@ -679,17 +729,49 @@
       <div class="body">
         <!-- Card 1: Allowed Domains -->
         <div class="card">
-          <span class="card-title">
-            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-            </svg>
-            Allowed Domains (Supports *)
-          </span>
+          <div class="card-title-row">
+            <span class="card-title">
+              <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+              </svg>
+              Allowed Domains (Supports *)
+            </span>
+            <span class="domains-count-badge" id="domainsCountBadge">0 domains</span>
+          </div>
+
           <div class="allowlist-input-row">
             <input type="text" id="allowlistInput" placeholder="e.g. ucam.uiu.ac.bd" />
             <button id="allowlistBtn">Add</button>
           </div>
+
+          <!-- Domain Search & Filter Bar -->
+          <div class="domain-search-row" id="domainSearchRow" style="display: none;">
+            <div class="domain-search-box">
+              <svg class="domain-search-icon" viewBox="0 0 24 24">
+                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+              </svg>
+              <input type="text" id="domainSearchInput" placeholder="Filter domains..." aria-label="Filter domains" />
+              <button type="button" class="domain-search-clear" id="domainSearchClearBtn" style="display: none;" title="Clear filter" aria-label="Clear filter">&times;</button>
+            </div>
+          </div>
+
+          <!-- Bulk Selection Toolbar -->
+          <div class="domain-bulk-toolbar" id="domainBulkToolbar" style="display: none;">
+            <label class="domain-select-all-label">
+              <input type="checkbox" id="domainSelectAll" aria-label="Select all domains" />
+              <span id="domainSelectAllText">Select All</span>
+            </label>
+            <div class="domain-bulk-actions">
+              <button type="button" class="btn-bulk-remove-domains" id="bulkRemoveDomainsBtn" disabled aria-label="Remove selected domains">
+                <svg viewBox="0 0 24 24" style="width: 11px; height: 11px; fill: currentColor;">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                </svg>
+                <span id="bulkRemoveDomainsBtnText">Remove Selected</span>
+              </button>
+            </div>
+          </div>
+
           <div id="allowlistContainer" class="allowlist-container"></div>
           <div style="font-size: 0.65rem; color: var(--text-muted); line-height: 1.35; margin-top: 2px;">
             The extension only runs on websites in this list. Use <code>*</code> for wildcards (e.g.

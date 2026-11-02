@@ -95,6 +95,14 @@ const securityText = fs.readFileSync('SECURITY.md', 'utf8');
 assert.ok(securityText.includes('Zero-innerHTML'), "SECURITY.md must document Zero-innerHTML architecture");
 console.log("  ✓ SECURITY.md, PRIVACY.md, README.md, and CI workflow verified\n");
 
+// 7. Script Syntax Validity (Zero Parse Errors)
+console.log("[TEST 7] JavaScript Syntax Validity Across All Scripts");
+const { execSync } = require('child_process');
+['popup.js', 'background.js', 'content.js'].forEach(script => {
+  execSync(`node -c "${script}"`, { stdio: 'pipe' });
+});
+console.log("  ✓ popup.js, background.js, and content.js passed syntax validation with zero errors\n");
+
 console.log("==================================================");
 console.log("    ALL RELEASE 1 TESTS PASSED WITH 100% SUCCESS  ");
 console.log("==================================================");

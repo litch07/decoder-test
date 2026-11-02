@@ -574,6 +574,26 @@
       color: var(--text-muted);
     }
 
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .domains-count-badge {
+      font-size: 0.61rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: #f1f5f9;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1px 7px;
+      line-height: 1.25;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
     .allowlist-input-row {
       display: flex;
       gap: 7px;
@@ -618,8 +638,137 @@
       transform: scale(0.96);
     }
 
+    /* Domain Search & Filter Bar */
+    .domain-search-row {
+      display: flex;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 2px;
+    }
+
+    .domain-search-box {
+      display: flex;
+      align-items: center;
+      position: relative;
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0 7px;
+      height: 27px;
+      box-sizing: border-box;
+      transition: all 0.18s ease;
+    }
+
+    .domain-search-box:focus-within {
+      background: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-light);
+    }
+
+    .domain-search-icon {
+      width: 12px;
+      height: 12px;
+      fill: #94a3b8;
+      flex-shrink: 0;
+      margin-right: 6px;
+    }
+
+    .domain-search-box input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.70rem;
+      color: var(--text-main);
+      font-family: inherit;
+      padding: 0;
+    }
+
+    .domain-search-clear {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: color 0.15s ease;
+    }
+
+    .domain-search-clear:hover {
+      color: var(--danger);
+    }
+
+    /* Bulk Selection Toolbar */
+    .domain-bulk-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 4px 8px;
+      box-sizing: border-box;
+      font-size: 0.66rem;
+      margin-top: 2px;
+    }
+
+    .domain-select-all-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-main);
+      font-weight: 600;
+      user-select: none;
+      font-size: 0.66rem;
+    }
+
+    .domain-select-all-label input[type="checkbox"] {
+      width: 12px;
+      height: 12px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .btn-bulk-remove-domains {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 0.63rem;
+      font-weight: 700;
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: var(--danger);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    .btn-bulk-remove-domains:hover:not(:disabled) {
+      background: var(--danger);
+      color: #ffffff;
+      border-color: var(--danger);
+    }
+
+    .btn-bulk-remove-domains:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      border-color: #e2e8f0;
+      background: #f1f5f9;
+      color: #94a3b8;
+    }
+
     .allowlist-container {
-      max-height: 120px;
+      max-height: 140px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -653,7 +802,7 @@
       box-sizing: border-box;
       background: #f8fafc;
       border: 1px solid var(--border-color);
-      padding: 5px 8px 5px 10px;
+      padding: 5px 8px 5px 8px;
       border-radius: 6px;
       font-size: 0.73rem;
       font-weight: 500;
@@ -661,11 +810,18 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       transition: all 0.15s ease;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      cursor: pointer;
+      user-select: none;
     }
 
     .allowlist-item:hover {
       background: #f1f5f9;
       border-color: #cbd5e1;
+    }
+
+    .allowlist-item.is-selected {
+      background: #fff7ed;
+      border-color: #fed7aa;
     }
 
     .allowlist-item-left {
@@ -674,6 +830,15 @@
       gap: 7px;
       min-width: 0;
       flex: 1;
+    }
+
+    .allowlist-item input[type="checkbox"] {
+      width: 12px;
+      height: 12px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      margin: 0;
+      flex-shrink: 0;
     }
 
     .allowlist-item-icon {
@@ -3847,3 +4012,281 @@
         transition: none !important;
       }
     }
+
+
+/* ── Prerequisite Tree & Unlocks Explorer (Task 2.4) ───────────────────── */
+.prereq-tree-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 4px;
+}
+
+.prereq-tree-card {
+  background: var(--surface, #fff);
+  border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.18s;
+}
+
+.prereq-tree-card:hover {
+  border-color: var(--primary, #4f46e5);
+}
+
+.prereq-tree-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 13px 8px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  background: var(--surface-alt, #f9fafb);
+}
+
+.prereq-tree-icon {
+  width: 14px;
+  height: 14px;
+  fill: var(--primary, #4f46e5);
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.prereq-tree-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #6b7280);
+  flex: 1;
+}
+
+.prereq-tree-count {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted, #9ca3af);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  padding: 1px 7px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.prereq-tree-body {
+  padding: 10px 12px 11px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 36px;
+}
+
+/* Individual course badges inside the tree */
+.prereq-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px 3px 8px;
+  border-radius: 6px;
+  font-family: 'Roboto Mono', 'Fira Mono', 'Menlo', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s, transform 0.1s, box-shadow 0.14s;
+  line-height: 1.5;
+  text-decoration: none;
+  white-space: nowrap;
+  background: var(--surface-alt, #f3f4f6);
+  color: var(--text-primary, #111827);
+  border-color: var(--border, #d1d5db);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.prereq-badge:hover {
+  background: var(--primary, #4f46e5);
+  color: #fff;
+  border-color: var(--primary, #4f46e5);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.25);
+}
+
+.prereq-badge:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Direct prerequisites / direct unlocks — green accent */
+.prereq-badge.is-direct {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.prereq-badge.is-direct:hover {
+  background: #059669;
+  color: #fff;
+  border-color: #059669;
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.25);
+}
+
+/* Transitive (indirect) prerequisites — indigo-light */
+.prereq-badge.is-indirect {
+  background: #eef2ff;
+  color: #3730a3;
+  border-color: #a5b4fc;
+}
+
+.prereq-badge.is-indirect:hover {
+  background: #4338ca;
+  color: #fff;
+  border-color: #4338ca;
+  box-shadow: 0 3px 8px rgba(67, 56, 202, 0.22);
+}
+
+/* Prerequisite codes not found in the catalog — amber */
+.prereq-badge.is-missing {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fcd34d;
+  cursor: default;
+  opacity: 0.85;
+}
+
+.prereq-badge.is-missing:hover {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #f59e0b;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Arrow between chain levels */
+.prereq-chain-arrow {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted, #9ca3af);
+  font-size: 12px;
+  flex-shrink: 0;
+  user-select: none;
+  padding: 0 1px;
+}
+
+/* Depth label — "Level N" */
+.prereq-depth-label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted, #9ca3af);
+  background: var(--surface-alt, #f3f4f6);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 4px;
+  padding: 2px 5px;
+  margin-right: 2px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* Empty-state text */
+.prereq-empty {
+  font-size: 12px;
+  color: var(--text-muted, #9ca3af);
+  font-style: italic;
+  padding: 2px 0;
+  user-select: none;
+}
+/* ── End Prerequisite Tree (Task 2.4) ──────────────────────────────────── */
+
+
+/* ── Prereq Tree: Code/Name view toggle (Task 2.4 Enhancement) ─────────── */
+.prereq-view-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 4px;
+}
+
+.prereq-view-toggle-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #9ca3af);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.prereq-view-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-alt, #f3f4f6);
+  border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.prereq-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary, #6b7280);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s, box-shadow 0.14s;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.prereq-toggle-btn svg {
+  width: 11px;
+  height: 11px;
+  fill: currentColor;
+  flex-shrink: 0;
+  opacity: 0.75;
+  transition: opacity 0.14s;
+}
+
+.prereq-toggle-btn:hover {
+  background: var(--surface, #fff);
+  color: var(--text-primary, #111827);
+}
+
+.prereq-toggle-btn.is-active {
+  background: var(--primary, #4f46e5);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(79, 70, 229, 0.3);
+}
+
+.prereq-toggle-btn.is-active svg {
+  opacity: 1;
+}
+
+.prereq-toggle-btn.is-active:hover {
+  background: var(--primary, #4f46e5);
+  color: #fff;
+}
+
+/* Name-mode badge — slightly wider, normal font (not monospace) */
+.prereq-badge.is-name-mode {
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0;
+  font-weight: 500;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ── End Prereq Toggle ──────────────────────────────────────────────────── */

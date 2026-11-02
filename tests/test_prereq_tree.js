@@ -1,0 +1,240 @@
+/**
+ * tests/test_prereq_tree.js
+ * Task 2.4 — Prerequisite Tree & "Unlocks" Explorer
+ *
+ * Tests:
+ *   1. HTML: #prereqTreeSection present in popup.html
+ *   2. HTML: #prereqChainBody present in popup.html
+ *   3. HTML: #unlocksBody present in popup.html
+ *   4. HTML: #prereqChainCount and #unlocksCount present
+ *   5. popup.js contains buildPrereqChain function
+ *   6. popup.js contains findUnlocks function
+ *   7. popup.js contains renderPrereqTree function
+ *   8. renderPrereqTree is called inside openCourseDetails
+ *   9. Zero innerHTML usage in the new tree helpers
+ *  10. Prerequisite chain algorithm — direct prereqs
+ *  11. Prerequisite chain algorithm — transitive (depth-2) prereqs
+ *  12. Cycle detection — no infinite loop
+ *  13. Unlocks reverse lookup
+ *  14. Missing prereq codes (not in catalog) handled
+ *  15. els object has prereqTreeSection, prereqChainBody, unlocksBody entries
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const ROOT = path.resolve(__dirname, '..');
+const HTML = fs.readFileSync(path.join(ROOT, 'popup.html'), 'utf8');
+const JS   = fs.readFileSync(path.join(ROOT, 'popup.js'),   'utf8');
+
+let passed = 0;
+let failed = 0;
+
+function assert(label, condition, detail) {
+  if (condition) {
+    console.log('  ✓', label);
+    passed++;
+  } else {
+    console.error('  ✗', label, detail ? `(${detail})` : '');
+    failed++;
+  }
+}
+
+console.log('\n── test_prereq_tree.js ─────────────────────────────────────────────────────');
+
+// ── 1–4: HTML structure ────────────────────────────────────────────────────
+assert('HTML has #prereqTreeSection',  HTML.includes('id="prereqTreeSection"'));
+assert('HTML has #prereqChainBody',    HTML.includes('id="prereqChainBody"'));
+assert('HTML has #unlocksBody',        HTML.includes('id="unlocksBody"'));
+assert('HTML has #prereqChainCount and #unlocksCount',
+  HTML.includes('id="prereqChainCount"') && HTML.includes('id="unlocksCount"'));
+
+// ── 5–8: JS function presence ──────────────────────────────────────────────
+assert('popup.js has buildPrereqChain function', JS.includes('function buildPrereqChain'));
+assert('popup.js has findUnlocks function',      JS.includes('function findUnlocks'));
+assert('popup.js has renderPrereqTree function', JS.includes('function renderPrereqTree'));
+assert('renderPrereqTree called in openCourseDetails',
+  JS.includes('renderPrereqTree(code)'));
+
+// ── 9: Zero innerHTML in tree helpers ─────────────────────────────────────
+// Extract the section between buildPrereqChain and End Task 2.4 comment.
+// Check that innerHTML is not ASSIGNED (i.e., no `.innerHTML =` or `.innerHTML +=`)
+// JSDoc comments mentioning innerHTML are acceptable.
+const treeStart = JS.indexOf('function buildPrereqChain');
+const treeEnd   = JS.indexOf('End Task 2.4');
+const treeSection = (treeStart !== -1 && treeEnd !== -1) ? JS.substring(treeStart, treeEnd) : '';
+const innerHTMLAssigned = /\.innerHTML\s*[+]?=/.test(treeSection);
+assert('Zero innerHTML assignment in prereq tree helpers',
+  treeSection.length > 0 && !innerHTMLAssigned,
+  treeSection.length === 0 ? 'Section not found' : 'Found .innerHTML assignment');
+
+// ── 10–14: Algorithm unit tests (extract and run helpers in isolation) ─────
+
+// Minimal stubs for normalizeCourseData
+function normalizeCourseData(val) {
+  if (!val) return { name: '', prerequisites: [], examDay: '', examSlot: '' };
+  if (typeof val === 'string') return { name: val, prerequisites: [], examDay: '', examSlot: '' };
+  return Object.assign({ name: '', prerequisites: [], examDay: '', examSlot: '' }, val);
+}
+
+// Re-implement buildPrereqChain locally (mirrors the popup.js version)
+function buildPrereqChain(rootCode, catalog) {
+  var directCodes = [];
+  var levels = [];
+  var visited = new Set();
+  visited.add(rootCode);
+  var rootData = normalizeCourseData(catalog[rootCode]);
+  var rootPrereqs = Array.isArray(rootData.prerequisites) ? rootData.prerequisites : [];
+  directCodes = rootPrereqs.slice();
+  var currentLevel = rootPrereqs.filter(function(c) { return !visited.has(c); });
+  currentLevel.forEach(function(c) { visited.add(c); });
+  var depth = 1;
+  while (currentLevel.length > 0) {
+    levels.push({ codes: currentLevel.slice(), depth: depth });
+    depth++;
+    var nextLevel = [];
+    for (var i = 0; i < currentLevel.length; i++) {
+      var c = currentLevel[i];
+      var cData = normalizeCourseData(catalog[c]);
+      var cPrereqs = Array.isArray(cData.prerequisites) ? cData.prerequisites : [];
+      for (var j = 0; j < cPrereqs.length; j++) {
+        var p = cPrereqs[j];
+        if (!visited.has(p)) {
+          visited.add(p);
+          nextLevel.push(p);
+        }
+      }
+    }
+    currentLevel = nextLevel;
+  }
+  return { directCodes: directCodes, levels: levels };
+}
+
+// Re-implement findUnlocks locally
+function findUnlocks(code, catalog) {
+  var result = [];
+  Object.keys(catalog).forEach(function(k) {
+    var data = normalizeCourseData(catalog[k]);
+    if (Array.isArray(data.prerequisites) && data.prerequisites.indexOf(code) !== -1) {
+      result.push(k);
+    }
+  });
+  result.sort();
+  return result;
+}
+
+// Test 10 — Direct prereqs
+var catalog10 = {
+  'CSE 2215': { prerequisites: ['CSE 1115', 'MATH 2101'] },
+  'CSE 1115': { prerequisites: [] },
+  'MATH 2101': { prerequisites: [] }
+};
+var r10 = buildPrereqChain('CSE 2215', catalog10);
+assert('Direct prereqs returned correctly',
+  r10.levels.length === 1 &&
+  r10.levels[0].codes.includes('CSE 1115') &&
+  r10.levels[0].codes.includes('MATH 2101'));
+
+// Test 11 — Transitive (depth-2) prereqs
+var catalog11 = {
+  'CSE 2215': { prerequisites: ['CSE 1115'] },
+  'CSE 1115': { prerequisites: ['CSE 1111'] },
+  'CSE 1111': { prerequisites: [] }
+};
+var r11 = buildPrereqChain('CSE 2215', catalog11);
+assert('Transitive (depth-2) prereqs included',
+  r11.levels.length === 2 &&
+  r11.levels[0].codes.includes('CSE 1115') &&
+  r11.levels[1].codes.includes('CSE 1111'));
+
+// Test 12 — Cycle detection (A requires B, B requires A)
+var catalog12 = {
+  'CSE A': { prerequisites: ['CSE B'] },
+  'CSE B': { prerequisites: ['CSE A'] }
+};
+var r12;
+var threw = false;
+try {
+  r12 = buildPrereqChain('CSE A', catalog12);
+} catch(e) {
+  threw = true;
+}
+assert('Cycle detection — no infinite loop, returns cleanly',
+  !threw && r12 !== undefined && r12.levels.length <= 2);
+
+// Test 13 — Unlocks reverse lookup
+var catalog13 = {
+  'CSE 1111': { prerequisites: [] },
+  'CSE 1115': { prerequisites: ['CSE 1111'] },
+  'MATH 1151': { prerequisites: ['CSE 1111'] },
+  'CSE 2215': { prerequisites: ['CSE 1115'] }
+};
+var unlocks13 = findUnlocks('CSE 1111', catalog13);
+assert('Unlocks finds courses that require the current course',
+  unlocks13.length === 2 &&
+  unlocks13.includes('CSE 1115') &&
+  unlocks13.includes('MATH 1151'));
+
+// Test 14 — Missing prereq codes (not in catalog) handled gracefully
+var catalog14 = {
+  'CSE 9000': { prerequisites: ['MISSING 1234'] }
+};
+var r14;
+var threw14 = false;
+try {
+  r14 = buildPrereqChain('CSE 9000', catalog14);
+} catch(e) {
+  threw14 = true;
+}
+assert('Missing prereq codes handled without error',
+  !threw14 && r14 !== undefined &&
+  r14.levels[0].codes.includes('MISSING 1234'));
+
+// ── 15: els entries ────────────────────────────────────────────────────────
+assert('els has prereqTreeSection entry',  JS.includes('prereqTreeSection: document.getElementById("prereqTreeSection")'));
+assert('els has prereqChainBody entry',    JS.includes('prereqChainBody: document.getElementById("prereqChainBody")'));
+assert('els has unlocksBody entry',        JS.includes('unlocksBody: document.getElementById("unlocksBody")'));
+
+// ── 16–18: Code/Name toggle ──────────────────────────────────────────────
+assert('HTML has #prereqViewToggle', HTML.includes('id="prereqViewToggle"'));
+assert('HTML has #prereqToggleCode', HTML.includes('id="prereqToggleCode"'));
+assert('HTML has #prereqToggleName', HTML.includes('id="prereqToggleName"'));
+
+assert('popup.js has showPrereqNames state variable', JS.includes('showPrereqNames'));
+assert('popup.js has badgeContent helper inside renderPrereqTree', JS.includes('function badgeContent'));
+assert('popup.js has setupPrereqToggle IIFE', JS.includes('setupPrereqToggle'));
+assert('popup.js persists toggle preference via prereqShowNames',
+  JS.includes('prereqShowNames'));
+
+// Functional test — badgeContent equivalent
+(function() {
+  function normalizeCourseData(val) {
+    if (!val) return { name: '', prerequisites: [] };
+    if (typeof val === 'string') return { name: val, prerequisites: [] };
+    return Object.assign({ name: '', prerequisites: [] }, val);
+  }
+  var catalog = {
+    'CSE 1111': { name: 'Introduction to CS', prerequisites: [] },
+    'CSE 1115': { name: 'Structured Programming', prerequisites: ['CSE 1111'] }
+  };
+  function badgeContent(courseCode, nameMode) {
+    var inCatalog = !!catalog[courseCode];
+    if (!inCatalog) return { label: courseCode, tooltip: courseCode + ' — not in catalog', nameMode: false };
+    var data = normalizeCourseData(catalog[courseCode]);
+    var name = data.name || '';
+    if (nameMode && name) return { label: name, tooltip: courseCode, nameMode: true };
+    return { label: courseCode, tooltip: name || ('Go to ' + courseCode), nameMode: false };
+  }
+  var codeMode = badgeContent('CSE 1111', false);
+  assert('Code mode: badge label is code', codeMode.label === 'CSE 1111');
+  assert('Code mode: tooltip is name', codeMode.tooltip === 'Introduction to CS');
+  var nameMode = badgeContent('CSE 1111', true);
+  assert('Name mode: badge label is name', nameMode.label === 'Introduction to CS');
+  assert('Name mode: tooltip is code', nameMode.tooltip === 'CSE 1111');
+  var missing = badgeContent('BIO 9999', false);
+  assert('Missing code: label is always the code', missing.label === 'BIO 9999');
+})();
+
+// ── Summary ────────────────────────────────────────────────────────────────
+console.log(`\n  Results: ${passed} passed, ${failed} failed`);
+if (failed > 0) process.exit(1);

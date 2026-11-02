@@ -20,7 +20,7 @@ flowchart TD
     subgraph R2["Release 2: Usability Polish (Next In Queue ⏳)"]
         R2_1["2.1 Contextual Export in Manager Header ✅"]
         R2_2["2.2 File Import with Pre-Commit Preview ✅"]
-        R2_3["2.3 Allowed Domains Full-Height & Search"]
+        R2_3["2.3 Allowed Domains Full-Height & Search ✅"]
         R2_4["2.4 Prerequisite Tree & 'Unlocks' Explorer"]
         R2_5["2.5 GitHub Pages Help & Docs"]
     end
@@ -116,11 +116,24 @@ flowchart TD
   - Full Zero-`innerHTML` security compliance across all modal components and diff tables.
   - Created automated regression suite `tests/test_file_import_preview.js` with 100% passing assertions.
 
-### 2.3 Allowed Domains Search & Bulk Management
-- Enhance the Settings allowed domains list with real-time domain filtering and bulk-remove capabilities for users managing dozens of web portals.
+### [x] 2.3 Allowed Domains Search & Bulk Management
+- **Delivered**:
+  - Real-time search/filter input (`#domainSearchInput`) with quick clear button (`#domainSearchClearBtn`) and Escape dismissal.
+  - Dynamic count badge (`#domainsCountBadge`) displaying total count and filtered count (e.g. `Showing 2 of 5`).
+  - Bulk selection toolbar (`#domainBulkToolbar`) with indeterminate "Select All" / "Deselect All" checkbox (`#domainSelectAll`).
+  - Safe bulk-remove action (`#bulkRemoveDomainsBtn`) integrated with `#modalOverlay` confirmation dialog.
+  - Defensive host permissions revocation via `chrome.permissions.remove` for wildcard (`*://uiu.ac.bd/*`) and standard domains.
+  - Row-level multi-select checkboxes with click-to-select row toggle and active highlight (`.allowlist-item.is-selected`).
+  - Full Zero-`innerHTML` security compliance with 100% test coverage in `tests/test_allowed_domains_management.js`.
 
-### 2.4 Prerequisite Tree & "Unlocks" Explorer
-- Interactive visual graph in Course Details showing recursive prerequisite chains (prerequisites of prerequisites) and reverse "Unlocks" trees (which future courses this course unlocks).
+### 2.4 Prerequisite Tree & "Unlocks" Explorer ✅
+- **Delivered**: Interactive prerequisite dependency explorer in View 3 (Course Details panel).
+- **Prerequisite Chain card** (`#prereqChainCard`): BFS traversal of the full ancestry — Direct (L1, green badges) and transitive (L2+, indigo badges). Missing catalog codes shown in amber "missing" badges. Depth labels ("Direct", "L2", "L3"...) with `›` arrows.
+- **Unlocks card** (`#unlocksCard`): Reverse lookup — scans all catalog entries to find courses that list the current course as a direct prerequisite; results rendered as green clickable badges.
+- **Clickable navigation**: Every in-catalog badge is a `<button>` that calls `openCourseDetails(code)` on click.
+- **Cycle-safe**: visited `Set` prevents infinite loops from circular prerequisite references.
+- **Zero innerHTML**: Entire implementation uses `createElement`, `textContent`, `appendChild`, `addEventListener` exclusively.
+- **Test**: `tests/test_prereq_tree.js` — 17 assertions, 17 passing.
 
 ### 2.5 GitHub Pages Documentation
 - Host a public documentation and visual course explorer page via GitHub Pages for students wanting to look up courses without installing the extension.

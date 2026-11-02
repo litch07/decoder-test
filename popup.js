@@ -18,6 +18,15 @@
     allowlistInput: document.getElementById("allowlistInput"),
     allowlistBtn: document.getElementById("allowlistBtn"),
     allowlistContainer: document.getElementById("allowlistContainer"),
+    domainsCountBadge: document.getElementById("domainsCountBadge"),
+    domainSearchRow: document.getElementById("domainSearchRow"),
+    domainSearchInput: document.getElementById("domainSearchInput"),
+    domainSearchClearBtn: document.getElementById("domainSearchClearBtn"),
+    domainBulkToolbar: document.getElementById("domainBulkToolbar"),
+    domainSelectAll: document.getElementById("domainSelectAll"),
+    domainSelectAllText: document.getElementById("domainSelectAllText"),
+    bulkRemoveDomainsBtn: document.getElementById("bulkRemoveDomainsBtn"),
+    bulkRemoveDomainsBtnText: document.getElementById("bulkRemoveDomainsBtnText"),
     displaySettingsCard: document.getElementById("displaySettingsCard"),
     modeRadios: document.querySelectorAll('input[name="mode"]'),
     showExamInfoToggle: document.getElementById("showExamInfoToggle"),
@@ -88,6 +97,13 @@
     detailSaveBtn: document.getElementById("detailSaveBtn"),
     detailDelBtn: document.getElementById("detailDelBtn"),
     reportIssueBtn: document.getElementById("reportIssueBtn"),
+    prereqTreeSection: document.getElementById("prereqTreeSection"),
+    prereqChainBody: document.getElementById("prereqChainBody"),
+    prereqChainCount: document.getElementById("prereqChainCount"),
+    unlocksBody: document.getElementById("unlocksBody"),
+    unlocksCount: document.getElementById("unlocksCount"),
+    prereqToggleCode: document.getElementById("prereqToggleCode"),
+    prereqToggleName: document.getElementById("prereqToggleName"),
     confirmModal: document.getElementById("confirmModal"),
     modalText: document.getElementById("modalText"),
     modalCancelBtn: document.getElementById("modalCancelBtn"),
@@ -451,10 +467,48 @@
     }
   }
 
+  let domainSearchQuery = "";
+  const selectedDomainSet = new Set();
+
   function renderAllowlist() {
+    if (!els.allowlistContainer) return;
     els.allowlistContainer.textContent = "";
 
-    if (allowedSites.length === 0) {
+    const totalCount = allowedSites.length;
+    const filterQuery = domainSearchQuery.trim().toLowerCase();
+
+    // Clean up selectedDomainSet to ensure it only contains currently existing domains
+    selectedDomainSet.forEach(site => {
+      if (!allowedSites.includes(site)) {
+        selectedDomainSet.delete(site);
+      }
+    });
+
+    // Update count badge
+    if (els.domainsCountBadge) {
+      if (!filterQuery) {
+        els.domainsCountBadge.textContent = totalCount + " domain" + (totalCount !== 1 ? "s" : "");
+      } else {
+        const matching = allowedSites.filter(s => s.toLowerCase().includes(filterQuery)).length;
+        els.domainsCountBadge.textContent = matching + " of " + totalCount;
+      }
+    }
+
+    // Toggle search row and bulk toolbar visibility
+    if (els.domainSearchRow) {
+      els.domainSearchRow.style.display = totalCount >= 2 ? "flex" : "none";
+    }
+    if (els.domainBulkToolbar) {
+      els.domainBulkToolbar.style.display = totalCount >= 1 ? "flex" : "none";
+    }
+
+    // Toggle search clear button
+    if (els.domainSearchClearBtn) {
+      els.domainSearchClearBtn.style.display = filterQuery ? "flex" : "none";
+    }
+
+    // If no domains at all
+    if (totalCount === 0) {
       const msg = document.createElement("div");
       msg.style.padding = "8px 4px";
       msg.style.textAlign = "center";
@@ -462,16 +516,64 @@
       msg.style.fontSize = "0.72rem";
       msg.textContent = "No domains allowed yet.";
       els.allowlistContainer.appendChild(msg);
+
+      if (els.domainBulkToolbar) els.domainBulkToolbar.style.display = "none";
+      if (els.domainSearchRow) els.domainSearchRow.style.display = "none";
+      updateBulkToolbarState([]);
+      return;
+    }
+
+    // Filtered list
+    const visibleSites = filterQuery
+      ? allowedSites.filter(site => site.toLowerCase().includes(filterQuery))
+      : allowedSites;
+
+    // Update "Select All" checkbox state
+    updateBulkToolbarState(visibleSites);
+
+    // If query returned no results
+    if (visibleSites.length === 0) {
+      const emptyDiv = document.createElement("div");
+      emptyDiv.style.cssText = "padding:14px 6px; text-align:center; color:var(--text-muted); font-size:0.71rem; display:flex; flex-direction:column; align-items:center; gap:4px;";
+
+      const emptyText = document.createElement("span");
+      emptyText.textContent = 'No domains match "' + domainSearchQuery + '"';
+      emptyDiv.appendChild(emptyText);
+
+      const clearBtn = document.createElement("button");
+      clearBtn.type = "button";
+      clearBtn.style.cssText = "background:none; border:none; color:var(--accent); font-weight:600; font-size:0.68rem; cursor:pointer; text-decoration:underline; padding:0;";
+      clearBtn.textContent = "Clear search";
+      clearBtn.addEventListener("click", () => {
+        domainSearchQuery = "";
+        if (els.domainSearchInput) els.domainSearchInput.value = "";
+        renderAllowlist();
+      });
+      emptyDiv.appendChild(clearBtn);
+
+      els.allowlistContainer.appendChild(emptyDiv);
       return;
     }
 
     const frag = document.createDocumentFragment();
-    allowedSites.forEach(site => {
+    visibleSites.forEach(site => {
       const row = document.createElement("div");
-      row.className = "allowlist-item";
+      const isSelected = selectedDomainSet.has(site);
+      row.className = "allowlist-item" + (isSelected ? " is-selected" : "");
 
       const left = document.createElement("div");
       left.className = "allowlist-item-left";
+
+      // Multi-select checkbox
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = isSelected;
+      checkbox.title = "Select " + site;
+      checkbox.setAttribute("aria-label", "Select " + site);
+      checkbox.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleDomainSelection(site, checkbox.checked);
+      });
 
       const iconSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       iconSvg.setAttribute("class", "allowlist-item-icon");
@@ -484,27 +586,80 @@
       span.className = "allowlist-item-text";
       span.textContent = site;
 
+      left.appendChild(checkbox);
       left.appendChild(iconSvg);
       left.appendChild(span);
 
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.appendChild(createIcon('remove'));
-      btn.title = `Remove ${site}`;
-      btn.setAttribute("aria-label", `Remove ${site}`);
-      btn.addEventListener("click", async () => {
+      // Single item remove button
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.appendChild(createIcon('remove'));
+      removeBtn.title = "Remove " + site;
+      removeBtn.setAttribute("aria-label", "Remove " + site);
+      removeBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const origin = site.startsWith("*") ? "*://" + site.replace(/^\*\./, "") + "/*" : "*://" + site + "/*";
+        try {
+          await chrome.permissions.remove({ origins: [origin] });
+        } catch (_) {}
+
         allowedSites = allowedSites.filter(s => s !== site);
+        selectedDomainSet.delete(site);
         await chrome.storage.local.set({ allowedSites });
         renderAllowlist();
-        updateToggleAndStatus();
+        await updateToggleAndStatus();
+        showToast("Removed " + site, "info");
+      });
+
+      // Tapping row toggles checkbox
+      row.addEventListener("click", () => {
+        const nextState = !selectedDomainSet.has(site);
+        toggleDomainSelection(site, nextState);
       });
 
       row.appendChild(left);
-      row.appendChild(btn);
+      row.appendChild(removeBtn);
       frag.appendChild(row);
     });
 
     els.allowlistContainer.appendChild(frag);
+  }
+
+  function toggleDomainSelection(site, isSelected) {
+    if (isSelected) {
+      selectedDomainSet.add(site);
+    } else {
+      selectedDomainSet.delete(site);
+    }
+    renderAllowlist();
+  }
+
+  function updateBulkToolbarState(visibleSites) {
+    if (!els.domainSelectAll || !els.bulkRemoveDomainsBtn) return;
+
+    const visibleCount = visibleSites.length;
+    const allVisibleSelected = visibleCount > 0 && visibleSites.every(s => selectedDomainSet.has(s));
+    const someVisibleSelected = visibleSites.some(s => selectedDomainSet.has(s));
+
+    els.domainSelectAll.checked = allVisibleSelected;
+    els.domainSelectAll.indeterminate = !allVisibleSelected && someVisibleSelected;
+
+    if (els.domainSelectAllText) {
+      els.domainSelectAllText.textContent = allVisibleSelected ? "Deselect All" : "Select All";
+    }
+
+    const selectedCount = selectedDomainSet.size;
+    if (selectedCount > 0) {
+      els.bulkRemoveDomainsBtn.disabled = false;
+      if (els.bulkRemoveDomainsBtnText) {
+        els.bulkRemoveDomainsBtnText.textContent = "Remove (" + selectedCount + ")";
+      }
+    } else {
+      els.bulkRemoveDomainsBtn.disabled = true;
+      if (els.bulkRemoveDomainsBtnText) {
+        els.bulkRemoveDomainsBtnText.textContent = "Remove Selected";
+      }
+    }
   }
 
     function setModalText(title, desc) {
@@ -1729,8 +1884,230 @@
   }
 
   let detailsOriginView = "courses";
+  let showPrereqNames = false; // Task 2.4 Enhancement: Code/Name toggle preference
 
-  function openCourseDetails(code, courseData, originView = "courses") {
+  // ── Task 2.4: Prerequisite Tree helpers ────────────────────────────────────
+
+  /**
+   * Builds a levelled prerequisite chain for a given course code.
+   * Returns an array of levels: [ { codes: ["CSE 1115"], depth: 1 }, ... ]
+   * Cycle-safe via a visited Set.
+   * @param {string} rootCode - Course code being viewed
+   * @param {Object} catalog  - The merged courses catalog
+   * @returns {{ directCodes: string[], levels: Array<{codes: string[], depth: number}> }}
+   */
+  function buildPrereqChain(rootCode, catalog) {
+    var directCodes = [];
+    var levels = [];
+    var visited = new Set();
+    visited.add(rootCode);
+
+    var rootData = normalizeCourseData(catalog[rootCode]);
+    var rootPrereqs = Array.isArray(rootData.prerequisites) ? rootData.prerequisites : [];
+    directCodes = rootPrereqs.slice();
+
+    var currentLevel = rootPrereqs.filter(function(c) { return !visited.has(c); });
+    currentLevel.forEach(function(c) { visited.add(c); });
+
+    var depth = 1;
+    while (currentLevel.length > 0) {
+      levels.push({ codes: currentLevel.slice(), depth: depth });
+      depth++;
+      var nextLevel = [];
+      for (var i = 0; i < currentLevel.length; i++) {
+        var c = currentLevel[i];
+        var cData = normalizeCourseData(catalog[c]);
+        var cPrereqs = Array.isArray(cData.prerequisites) ? cData.prerequisites : [];
+        for (var j = 0; j < cPrereqs.length; j++) {
+          var p = cPrereqs[j];
+          if (!visited.has(p)) {
+            visited.add(p);
+            nextLevel.push(p);
+          }
+        }
+      }
+      currentLevel = nextLevel;
+    }
+    return { directCodes: directCodes, levels: levels };
+  }
+
+  /**
+   * Finds all courses in the catalog that list `code` as a direct prerequisite.
+   * Returns a sorted array of course codes.
+   * @param {string} code    - Course code to search for
+   * @param {Object} catalog - The merged courses catalog
+   * @returns {string[]}
+   */
+  function findUnlocks(code, catalog) {
+    var result = [];
+    var keys = Object.keys(catalog);
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      var data = normalizeCourseData(catalog[k]);
+      if (Array.isArray(data.prerequisites) && data.prerequisites.indexOf(code) !== -1) {
+        result.push(k);
+      }
+    }
+    result.sort();
+    return result;
+  }
+
+  /**
+   * Renders the Prerequisite Chain and Unlocks sections in View 3.
+   * Called at the end of openCourseDetails() and on toggle switch.
+   * Zero innerHTML — uses only DOM APIs.
+   * Respects showPrereqNames to display course name or code in each badge.
+   * @param {string} code - The course code currently shown in View 3
+   */
+  function renderPrereqTree(code) {
+    var section = els.prereqTreeSection;
+    var chainBody = els.prereqChainBody;
+    var chainCount = els.prereqChainCount;
+    var unlocksBody = els.unlocksBody;
+    var unlocksCountEl = els.unlocksCount;
+
+    if (!section || !chainBody || !unlocksBody) return;
+
+    // Sync toggle button visual state
+    if (els.prereqToggleCode) {
+      els.prereqToggleCode.classList.toggle("is-active", !showPrereqNames);
+      els.prereqToggleCode.setAttribute("aria-pressed", String(!showPrereqNames));
+    }
+    if (els.prereqToggleName) {
+      els.prereqToggleName.classList.toggle("is-active", showPrereqNames);
+      els.prereqToggleName.setAttribute("aria-pressed", String(showPrereqNames));
+    }
+
+    // Clear existing content
+    chainBody.textContent = "";
+    unlocksBody.textContent = "";
+
+    var chain = buildPrereqChain(code, courses);
+    var unlocks = findUnlocks(code, courses);
+
+    var hasChain = chain.levels.length > 0 || chain.directCodes.length > 0;
+    var hasUnlocks = unlocks.length > 0;
+
+    // Update count badges
+    var totalChainCodes = 0;
+    chain.levels.forEach(function(l) { totalChainCodes += l.codes.length; });
+    if (chainCount) chainCount.textContent = hasChain ? String(totalChainCodes) : "0";
+    if (unlocksCountEl) unlocksCountEl.textContent = String(unlocks.length);
+
+    /**
+     * Returns the label and tooltip for a badge.
+     * In Code mode:  label = code,  tooltip = name (if available)
+     * In Name mode:  label = name,  tooltip = code
+     * Missing codes: always label = code, tooltip indicates not in catalog
+     */
+    function badgeContent(courseCode) {
+      var inCatalog = !!courses[courseCode];
+      if (!inCatalog) {
+        return { label: courseCode, tooltip: courseCode + " — not in catalog", nameMode: false };
+      }
+      var data = normalizeCourseData(courses[courseCode]);
+      var name = data.name || "";
+      if (showPrereqNames && name) {
+        return { label: name, tooltip: courseCode, nameMode: true };
+      }
+      return { label: courseCode, tooltip: name ? name : ("Go to " + courseCode), nameMode: false };
+    }
+
+    // ── Render prerequisite chain ──────────────────────────────────────────
+    if (!hasChain) {
+      var emptySpan = document.createElement("span");
+      emptySpan.className = "prereq-empty";
+      emptySpan.textContent = "No prerequisites";
+      chainBody.appendChild(emptySpan);
+    } else {
+      chain.levels.forEach(function(level, idx) {
+        // Arrow between depth levels (not before the first)
+        if (idx > 0) {
+          var arrowEl = document.createElement("span");
+          arrowEl.className = "prereq-chain-arrow";
+          arrowEl.setAttribute("aria-hidden", "true");
+          arrowEl.textContent = "›";
+          chainBody.appendChild(arrowEl);
+        }
+
+        // Depth label
+        var depthLabel = document.createElement("span");
+        depthLabel.className = "prereq-depth-label";
+        depthLabel.textContent = idx === 0 ? "Direct" : ("L" + level.depth);
+        chainBody.appendChild(depthLabel);
+
+        // Badge for each code in this level
+        level.codes.forEach(function(prereqCode) {
+          var inCatalog = !!courses[prereqCode];
+          var isDirect = idx === 0;
+          var content = badgeContent(prereqCode);
+
+          var badge = document.createElement("button");
+          badge.type = "button";
+          badge.className = "prereq-badge" +
+            (inCatalog ? (isDirect ? " is-direct" : " is-indirect") : " is-missing") +
+            (content.nameMode ? " is-name-mode" : "");
+          badge.textContent = content.label;
+          badge.title = content.tooltip;
+
+          if (inCatalog) {
+            badge.addEventListener("click", (function(c) {
+              return function() { openCourseDetails(c, courses[c], "details"); };
+            })(prereqCode));
+          } else {
+            badge.setAttribute("aria-disabled", "true");
+          }
+          chainBody.appendChild(badge);
+        });
+      });
+    }
+
+    // ── Render unlocks ─────────────────────────────────────────────────────
+    if (!hasUnlocks) {
+      var emptyUnlocks = document.createElement("span");
+      emptyUnlocks.className = "prereq-empty";
+      emptyUnlocks.textContent = "No courses unlocked";
+      unlocksBody.appendChild(emptyUnlocks);
+    } else {
+      unlocks.forEach(function(unlockCode) {
+        var content = badgeContent(unlockCode);
+        var badge = document.createElement("button");
+        badge.type = "button";
+        badge.className = "prereq-badge is-direct" + (content.nameMode ? " is-name-mode" : "");
+        badge.textContent = content.label;
+        badge.title = content.tooltip;
+        badge.addEventListener("click", (function(c) {
+          return function() { openCourseDetails(c, courses[c], "details"); };
+        })(unlockCode));
+        unlocksBody.appendChild(badge);
+      });
+    }
+
+    // Show or hide the whole section
+    section.style.display = (hasChain || hasUnlocks) ? "flex" : "none";
+  }
+
+  // ── End Task 2.4 helpers ─────────────────────────────────────────────────
+
+  // Task 2.4 Enhancement: Code/Name toggle event listeners
+  (function setupPrereqToggle() {
+    function activateToggle(nameMode) {
+      showPrereqNames = nameMode;
+      // Persist preference
+      try { chrome.storage.local.set({ prereqShowNames: nameMode }); } catch(e) {}
+      // Re-render if we're currently on the details view
+      if (currentEditingCode) renderPrereqTree(currentEditingCode);
+    }
+
+    if (els.prereqToggleCode) {
+      els.prereqToggleCode.addEventListener("click", function() { activateToggle(false); });
+    }
+    if (els.prereqToggleName) {
+      els.prereqToggleName.addEventListener("click", function() { activateToggle(true); });
+    }
+  })();
+
+    function openCourseDetails(code, courseData, originView = "courses") {
     detailsOriginView = originView;
     currentEditingCode = code;
     els.detailsCourseCode.textContent = code;
@@ -1760,6 +2137,9 @@
 
     els.viewWrapper.classList.add("show-details");
     els.viewWrapper.classList.remove("show-courses", "show-settings", "show-trash", "show-import");
+
+    // Task 2.4 — render prerequisite tree for this course
+    renderPrereqTree(code);
   }
 
   function exitCourseDetails() {
@@ -2717,6 +3097,23 @@
             }
           }, 2600);
         }
+      } else if (pendingAction === "bulk-remove-domains") {
+        const toRemove = Array.from(selectedDomainSet);
+        const count = toRemove.length;
+
+        for (const site of toRemove) {
+          try {
+            const origin = site.startsWith("*") ? "*://" + site.replace(/^\*\./, "") + "/*" : "*://" + site + "/*";
+            await chrome.permissions.remove({ origins: [origin] });
+          } catch (_) {}
+        }
+
+        allowedSites = allowedSites.filter(s => !selectedDomainSet.has(s));
+        selectedDomainSet.clear();
+        await chrome.storage.local.set({ allowedSites });
+        renderAllowlist();
+        await updateToggleAndStatus();
+        showToast(count === 1 ? "Removed 1 domain" : "Removed " + count + " domains", "info");
       }
 
       pendingAction = null;
@@ -3111,6 +3508,51 @@
     };
     els.allowlistBtn?.addEventListener("click", addSite);
     els.allowlistInput?.addEventListener("keypress", e => { if (e.key === "Enter") addSite(); });
+
+    // Allowed Domains search and bulk management listeners
+    els.domainSearchInput?.addEventListener("input", (e) => {
+      domainSearchQuery = e.target.value;
+      renderAllowlist();
+    });
+
+    els.domainSearchInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        domainSearchQuery = "";
+        els.domainSearchInput.value = "";
+        renderAllowlist();
+      }
+    });
+
+    els.domainSearchClearBtn?.addEventListener("click", () => {
+      domainSearchQuery = "";
+      if (els.domainSearchInput) els.domainSearchInput.value = "";
+      renderAllowlist();
+    });
+
+    els.domainSelectAll?.addEventListener("change", () => {
+      const filterQuery = domainSearchQuery.trim().toLowerCase();
+      const visibleSites = filterQuery
+        ? allowedSites.filter(site => site.toLowerCase().includes(filterQuery))
+        : allowedSites;
+
+      if (els.domainSelectAll.checked) {
+        visibleSites.forEach(s => selectedDomainSet.add(s));
+      } else {
+        visibleSites.forEach(s => selectedDomainSet.delete(s));
+      }
+      renderAllowlist();
+    });
+
+    els.bulkRemoveDomainsBtn?.addEventListener("click", () => {
+      if (selectedDomainSet.size === 0) return;
+      pendingAction = "bulk-remove-domains";
+      const count = selectedDomainSet.size;
+      setModalText(
+        "Remove " + count + " Allowed Domain" + (count !== 1 ? "s" : "") + "?",
+        "The extension will no longer run or decode course codes on the " + count + " selected website" + (count !== 1 ? "s" : "") + "."
+      );
+      els.confirmModal?.classList.add("show");
+    });
 
     // Enable/disable the extension on the current site with dynamic host permissions
     els.siteToggle?.addEventListener("change", async () => {
