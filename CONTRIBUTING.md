@@ -1,50 +1,55 @@
 # Contributing to UIU Course Code Decoder
 
-Thank you for considering contributing to **UIU Course Code Decoder**! This extension is built by students, for students, and keeping our university course database accurate and complete is a community effort.
+Thank you for your interest in contributing to **UIU Course Code Decoder**! This project is maintained by and for students of United International University (UIU). Keeping the university course catalog accurate, complete, and up to date relies on community contributions.
 
-Whether you want to fix a typo, add an exam slot, or contribute an entire department's curriculum, your help is welcome!
+Whether you want to fix an outdated course title, submit exam routine updates, or contribute an entire department's curriculum, your help is welcome.
 
 ---
 
-## 🚀 Two Ways to Contribute
+## Two Ways to Contribute
 
-### 1. ⚡ Quickest: Report Wrong Data (No GitHub experience needed)
-If you spotted an incorrect course title, missing prerequisite, or outdated exam slot while using the extension:
+### 1. Fast: Report an Issue via the Extension
+If you notice incorrect course information while using the extension, you do not need Git or GitHub experience:
 1. Open the extension popup in your browser.
-2. Go to **Course Database** and click on the course.
-3. Scroll down and click **Report Wrong Data**.
-4. A pre-filled GitHub issue will open with the course's exact information. Type what needs fixing and submit!
+2. Select **Course Database** and click on the course in question.
+3. Scroll down in the Course Details view and click **Report Wrong Data**.
+4. A pre-filled GitHub issue will open with the course's exact details. Type what needs fixing and submit.
+
+<p align="center">
+  <img src="assets/report-issue-guide.png" alt="Report Wrong Data button inside Course Details view" width="60%" />
+</p>
+<p align="center"><em>Clicking 'Report Wrong Data' opens an automated GitHub issue pre-filled with the course metadata.</em></p>
 
 ---
 
-### 2. 🛠️ Direct: Add or Update Courses in `courses.json`
-If you want to add missing courses or update existing ones, you can submit a Pull Request to `courses.json`.
+### 2. Direct: Submit Changes to `courses.json`
+If you want to add new courses or edit existing ones directly, you can submit a Pull Request modifying `courses.json`.
 
-Currently, the catalog includes **CSE, EEE, BBA, and Data Science** courses. Additional departments (Civil, Pharmacy, English, Economics, etc.) and new electives are always needed!
+The catalog currently covers **CSE, EEE, BBA, and Data Science** programs. Contributions for other departments (Civil, Pharmacy, English, Economics, etc.) or newly introduced electives are especially helpful.
 
 ---
 
-## 📋 Course Data Specification (`courses.json`)
+## Course Data Specification (`courses.json`)
 
-The `courses.json` file is a dictionary where each key is an uppercase course code mapped to an object containing course details.
+The `courses.json` file is a JSON object where each key is an uppercase course code mapped to an object containing course details.
 
 ### Schema Fields
 
-| Field | Type | Required? | Description & Rules |
+| Field | Type | Required? | Rules & Guidelines |
 |---|---|:---:|---|
-| `name` | string | **Yes** | Full official course name (properly capitalized). |
-| `examDay` | string | No | Exam routine day (e.g., `"Day A"`, `"Friday"`, or `""` if not scheduled). |
-| `examSlot` | string | No | Exam routine slot (e.g., `"Slot 1"`, `"Morning"`, or `""` if not scheduled). |
-| `prerequisites` | array | No | **Course codes only** (e.g., `["CSE 2213"]`). Empty array `[]` if none. **Never put credit counts here!** |
-| `prerequisiteNote` | string | No | Non-course prerequisites or credit thresholds (e.g., `"MINIMUM 85 credits"`). Omit or set to `""` if none. |
+| `name` | `string` | **Yes** | Official course name, properly capitalized (e.g., `"Database Management Systems"`). |
+| `examDay` | `string` | No | Exam routine day (e.g., `"Day A"`, `"Friday"`), or `""` if not scheduled. |
+| `examSlot` | `string` | No | Exam routine slot (e.g., `"Slot 1"`, `"Morning"`), or `""` if not scheduled. |
+| `prerequisites` | `Array<string>` | No | **Course codes only** (e.g., `["CSE 2213"]`). Use an empty array `[]` if none. **Never include credit counts or text notes here.** |
+| `prerequisiteNote` | `string` | No | Non-course prerequisites or degree credit thresholds (e.g., `"MINIMUM 85 credits"`). Omit or set to `""` if none. |
 
 ### Formatting Rules
 
-1. **Course Code**: Uppercase letters, exactly one space, then numbers (e.g., `"CSE 3421"`, not `"CSE3421"` or `"cse 3421"`).
-2. **Alphabetical Ordering**: Entries in `courses.json` should be sorted alphabetically by course code.
+1. **Course Code Format**: Use uppercase letters, exactly one space, then numbers (e.g., `"CSE 3421"`, not `"CSE3421"` or `"cse 3421"`).
+2. **Alphabetical Sorting**: Keep entries in `courses.json` sorted alphabetically by course code.
 3. **Prerequisites vs. Prerequisite Notes**:
-   - `prerequisites` = List of other course codes only (e.g., `["CSE 1111", "CSE 1112"]`).
-   - `prerequisiteNote` = Special requirements such as credit minimums (e.g., `"MINIMUM 85 credits"`).
+   - Put prerequisite course codes strictly in `prerequisites` (e.g., `["CSE 1111", "CSE 1112"]`).
+   - Put degree milestones and credit requirements in `prerequisiteNote` (e.g., `"MINIMUM 85 credits"`).
 
 ### Schema Examples
 
@@ -58,7 +63,7 @@ The `courses.json` file is a dictionary where each key is an uppercase course co
 }
 ```
 
-#### Senior Capstone / Project with Credit Requirement:
+#### Senior Capstone / Project with Credit Requirements:
 ```json
 "CSE 4000A": {
   "name": "Final Year Design Project - I",
@@ -69,7 +74,7 @@ The `courses.json` file is a dictionary where each key is an uppercase course co
 }
 ```
 
-#### First-Year Course without Prerequisites:
+#### Introductory Course without Prerequisites:
 ```json
 "EEE 1011": {
   "name": "Electrical Circuits I",
@@ -81,37 +86,42 @@ The `courses.json` file is a dictionary where each key is an uppercase course co
 
 ---
 
-## 🛠️ How to Submit Your Changes
+## Submitting Your Changes
 
-### Option 1: Editing Directly in Your Browser (Recommended for Beginners)
-You do not need to install Git or use a terminal!
+### Option 1: Editing Directly on GitHub (Recommended for Quick Edits)
+You can submit edits directly through GitHub without setting up local development tools:
 
 1. Open [`courses.json`](https://github.com/litch07/uiu-course-decoder/blob/main/courses.json) on GitHub.
-2. Click the **pencil icon** (Edit this file) in the top-right corner. GitHub will automatically create a fork and branch for you.
-3. Add or edit your course entries following the rules above.
-4. Scroll down to **Commit changes**, enter a short description (e.g., `Add Pharmacy 1st year courses`), and click **Propose changes**.
-5. Click **Create pull request** to submit your changes for review.
+2. Click the **pencil icon** (Edit this file) in the upper-right corner. GitHub will automatically create a fork and branch for you.
+3. Make your edits following the schema rules above.
+4. Under **Commit changes**, write a brief description of what you changed (for example, `Add Pharmacy first-year courses`), then select **Propose changes**.
+5. Select **Create pull request** to submit your changes for maintainer review.
+
+<p align="center">
+  <img src="assets/github-edit-guide.png" alt="Editing courses.json directly on GitHub" width="85%" />
+</p>
+<p align="center"><em>Click the pencil icon on GitHub to edit courses.json and propose changes directly in your browser.</em></p>
 
 ---
 
-### Option 2: Using Git Locally (Recommended for Large Batches)
-If you are adding an entire department or batch of courses:
+### Option 2: Working Locally with Git (Recommended for Large Batches)
+For larger contributions, such as an entire degree curriculum:
 
-1. **Fork & Clone**:
+1. **Fork and Clone the Repository**:
    ```bash
    git clone https://github.com/YOUR_USERNAME/uiu-course-decoder.git
    cd uiu-course-decoder
    ```
-2. **Create a branch**:
+2. **Create a Feature Branch**:
    ```bash
    git checkout -b add-pharmacy-courses
    ```
-3. **Edit `courses.json`**: Add your courses in sorted order.
-4. **Test your changes locally**:
+3. **Edit `courses.json`**: Add your courses in alphabetical order.
+4. **Run the Local Verification Suite**:
    ```bash
    node tests/test_release1.js
    ```
-5. **Commit & Push**:
+5. **Commit and Push**:
    ```bash
    git add courses.json
    git commit -m "Add Pharmacy undergraduate course catalog"
@@ -121,26 +131,23 @@ If you are adding an entire department or batch of courses:
 
 ---
 
-## 🤖 Automated CI Verification
+## Automated CI Verification
 
-When you submit a Pull Request, our automated GitHub Actions workflow (`.github/workflows/validate-catalog.yml`) automatically checks:
-- ✅ **JSON Syntax**: Confirms `courses.json` is valid JSON.
-- ✅ **Schema Compliance**: Confirms all entries have valid `name` and proper types.
-- ✅ **No Misplaced Notes**: Confirms credit thresholds are inside `prerequisiteNote`, not inside `prerequisites`.
-- ✅ **Test Suite**: Runs the full suite of automated unit and integration tests.
+Every Pull Request triggers an automated GitHub Actions check ([`.github/workflows/validate-catalog.yml`](.github/workflows/validate-catalog.yml)) that verifies:
+- ✅ **JSON Syntax**: Confirms `courses.json` is well-formed JSON.
+- ✅ **Schema Compliance**: Confirms all entries have valid titles and expected data types.
+- ✅ **Purity of Prerequisites**: Confirms credit requirements are placed in `prerequisiteNote`, not inside `prerequisites`.
+- ✅ **Alphabetical Ordering**: Confirms course keys are sorted alphabetically.
+- ✅ **Test Suite**: Runs the full automated regression suite.
 
-If CI detects an issue, check the workflow summary for details. Feel free to ask for help on the PR—maintainers are happy to assist!
-
----
-
-## 📖 Glossary for Beginners
-
-- **Repository**: The main project folder on GitHub containing all code and assets.
-- **Fork**: A personal copy of the repository on your GitHub account where you can safely test edits.
-- **Branch**: An isolated workspace inside your fork for a specific set of changes.
-- **Commit**: A snapshot of your changes with an explanatory message.
-- **Pull Request (PR)**: A proposal asking maintainers to merge your changes into the main repository.
+If a check fails, review the GitHub Actions workflow log for details.
 
 ---
 
-Pull requests and issue reports are reviewed promptly. Thank you for contributing and helping make university life a bit easier for all UIU students!
+## Glossary for Beginners
+
+- **Repository**: The project workspace on GitHub containing all code, data files, and documentation.
+- **Fork**: A personal copy of the repository on your own GitHub account.
+- **Branch**: An isolated workspace within your fork for a specific set of changes.
+- **Commit**: A saved revision with an explanatory message.
+- **Pull Request (PR)**: A proposal asking maintainers to merge your changes into the main project.
