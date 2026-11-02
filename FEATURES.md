@@ -150,7 +150,63 @@ To allow students to customize schedules, rename courses, or add unlisted course
 
 ---
 
-## 7. Privacy, Security & Accessibility
+## 7. Advanced Usability & Exploration (Milestone 2)
+
+### Contextual Export in Course Manager (Task 2.1)
+- Dedicated `Export` button in the catalog header.
+- Intelligently senses the active query or filter to offer single-click export of currently visible courses, full catalog, or custom additions.
+
+### File Drag-and-Drop & Pre-Commit Preview (Task 2.2)
+- Interactive drag-and-drop zone (`#fileDropZone`) supporting `.json` file uploads.
+- Real-time pre-commit diff engine categorizing incoming items into `+New`, `~Updated` (field-level Before/After comparison), `=Unchanged`, and `!Skipped`.
+
+### Allowed Domains Search & Bulk Management (Task 2.3)
+- Instant domain filtering input with clear button and live count indicators.
+- Bulk selection toolbar with select-all checkbox and batch removal confirmation modal.
+
+### Prerequisite Tree & "Unlocks" Explorer (Task 2.4)
+- **Ancestry Tree**: BFS recursive traversal mapping direct (L1) and transitive (L2+) dependencies.
+- **Reverse Unlocks**: Instant discovery of all future courses unlocked by completing the active course.
+- **Code ↔ Name Segmented Toggle**: Instant switching between course code and title views with inverted hover tooltips and local preference retention.
+
+### Standalone Web Course & Prerequisite Explorer (Task 2.5)
+- Public web application hosted at `https://litch07.github.io/uiu-course-decoder/` under `docs/`.
+- Search, department filters, deep modal inspection, URL hash routing (`#CSE-2215`), and automated CI deployment.
+
+---
+
+## 8. Daily Academic Assistant Utilities (Milestone 3)
+
+### Course Credits in Schema & UI (Task 3.1)
+- Official credit values integrated into course models (`3.0`, `1.5`, `1.0`, `2.0`).
+- Visible credit chips in catalog table rows, detail inspection headers, add/edit forms, and webpage hover cards.
+
+### "My Courses" & Exam Routine Clash Detector (Task 3.2)
+- **Active Trimester Bookmarking**: Star toggle buttons (`★`/`☆`) on table rows and in the details view to bookmark enrolled courses into `chrome.storage.local`.
+- **Enrolled Summary Toolbar**: Live calculation of total enrolled course count and credit sum (e.g. `13.0 Cr`).
+- **Routine Collision Detector (`detectExamClashes`)**: Automatically detects scheduling collisions on the same Day and Slot (e.g., Day 4, Slot T2), while excluding unscheduled and in-class exams.
+- **Prominent Clash Alerts**: Highlights conflicting rows in red (`.is-clashing`), adds warning banners in details, and shows quick indicators on the Home dashboard.
+
+### Exam Week Calendar Export (.ics / RFC 5545) (Task 3.3)
+- Generates RFC 5545 iCalendar files compatible with Google Calendar, Apple Calendar, and Outlook.
+- Automatic slot-to-time mapping (`T1`: 09:00-11:00, `T2`: 11:30-13:30, `T3`: 14:30-16:30) and day offsets from a selectable start date.
+- Dual customizable `VALARM` notification reminders (24 hours and 2 hours prior to exams).
+
+### System-Adaptive OLED Dark Mode Palette (Task 3.4)
+- Deep OLED dark theme with battery-saving black surfaces (`#090d16`, `#111827`), high-contrast text (`#f9fafb`, `#94a3b8`), and vibrant UIU orange accent (`#F26522`).
+- Segmented 3-option preference control in Settings: **System Default**, **Light**, and **Dark (OLED)**.
+- Pure CSS media query fallback guaranteeing zero white flash before storage hydration, and live OS change detection.
+
+### Keyboard Navigation & ARIA Accessibility (Task 3.5)
+- Full ARIA landmarks across all 5 sliding panels (`role="region"`) and modals (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`).
+- Modal focus-trapping engine keeping `Tab` and `Shift+Tab` cycled safely within active dialogs.
+- Hierarchical `Escape` navigation closing top-layer modals first, then progressively navigating backward through panels.
+- Arrow key navigation across tabs, theme controls, filter pills, and prerequisite view switches.
+- High-contrast visible focus rings (`:focus-visible`) across light and dark palettes.
+
+---
+
+## 9. Privacy, Security & Accessibility
 
 | Category | Specification |
 |---|---|
@@ -160,5 +216,5 @@ To allow students to customize schedules, rename courses, or add unlisted course
 | **DOM Security** | **Zero-`innerHTML` Architecture**: 100% programmatic node creation (`createElement`, `createTextNode`, `textContent`), eliminating DOM-based XSS vectors. |
 | **Data Collection** | **Zero**. No tracking, telemetry, user identifiers, or analytics |
 | **Payload Security** | Enforced **2 MB safety cap** on batch JSON imports and remote sync responses |
-| **Accessibility** | Complete `@media (prefers-reduced-motion: reduce)` support disabling motion for sensitive users |
+| **Accessibility** | Complete ARIA landmarks, modal focus traps, hierarchical Escape navigation, and `@media (prefers-reduced-motion: reduce)` support |
 | **Code Modularity** | Extracted styling (`popup.css`), semantic markup (`popup.html`), service worker (`background.js`), and isolated client logic (`popup.js`) |

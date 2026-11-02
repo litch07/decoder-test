@@ -44,7 +44,7 @@
 
 ---
 
-### B. Release 2 (In Progress): Usability Polish
+### B. Release 2 (Completed): Usability Polish
 1. **Contextual Export in Course Manager (Task 2.1)**:
    - Added `#exportCoursesBtn` in Course Database header alongside Trash bin button.
    - Interactive modal (`#exportModal`) with Zero-`innerHTML` DOM node generation, backdrop blur, and Escape key dismissal.
@@ -69,11 +69,73 @@
    - Multi-select row checkboxes with active row highlighting (`.allowlist-item.is-selected`) and individual removal preservation.
    - Automated regression test suite `tests/test_allowed_domains_management.js` (6/6 passing).
 
-4. **Content Script Context Resilience & Reload Defense**:
+4. **Prerequisite Tree & "Unlocks" Explorer with Code ↔ Name Toggle (Task 2.4)**:
+   - Interactive dependency explorer embedded directly into Course Details (View 3).
+   - Recursive BFS Prerequisite Chain (`#prereqChainCard`): Maps the complete ancestry tree with depth-level badges (Direct L1, transitive L2+), depth indicators, and missing catalog code indicators (amber warning badges).
+   - Reverse "Unlocks" Tree (`#unlocksCard`): Reverse catalog lookup identifying every future course listing the active course as a prerequisite.
+   - Interactive Segmented View Toggle (`#prereqViewToggle`): Allows students to toggle between "Code" and "Name" display modes with instant re-rendering, tooltip inversion (Code mode shows name on hover; Name mode shows code on hover), and automatic persistence in `chrome.storage.local` (`prereqShowNames`).
+   - Click-to-Navigate: Every valid course badge in either view acts as a button seamlessly opening that course's details.
+   - Cycle-safe traversal with visited Set and 100% Zero-`innerHTML` DOM node construction.
+   - Automated regression test suite `tests/test_prereq_tree.js` (29/29 passing assertions).
+
+5. **Content Script Context Resilience & Reload Defense**:
    - Added top-level extension context guards in content.js verifying chrome, chrome.runtime, chrome.runtime.id, chrome.storage, and chrome.storage.local before script execution.
    - Defensively wrapped chrome.storage.local.get and chrome.storage.onChanged.addListener with try/catch and runtime validity checks, completely eliminating `TypeError: Cannot read properties of undefined (reading 'local')` when reloading the extension in chrome://extensions or navigating pages with unprivileged/sandboxed iframes.
    - Refined background.js tab update listener to inject strictly on `changeInfo.status === "complete"`, preventing premature script execution in unready frame states.
    - Added automated verification test suite `tests/test_content_script_resilience.js` (5/5 passing).
+
+6. **GitHub Pages Documentation & Public Course Explorer (Task 2.5)**:
+   - Standalone, zero-dependency web catalog and interactive visual explorer hosted at `https://litch07.github.io/uiu-course-decoder/` under `docs/`.
+   - Client-side real-time multi-field search and department pills (CSE, Data Science, EEE, Business, Math & Sciences, General/Humanities).
+   - Deep course inspector modal with full exam routines, special credit prerequisites, and interactive recursive dependency trees.
+   - Code ↔ Name view toggle with persistent local preferences.
+   - Deep-linking URL hash routing (`#CSE-2215`) allowing 1-click course sharing via Messenger/Discord.
+   - Fully automated deployment workflow via `.github/workflows/deploy-pages.yml`.
+   - Strict Zero-`innerHTML` DOM construction throughout (`tests/test_github_pages_docs.js`, 36/36 passing).
+
+---
+
+### C. Release 3 (Completed 🎉): Daily Academic Value
+1. **Course Credits Integration Across Schema & UI (Task 3.1)**:
+   - Official undergraduate course credit counts (e.g. `3.0`, `1.5`, `1.0`, `2.0`) integrated directly into `courses.json` and `docs/courses.json` from departmental offerings.
+   - View 1 (Course List Table): Displays course credit chips (`.course-credit-chip`, e.g. `3.0 Cr`) next to origin tags.
+   - View 3 (Course Details): Added `#detailCredits` input and `#detailsCreditsBadge` in header, allowing students to inspect and customize credits.
+   - View 4 (Add / Import Courses): Added `#singleCourseCredits` in `.form-row-3col`.
+   - Pre-Commit Diff Engine: `computeImportDiff` detects, compares, and displays credit modifications (`oldVal` vs `newVal`).
+   - Content Script Overlay (`content.js`): `buildTooltipDom` renders a dedicated `Credits: X Cr` detail row inside the hover card.
+   - Public Web Explorer (`docs/`): Displays credit badges on course cards and in the course inspector modal.
+   - Full automated test suite in `tests/test_course_credits.js` (31/31 passing).
+
+2. **"My Courses" Bookmarking & Exam Routine Clash Detector (Task 3.2)**:
+   - Enrolled Trimester Course Bookmarking: Students can pin enrolled courses via quick-star buttons (`★`/`☆`) in the course table or via `#detailsEnrollBtn` in View 3.
+   - Persistent Local Storage: Stored under `enrolledCourses` array in `chrome.storage.local`.
+   - Trimester Filter & Summary: View 1 contains dedicated `★ My Courses` filter pill with counter badge, plus an interactive summary card displaying total course count and cumulative credit sum (e.g. `13.0 Cr`).
+   - Exam Schedule Collision Engine (`detectExamClashes`): Groups non-empty exam Day & Slot routines and flags collisions, while ignoring lab and in-class evaluations.
+   - Comprehensive Clash Alerts: Highlights conflicting rows in the course table (`.is-clashing`), surfaces collision alert banners in Course Details (`#detailClashWarning`), and provides quick clash indicators on the Home panel (`#homeEnrolledCard`).
+   - Strict Zero-`innerHTML` DOM generation with 100% test coverage in `tests/test_my_courses_clash_detector.js` (31/31 passing).
+
+3. **Exam Week Calendar Export (.ics / RFC 5545) (Task 3.3)**:
+   - iCalendar Serialization Engine: Formats scheduled course exams into standard `.ics` events compatible with Google Calendar, Apple Calendar, and Microsoft Outlook.
+   - Intelligent Slot Mapping: Automatically maps exam slots (`T1` &rarr; 09:00–11:00, `T2` &rarr; 11:30–13:30, `T3` &rarr; 14:30–16:30) and calculates calendar dates based on user-chosen exam week start dates.
+   - Interactive Export Modal (`#examExportModal`): Accessible via `#openIcsExportBtn` in the My Courses summary bar; includes live scheduled exam preview, date picker, and dual `VALARM` reminder configuration (24 hours and 2 hours prior to exams).
+   - Zero-`innerHTML` Security: Fully safe programmatic DOM creation with comprehensive coverage in `tests/test_exam_calendar_export.js` (25/25 passing).
+
+4. **System-Adaptive OLED Dark Mode Palette (Task 3.4)**:
+   - Deep OLED Dark Theme: Custom-engineered OLED palette with pure blacks (`--bg: #090d16`), dark surfaces (`--surface: #111827`, `--surface2: #162032`), high-contrast text (`--text-main: #f9fafb`, `--text-muted: #94a3b8`), and refined borders (`--border-color: #243048`).
+   - Settings Preference Radiogroup (`#themeOptionsGroup`): Segmented 3-state control in View 5 supporting System Default (`#themeSystem`), Light (`#themeLight`), and Dark OLED (`#themeDark`).
+   - Zero-Flash Pure CSS Fallback: Uses `@media (prefers-color-scheme: dark)` and `:root:not([data-theme="light"])` to guarantee zero white flash before storage initializes.
+   - Dynamic OS Media Query Listener: Instantly switches theme when OS preference changes while on System mode.
+   - Persistent Local Storage: Retains user preference across browser sessions in `chrome.storage.local` under `themePreference`.
+   - Comprehensive test suite: `tests/test_dark_mode_palette.js` (45/45 passing).
+
+5. **Keyboard Navigation & ARIA Accessibility (Task 3.5)**:
+   - Full ARIA Landmarks: Added `role="region"` and `aria-label` to all 5 sliding panels; `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` across all confirmation and export modals.
+   - Tabs & Controls Semantics: Implemented `role="tablist"`, `role="tab"`, `aria-selected`, and `aria-controls` on import tabs; `role="radiogroup"` and `role="radio"` on theme and prerequisite view controls.
+   - Modal Focus-Trapping: Dependency-free engine cycling keyboard focus within open dialogs on `Tab` and `Shift+Tab`, with automatic restoration to trigger elements upon close.
+   - Hierarchical Escape Retreat: `Escape` closes top-layer modals first, and progressively returns backward through sliding panels (Details &rarr; Import &rarr; Settings &rarr; Catalog &rarr; Home).
+   - Arrow Key Traversal: Fluent keyboard navigation across tabs, theme options, filter buttons, and prerequisite view switches.
+   - High-Contrast Visible Focus Ring: WCAG-compliant `:focus-visible` outline rings across light and OLED dark palettes.
+   - Comprehensive test suite: `tests/test_keyboard_accessibility.js` (34/34 passing).
 
 ### B. View 4 (Add / Import Courses) Architecture & Design
 1. **Tabbed Navigation (`Single Course` vs `Batch Upload`)**:
@@ -181,27 +243,36 @@
 - `PRIVACY.md` — Full transparent privacy documentation.
 - `CONTRIBUTING.md` — Contribution guide and course schema specification.
 - `.github/workflows/validate-catalog.yml` — Automated CI workflow validating catalog syntax and running regression tests.
-- `tests/` — Automated test suite (14 test files):
-  - `tests/test_release1.js` (Release 1 verification suite)
-  - `tests/test_single_and_batch_integration.js`
-  - `tests/test_merge.js` / `tests/test_merge_v2.js`
+- `tests/` — Comprehensive automated test suite (22 test suites):
+  - `tests/test_batch_upload.js`
+  - `tests/test_empty_trash_all.js`
+  - `tests/test_merge.js`
+  - `tests/test_merge_v2.js`
   - `tests/test_migration.js`
   - `tests/test_official_hard_delete.js`
-  - `tests/test_empty_trash_all.js`
   - `tests/test_restore_official.js`
+  - `tests/test_single_and_batch_integration.js`
   - `tests/test_single_course_add.js`
-  - `tests/test_batch_upload.js`
   - `tests/test_sync_diff.js`
+  - `tests/test_release1.js`
   - `tests/test_contextual_export.js`
   - `tests/test_file_import_preview.js`
   - `tests/test_content_script_resilience.js`
+  - `tests/test_allowed_domains_management.js`
+  - `tests/test_prereq_tree.js`
+  - `tests/test_github_pages_docs.js`
+  - `tests/test_course_credits.js`
+  - `tests/test_my_courses_clash_detector.js`
+  - `tests/test_exam_calendar_export.js`
+  - `tests/test_dark_mode_palette.js`
+  - `tests/test_keyboard_accessibility.js`
 
 ---
 
 ## 5. How to Verify Codebase Health
 
-Run the entire automated test suite from the repository root:
+Run the entire automated test suite sequentially from the repository root:
 ```powershell
-Get-ChildItem -Path tests/*.js | ForEach-Object { node $_.FullName }
+node tests/run_all.js
 ```
-**Expected Result**: All 14 test suites pass with zero failures.
+**Expected Result**: All 22 test suites pass with zero failures.

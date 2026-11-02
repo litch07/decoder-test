@@ -70,6 +70,7 @@
     return {
       key: key,
       name: isObj ? courseData.name : courseData,
+      credits: (isObj && courseData.credits) ? courseData.credits : null,
       examDay: (isObj && courseData.examDay) ? courseData.examDay : "",
       examSlot: (isObj && courseData.examSlot) ? courseData.examSlot : "",
       prerequisites: (isObj && courseData.prerequisites) ? courseData.prerequisites : [],
@@ -90,9 +91,23 @@
     nameDiv.textContent = data.name;
     content.appendChild(nameDiv);
 
-    if (data.exam || data.prereq) {
+    if (data.exam || data.prereq || data.credits) {
       const details = document.createElement("div");
       details.className = "cce-tooltip-details";
+
+      if (data.credits) {
+        const row = document.createElement("div");
+        row.className = "cce-detail-row";
+        const label = document.createElement("span");
+        label.className = "cce-detail-label";
+        label.textContent = "Credits:";
+        const text = document.createElement("span");
+        text.className = "cce-detail-text";
+        text.textContent = String(data.credits) + " Cr";
+        row.appendChild(label);
+        row.appendChild(text);
+        details.appendChild(row);
+      }
 
       if (data.exam) {
         const row = document.createElement("div");
@@ -165,6 +180,7 @@
   function buildExtendedData(resolved) {
     let data = {
       name: resolved.name,
+      credits: resolved.credits || null,
       exam: null,
       prereq: null
     };

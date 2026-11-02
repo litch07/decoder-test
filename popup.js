@@ -94,6 +94,39 @@
     detailPrereqNote: document.getElementById("detailPrereqNote"),
     detailDay: document.getElementById("detailDay"),
     detailSlot: document.getElementById("detailSlot"),
+    detailCredits: document.getElementById("detailCredits"),
+    homeEnrolledCard: document.getElementById("homeEnrolledCard"),
+    homeEnrolledCount: document.getElementById("homeEnrolledCount"),
+    homeEnrolledCredits: document.getElementById("homeEnrolledCredits"),
+    homeClashBadge: document.getElementById("homeClashBadge"),
+    filterEnrolledBtn: document.getElementById("filterEnrolledBtn"),
+    enrolledCountBadge: document.getElementById("enrolledCountBadge"),
+    enrolledSummaryCard: document.getElementById("enrolledSummaryCard"),
+    enrolledTotalCourses: document.getElementById("enrolledTotalCourses"),
+    enrolledTotalCredits: document.getElementById("enrolledTotalCredits"),
+    clearEnrolledBtn: document.getElementById("clearEnrolledBtn"),
+    clashAlertBox: document.getElementById("clashAlertBox"),
+    clashAlertList: document.getElementById("clashAlertList"),
+    detailsEnrollBtn: document.getElementById("detailsEnrollBtn"),
+    detailsEnrollBtnText: document.getElementById("detailsEnrollBtnText"),
+    detailClashWarning: document.getElementById("detailClashWarning"),
+    detailClashText: document.getElementById("detailClashText"),
+    examExportModal: document.getElementById("examExportModal"),
+    examExportCloseBtn: document.getElementById("examExportCloseBtn"),
+    examExportCancelBtn: document.getElementById("examExportCancelBtn"),
+    openIcsExportBtn: document.getElementById("openIcsExportBtn"),
+    icsStartDateInput: document.getElementById("icsStartDateInput"),
+    icsEventCount: document.getElementById("icsEventCount"),
+    icsPreviewList: document.getElementById("icsPreviewList"),
+    icsRemindersToggle: document.getElementById("icsRemindersToggle"),
+    downloadIcsBtn: document.getElementById("downloadIcsBtn"),
+    themeSettingsCard: document.getElementById("themeSettingsCard"),
+    themeSystem: document.getElementById("themeSystem"),
+    themeLight: document.getElementById("themeLight"),
+    themeDark: document.getElementById("themeDark"),
+    themeStatusHint: document.getElementById("themeStatusHint"),
+    detailsCreditsBadge: document.getElementById("detailsCreditsBadge"),
+    singleCourseCredits: document.getElementById("singleCourseCredits"),
     detailSaveBtn: document.getElementById("detailSaveBtn"),
     detailDelBtn: document.getElementById("detailDelBtn"),
     reportIssueBtn: document.getElementById("reportIssueBtn"),
@@ -180,6 +213,72 @@
 
   let currentHost = "";
   let courses = {};
+  let currentThemePreference = "system"; // "system" | "light" | "dark"
+
+  // ── Task 3.4: System-Adaptive Dark Mode Palette ──────────────────────────
+  function applyTheme(preference) {
+    currentThemePreference = preference || "system";
+    const root = document.documentElement;
+
+    const isSystemDark = !!(typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const effectiveDark = currentThemePreference === "dark" || (currentThemePreference === "system" && isSystemDark);
+
+    if (effectiveDark) {
+      root.setAttribute("data-theme", "dark");
+    } else {
+      root.setAttribute("data-theme", "light");
+    }
+    root.setAttribute("data-theme-preference", currentThemePreference);
+
+    const themeButtons = [
+      { btn: els.themeSystem, val: "system" },
+      { btn: els.themeLight, val: "light" },
+      { btn: els.themeDark, val: "dark" }
+    ];
+
+    themeButtons.forEach(({ btn, val }) => {
+      if (!btn) return;
+      const isActive = val === currentThemePreference;
+      if (isActive) {
+        btn.classList.add("active");
+        btn.setAttribute("aria-checked", "true");
+      } else {
+        btn.classList.remove("active");
+        btn.setAttribute("aria-checked", "false");
+      }
+    });
+
+    if (els.themeStatusHint) {
+      if (currentThemePreference === "system") {
+        els.themeStatusHint.textContent = `System theme active (currently ${isSystemDark ? "Dark" : "Light"}). Adapts automatically.`;
+      } else if (currentThemePreference === "dark") {
+        els.themeStatusHint.textContent = "OLED dark theme active.";
+      } else {
+        els.themeStatusHint.textContent = "Light theme active.";
+      }
+    }
+  }
+
+  function setTheme(preference) {
+    applyTheme(preference);
+    chrome.storage.local.set({ themePreference: preference });
+  }
+
+  // Monitor OS preference changes dynamically
+  if (typeof window !== "undefined" && window.matchMedia) {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleSchemeChange = () => {
+      if (currentThemePreference === "system") {
+        applyTheme("system");
+      }
+    };
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleSchemeChange);
+    } else if (typeof mediaQuery.addListener === "function") {
+      mediaQuery.addListener(handleSchemeChange);
+    }
+  }
+  // ── End Task 3.4 Theme Engine ───────────────────────────────────────────
   let userCourses = {};
   let softDeletedCourses = [];
   let hardDeletedCourses = [];
@@ -190,6 +289,7 @@
   let currentTabId = null;
   let searchQuery = "";
   let currentFilter = "all";
+  let enrolledCourses = []; // Task 3.2: Enrolled courses for current trimester
   let lastSyncedAt = null;
   let lastSyncResult = null;
 
@@ -214,7 +314,7 @@
   }
 
   async function loadStorageData() {
-    const stored = await chrome.storage.local.get(["courses", "userCourses", "softDeletedCourses", "mode", "allowedSites", "showExamInfo", "showPrerequisites", "lastSyncedAt", "remoteCourses", "hardDeletedCourses", "lastSyncResult"]);
+    const stored = await chrome.storage.local.get(["courses", "userCourses", "softDeletedCourses", "mode", "allowedSites", "showExamInfo", "showPrerequisites", "lastSyncedAt", "remoteCourses", "hardDeletedCourses", "lastSyncResult", "themePreference"]);
     courses = stored.courses || {};
     userCourses = stored.userCourses || {};
     softDeletedCourses = stored.softDeletedCourses || [];
@@ -226,6 +326,8 @@
     lastSyncedAt = stored.lastSyncedAt || null;
     remoteCourses = stored.remoteCourses || {};
     lastSyncResult = stored.lastSyncResult || null;
+    currentThemePreference = stored.themePreference || "system";
+    applyTheme(currentThemePreference);
 
     try {
       const res = await fetch(chrome.runtime.getURL("courses.json"));
@@ -678,9 +780,9 @@
   }
 
   function normalizeCourseData(val) {
-    if (!val) return { name: "", examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "" };
+    if (!val) return { name: "", examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", credits: null };
     if (typeof val === "string") {
-      return { name: val.trim(), examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "" };
+      return { name: val.trim(), examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", credits: null };
     }
     const name = (val.name || "").trim();
     const examDay = (val.examDay || "").trim();
@@ -689,7 +791,12 @@
     const prerequisites = Array.isArray(val.prerequisites)
       ? val.prerequisites.map(p => String(p).trim()).filter(Boolean).sort()
       : [];
-    return { name, examDay, examSlot, prerequisites, prerequisiteNote };
+    let credits = null;
+    if (val.credits !== undefined && val.credits !== null && val.credits !== "") {
+      const parsed = parseFloat(val.credits);
+      if (!isNaN(parsed) && parsed > 0) credits = parsed;
+    }
+    return { name, examDay, examSlot, prerequisites, prerequisiteNote, credits };
   }
 
   function areCourseDataEqual(val1, val2) {
@@ -703,6 +810,7 @@
       if (a.prerequisites[i] !== b.prerequisites[i]) return false;
     }
     if (a.prerequisiteNote !== b.prerequisiteNote) return false;
+    if (a.credits !== b.credits) return false;
     return true;
   }
 
@@ -958,13 +1066,74 @@
     els.exportOptionsList.appendChild(customCard);
   }
 
+  // ── Task 3.5: Keyboard Navigation & Focus Trap Engine ───────────────────
+  let lastFocusedElementBeforeModal = null;
+
+  function openModalSafely(modalEl, initialFocusEl) {
+    if (!modalEl) return;
+    lastFocusedElementBeforeModal = document.activeElement;
+    modalEl.classList.add("show");
+    setTimeout(() => {
+      if (initialFocusEl && typeof initialFocusEl.focus === "function") {
+        initialFocusEl.focus();
+      } else {
+        const first = modalEl.querySelector(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        first?.focus();
+      }
+    }, 50);
+  }
+
+  function closeModalSafely(modalEl) {
+    if (!modalEl) return;
+    modalEl.classList.remove("show");
+    if (lastFocusedElementBeforeModal && typeof lastFocusedElementBeforeModal.focus === "function") {
+      try {
+        lastFocusedElementBeforeModal.focus();
+      } catch (e) {
+        // Safe fallback
+      }
+      lastFocusedElementBeforeModal = null;
+    }
+  }
+
+  function trapModalFocus(modalEl, e) {
+    if (!modalEl || !modalEl.classList.contains("show")) return false;
+    const focusables = Array.from(modalEl.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(el => el.offsetParent !== null || el.offsetWidth > 0 || el.offsetHeight > 0);
+
+    if (!focusables.length) return false;
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === first || !modalEl.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+          return true;
+        }
+      } else {
+        if (document.activeElement === last || !modalEl.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   function openExportModal() {
     renderExportOptions();
-    els.exportModal?.classList.add("show");
+    openModalSafely(els.exportModal, els.exportModalCloseBtn);
   }
 
   function closeExportModal() {
-    els.exportModal?.classList.remove("show");
+    closeModalSafely(els.exportModal);
   }
 
   let pendingImportDiff = null;
@@ -996,7 +1165,8 @@
           prerequisites: Array.isArray(v.prerequisites)
             ? v.prerequisites.map(p => String(p).trim()).filter(Boolean).sort()
             : [],
-          prerequisiteNote: typeof v.prerequisiteNote === "string" ? v.prerequisiteNote.trim() : ""
+          prerequisiteNote: typeof v.prerequisiteNote === "string" ? v.prerequisiteNote.trim() : "",
+          credits: (v.credits !== undefined && v.credits !== null && v.credits !== "" && !isNaN(parseFloat(v.credits)) && parseFloat(v.credits) > 0) ? parseFloat(v.credits) : null
         };
         const hasExamDay = !!incoming.examDay;
         const hasExamSlot = !!incoming.examSlot;
@@ -1261,11 +1431,11 @@
   function openImportPreviewModal(diff) {
     pendingImportDiff = diff;
     renderImportPreview(diff);
-    els.importPreviewModal?.classList.add("show");
+    openModalSafely(els.importPreviewModal, els.previewConfirmBtn);
   }
 
   function closeImportPreviewModal() {
-    els.importPreviewModal?.classList.remove("show");
+    closeModalSafely(els.importPreviewModal);
   }
 
   async function executeCommitImportDiff(diff) {
@@ -1740,7 +1910,9 @@
           origin = "official";
         }
 
-        if (currentFilter !== "all" && currentFilter !== origin) {
+        if (currentFilter === "enrolled") {
+          if (enrolledCourses.indexOf(code) === -1) return false;
+        } else if (currentFilter !== "all" && currentFilter !== origin) {
           return false;
         }
 
@@ -1766,7 +1938,8 @@
         titleEl.textContent = "No courses found";
 
         let filterCategory = "";
-        if (currentFilter === "user") filterCategory = " in User Added";
+        if (currentFilter === "enrolled") filterCategory = " in My Courses";
+        else if (currentFilter === "user") filterCategory = " in User Added";
         else if (currentFilter === "edited") filterCategory = " in Edited";
         else if (currentFilter === "official") filterCategory = " in Official";
 
@@ -1790,7 +1963,11 @@
         });
         emptyState.appendChild(clearBtn);
       } else {
-        if (currentFilter === "user") {
+        if (currentFilter === "enrolled") {
+          emptyIcon.textContent = "★";
+          titleEl.textContent = "No Enrolled Courses";
+          subEl.textContent = "You haven't pinned any courses for this trimester yet. Click the star icon on any course to add it to My Courses.";
+        } else if (currentFilter === "user") {
           emptyIcon.textContent = "📂";
           titleEl.textContent = "No User-Added Courses";
           subEl.textContent = "You haven't added any custom courses yet. Click \"Add / Import Courses\" below to create one.";
@@ -1849,8 +2026,37 @@
       const badge = document.createElement("span");
       badge.className = `origin-badge ${origin.class}`;
       badge.textContent = origin.label;
-
       typeEl.appendChild(badge);
+
+      if (typeof courseData === "object" && courseData !== null && courseData.credits) {
+        const creditChip = document.createElement("span");
+        creditChip.className = "course-credit-chip";
+        creditChip.textContent = courseData.credits + " Cr";
+        typeEl.appendChild(creditChip);
+      }
+
+      // Task 3.2: Star enrollment button & clash detection
+      var isEnrolled = enrolledCourses.indexOf(code) !== -1;
+      var activeClashes = detectExamClashes(enrolledCourses, courses);
+      var isClashing = false;
+      for (var ci = 0; ci < activeClashes.length; ci++) {
+        if (activeClashes[ci].courses.indexOf(code) !== -1) {
+          isClashing = true;
+          break;
+        }
+      }
+      if (isClashing) row.classList.add("is-clashing");
+
+      var starBtn = document.createElement("button");
+      starBtn.type = "button";
+      starBtn.className = "btn-row-enroll" + (isEnrolled ? " is-enrolled" : "");
+      starBtn.textContent = isEnrolled ? "★" : "☆";
+      starBtn.title = isEnrolled ? "Remove from My Courses" : "Pin to My Courses";
+      starBtn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        toggleEnrollCourse(code);
+      });
+      typeEl.appendChild(starBtn);
 
       const arrowEl = document.createElement("div");
       arrowEl.className = "course-row-arrow";
@@ -1886,7 +2092,449 @@
   let detailsOriginView = "courses";
   let showPrereqNames = false; // Task 2.4 Enhancement: Code/Name toggle preference
 
-  // ── Task 2.4: Prerequisite Tree helpers ────────────────────────────────────
+  // ── Task 3.3: Exam Week Calendar Export (.ics) Helpers ────────────────────
+
+  /**
+   * Escapes special characters for RFC 5545 iCalendar text values.
+   * @param {string} str
+   * @returns {string}
+   */
+  function escapeIcsText(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/\\/g, "\\\\")
+      .replace(/;/g, "\\;")
+      .replace(/,/g, "\\,")
+      .replace(/\r?\n/g, "\\n");
+  }
+
+  /**
+   * Formats a Date object and time string ("HH:MM:SS") into an ICS timestamp (YYYYMMDDTHHMMSS).
+   * @param {Date} date
+   * @param {string} timeStr - "09:00:00"
+   * @returns {string}
+   */
+  function formatIcsDateTime(date, timeStr) {
+    var parts = timeStr.split(":");
+    var d = new Date(date.getTime());
+    d.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), parseInt(parts[2] || "0", 10), 0);
+    var pad = function(n) { return n < 10 ? "0" + n : String(n); };
+    return d.getFullYear() +
+      pad(d.getMonth() + 1) +
+      pad(d.getDate()) + "T" +
+      pad(d.getHours()) +
+      pad(d.getMinutes()) + "00";
+  }
+
+  /**
+   * Generates a standard RFC 5545 iCalendar (.ics) string for scheduled exams.
+   * @param {Array<[string, Object]>} courseEntries - Array of [code, courseData]
+   * @param {string} startDateStr - YYYY-MM-DD string for Day 1
+   * @param {boolean} includeReminders
+   * @returns {string}
+   */
+  function generateIcsCalendar(courseEntries, startDateStr, includeReminders) {
+    if (includeReminders === undefined) includeReminders = true;
+    var lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//UIU Course Code Decoder//Exam Calendar//EN",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      "X-WR-CALNAME:UIU Final Exam Schedule",
+      "X-WR-TIMEZONE:Asia/Dhaka"
+    ];
+
+    var now = new Date();
+    var pad = function(n) { return n < 10 ? "0" + n : String(n); };
+    var nowStr = now.getUTCFullYear() +
+      pad(now.getUTCMonth() + 1) +
+      pad(now.getUTCDate()) + "T" +
+      pad(now.getUTCHours()) +
+      pad(now.getUTCMinutes()) +
+      pad(now.getUTCSeconds()) + "Z";
+
+    var baseDateParts = (startDateStr || "").split("-");
+    var baseDate = baseDateParts.length === 3
+      ? new Date(parseInt(baseDateParts[0], 10), parseInt(baseDateParts[1], 10) - 1, parseInt(baseDateParts[2], 10))
+      : new Date();
+
+    for (var i = 0; i < courseEntries.length; i++) {
+      var code = courseEntries[i][0];
+      var val = courseEntries[i][1];
+      var data = normalizeCourseData(val);
+      var day = (data.examDay || "").trim();
+      var slot = (data.examSlot || "").trim();
+
+      if (!day || !slot) continue;
+      var lowerDay = day.toLowerCase();
+      if (lowerDay === "n/a" || lowerDay === "none" || lowerDay === "in-class") continue;
+
+      // Extract day index (Day 1 -> 0, Day 2 -> 1, ...)
+      var dayMatch = day.match(/\d+/);
+      var dayOffset = dayMatch ? (parseInt(dayMatch[0], 10) - 1) : 0;
+      var eventDate = new Date(baseDate.getTime() + dayOffset * 86400000);
+
+      // Map slot to hours
+      var startTime = "09:00:00";
+      var endTime = "11:00:00";
+      var slotUpper = slot.toUpperCase();
+      if (slotUpper.indexOf("T1") !== -1 || slotUpper.indexOf("SLOT 1") !== -1 || slotUpper === "1") {
+        startTime = "09:00:00";
+        endTime = "11:00:00";
+      } else if (slotUpper.indexOf("T2") !== -1 || slotUpper.indexOf("SLOT 2") !== -1 || slotUpper === "2") {
+        startTime = "11:30:00";
+        endTime = "13:30:00";
+      } else if (slotUpper.indexOf("T3") !== -1 || slotUpper.indexOf("SLOT 3") !== -1 || slotUpper === "3") {
+        startTime = "14:30:00";
+        endTime = "16:30:00";
+      }
+
+      var dtStart = formatIcsDateTime(eventDate, startTime);
+      var dtEnd = formatIcsDateTime(eventDate, endTime);
+      var uid = "uiu-exam-" + code.replace(/\s+/g, "_") + "-" + dtStart + "@uiu-decoder";
+
+      var title = code + " Final Exam (" + (data.name || "Course") + ")";
+      var desc = "Course: " + code + " - " + (data.name || "") + "\n" +
+        "Exam Routine: " + day + ", Slot " + slot +
+        (data.credits ? "\nCredits: " + data.credits + " Cr" : "") + "\n" +
+        "United International University";
+      var location = "United International University (UIU), United City, Madani Avenue, Dhaka 1212";
+
+      lines.push("BEGIN:VEVENT");
+      lines.push("UID:" + uid);
+      lines.push("DTSTAMP:" + nowStr);
+      lines.push("DTSTART:" + dtStart);
+      lines.push("DTEND:" + dtEnd);
+      lines.push("SUMMARY:" + escapeIcsText(title));
+      lines.push("DESCRIPTION:" + escapeIcsText(desc));
+      lines.push("LOCATION:" + escapeIcsText(location));
+      lines.push("STATUS:CONFIRMED");
+
+      if (includeReminders) {
+        lines.push("BEGIN:VALARM");
+        lines.push("TRIGGER:-PT24H");
+        lines.push("ACTION:DISPLAY");
+        lines.push("DESCRIPTION:Reminder: " + escapeIcsText(title) + " tomorrow");
+        lines.push("END:VALARM");
+
+        lines.push("BEGIN:VALARM");
+        lines.push("TRIGGER:-PT2H");
+        lines.push("ACTION:DISPLAY");
+        lines.push("DESCRIPTION:Reminder: " + escapeIcsText(title) + " in 2 hours");
+        lines.push("END:VALARM");
+      }
+
+      lines.push("END:VEVENT");
+    }
+
+    lines.push("END:VCALENDAR");
+    return lines.join("\r\n");
+  }
+
+  /**
+   * Triggers a browser download of the generated .ics file.
+   * @param {string} filename
+   * @param {string} content
+   */
+  function downloadIcsBlob(filename, content) {
+    var blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  /**
+   * Retrieves scheduled courses for calendar export.
+   * Prefers enrolled courses if any; falls back to current filter list.
+   * @returns {Array<[string, Object]>}
+   */
+  function getCoursesForCalendar() {
+    var targets = [];
+    if (enrolledCourses.length > 0) {
+      for (var i = 0; i < enrolledCourses.length; i++) {
+        var c = enrolledCourses[i];
+        if (courses[c]) targets.push([c, courses[c]]);
+      }
+    } else {
+      for (var k in courses) {
+        if (courses.hasOwnProperty(k)) {
+          var data = normalizeCourseData(courses[k]);
+          if (data.examDay && data.examSlot) {
+            targets.push([k, courses[k]]);
+          }
+        }
+      }
+    }
+    return targets;
+  }
+
+  /**
+   * Renders the preview of courses that will be exported in the modal.
+   */
+  function renderIcsPreview() {
+    if (!els.icsPreviewList) return;
+    while (els.icsPreviewList.firstChild) {
+      els.icsPreviewList.removeChild(els.icsPreviewList.firstChild);
+    }
+
+    var entries = getCoursesForCalendar();
+    var scheduled = [];
+    for (var i = 0; i < entries.length; i++) {
+      var d = normalizeCourseData(entries[i][1]);
+      if (d.examDay && d.examSlot && d.examDay.toLowerCase() !== "n/a") {
+        scheduled.push({ code: entries[i][0], data: d });
+      }
+    }
+
+    if (els.icsEventCount) els.icsEventCount.textContent = String(scheduled.length);
+
+    if (scheduled.length === 0) {
+      var emptyEl = document.createElement("div");
+      emptyEl.className = "ics-event-item";
+      emptyEl.style.color = "var(--text-muted)";
+      emptyEl.textContent = "No scheduled exams found in selected courses.";
+      els.icsPreviewList.appendChild(emptyEl);
+      if (els.downloadIcsBtn) els.downloadIcsBtn.disabled = true;
+      return;
+    }
+
+    if (els.downloadIcsBtn) els.downloadIcsBtn.disabled = false;
+
+    scheduled.forEach(function(item) {
+      var row = document.createElement("div");
+      row.className = "ics-event-item";
+
+      var codeSpan = document.createElement("span");
+      codeSpan.className = "ics-event-code";
+      codeSpan.textContent = item.code;
+
+      var daySpan = document.createElement("span");
+      daySpan.className = "ics-event-day";
+      daySpan.textContent = item.data.examDay;
+
+      var slotSpan = document.createElement("span");
+      slotSpan.className = "ics-event-time";
+      slotSpan.textContent = "Slot " + item.data.examSlot;
+
+      row.appendChild(codeSpan);
+      row.appendChild(daySpan);
+      row.appendChild(slotSpan);
+      els.icsPreviewList.appendChild(row);
+    });
+  }
+
+  function openExamCalendarModal() {
+    if (!els.examExportModal) return;
+
+    // Set default start date to today (or upcoming Saturday)
+    if (els.icsStartDateInput && !els.icsStartDateInput.value) {
+      var today = new Date();
+      var pad = function(n) { return n < 10 ? "0" + n : String(n); };
+      els.icsStartDateInput.value = today.getFullYear() + "-" + pad(today.getMonth() + 1) + "-" + pad(today.getDate());
+    }
+
+    renderIcsPreview();
+    openModalSafely(els.examExportModal, els.icsStartDateInput);
+  }
+
+  function closeExamCalendarModal() {
+    closeModalSafely(els.examExportModal);
+  }
+
+  // ── End Task 3.3 Helpers ──────────────────────────────────────────────────
+
+    // ── Task 3.2: "My Courses" & Exam Routine Clash Detector Helpers ─────────
+
+  /**
+   * Detects final exam routine collisions across enrolled courses.
+   * A clash occurs when two or more courses share the exact same non-empty Day & Slot.
+   * Lab / In-Class / N/A schedules are ignored.
+   * @param {string[]} enrolledList - Array of course codes
+   * @param {Object} catalog - Merged courses catalog
+   * @returns {Array<{ day: string, slot: string, courses: string[] }>}
+   */
+  function detectExamClashes(enrolledList, catalog) {
+    var slotMap = {};
+    var clashes = [];
+
+    for (var i = 0; i < enrolledList.length; i++) {
+      var code = enrolledList[i];
+      var data = normalizeCourseData(catalog[code]);
+      var day = (data.examDay || "").trim();
+      var slot = (data.examSlot || "").trim();
+
+      if (!day || !slot) continue;
+      var lowerDay = day.toLowerCase();
+      var lowerSlot = slot.toLowerCase();
+      if (lowerDay === "n/a" || lowerDay === "none" || lowerDay === "in-class") continue;
+      if (lowerSlot === "n/a" || lowerSlot === "none") continue;
+
+      var key = day + "|" + slot;
+      if (!slotMap[key]) slotMap[key] = [];
+      slotMap[key].push(code);
+    }
+
+    for (var k in slotMap) {
+      if (slotMap.hasOwnProperty(k) && slotMap[k].length > 1) {
+        var parts = k.split("|");
+        clashes.push({
+          day: parts[0],
+          slot: parts[1],
+          courses: slotMap[k]
+        });
+      }
+    }
+    return clashes;
+  }
+
+  /**
+   * Calculates total credits enrolled in the trimester.
+   * @param {string[]} enrolledList
+   * @param {Object} catalog
+   * @returns {number}
+   */
+  function computeEnrolledCredits(enrolledList, catalog) {
+    var total = 0;
+    for (var i = 0; i < enrolledList.length; i++) {
+      var code = enrolledList[i];
+      var data = normalizeCourseData(catalog[code]);
+      if (typeof data.credits === "number" && !isNaN(data.credits)) {
+        total += data.credits;
+      }
+    }
+    return total;
+  }
+
+  /**
+   * Synchronizes all "My Courses" UI elements across View 0 (Home),
+   * View 1 (Course List), and View 3 (Course Details).
+   */
+  function updateEnrolledUI() {
+    var totalEnrolled = enrolledCourses.length;
+    var totalCredits = computeEnrolledCredits(enrolledCourses, courses);
+    var clashes = detectExamClashes(enrolledCourses, courses);
+    var hasClashes = clashes.length > 0;
+
+    // View 0 (Home) Quick Card
+    if (els.homeEnrolledCard) {
+      if (totalEnrolled > 0) {
+        els.homeEnrolledCard.style.display = "block";
+        if (els.homeEnrolledCount) els.homeEnrolledCount.textContent = String(totalEnrolled);
+        if (els.homeEnrolledCredits) els.homeEnrolledCredits.textContent = totalCredits + " Cr";
+        if (els.homeClashBadge) {
+          if (hasClashes) {
+            els.homeClashBadge.className = "clash-badge danger";
+            els.homeClashBadge.textContent = "⚠️ " + clashes.length + " Exam Clash" + (clashes.length > 1 ? "es" : "");
+          } else {
+            els.homeClashBadge.className = "clash-badge ok";
+            els.homeClashBadge.textContent = "✓ No Exam Clashes";
+          }
+        }
+      } else {
+        els.homeEnrolledCard.style.display = "none";
+      }
+    }
+
+    // View 1 Filter Count Badge
+    if (els.enrolledCountBadge) {
+      if (totalEnrolled > 0) {
+        els.enrolledCountBadge.textContent = String(totalEnrolled);
+        els.enrolledCountBadge.style.display = "inline-block";
+      } else {
+        els.enrolledCountBadge.style.display = "none";
+      }
+    }
+
+    // View 1 Enrolled Summary & Clash Alert Box
+    if (els.enrolledSummaryCard) {
+      if (currentFilter === "enrolled" || (hasClashes && !isTrashMode)) {
+        els.enrolledSummaryCard.style.display = "flex";
+        if (els.enrolledTotalCourses) els.enrolledTotalCourses.textContent = String(totalEnrolled);
+        if (els.enrolledTotalCredits) els.enrolledTotalCredits.textContent = String(totalCredits);
+
+        if (els.clashAlertBox) {
+          if (hasClashes) {
+            els.clashAlertBox.style.display = "block";
+            if (els.clashAlertList) {
+              while (els.clashAlertList.firstChild) els.clashAlertList.removeChild(els.clashAlertList.firstChild);
+              clashes.forEach(function(c) {
+                var item = document.createElement("div");
+                item.className = "clash-item";
+                item.textContent = c.day + ", Slot " + c.slot + ": " + c.courses.join(" & ");
+                els.clashAlertList.appendChild(item);
+              });
+            }
+          } else {
+            els.clashAlertBox.style.display = "none";
+          }
+        }
+      } else {
+        els.enrolledSummaryCard.style.display = "none";
+      }
+    }
+
+    // View 3 Details View Toggle & Clash Warning
+    if (currentEditingCode) {
+      var isEnrolled = enrolledCourses.indexOf(currentEditingCode) !== -1;
+      if (els.detailsEnrollBtn) {
+        els.detailsEnrollBtn.classList.toggle("is-enrolled", isEnrolled);
+        if (els.detailsEnrollBtnText) {
+          els.detailsEnrollBtnText.textContent = isEnrolled ? "Enrolled" : "Enroll";
+        }
+      }
+
+      if (els.detailClashWarning) {
+        var activeClash = null;
+        for (var j = 0; j < clashes.length; j++) {
+          if (clashes[j].courses.indexOf(currentEditingCode) !== -1) {
+            activeClash = clashes[j];
+            break;
+          }
+        }
+        if (activeClash) {
+          var otherCourses = activeClash.courses.filter(function(c) { return c !== currentEditingCode; });
+          if (els.detailClashText) {
+            els.detailClashText.textContent = "⚠️ Exam routine clash on " + activeClash.day + ", Slot " + activeClash.slot + " with " + otherCourses.join(", ");
+          }
+          els.detailClashWarning.style.display = "flex";
+        } else {
+          els.detailClashWarning.style.display = "none";
+        }
+      }
+    }
+  }
+
+  /**
+   * Toggles enrollment for a specific course code and saves to storage.
+   * @param {string} code
+   */
+  async function toggleEnrollCourse(code) {
+    var idx = enrolledCourses.indexOf(code);
+    if (idx === -1) {
+      enrolledCourses.push(code);
+      showToast(code + " added to My Courses", "success");
+    } else {
+      enrolledCourses.splice(idx, 1);
+      showToast(code + " removed from My Courses", "info");
+    }
+    await chrome.storage.local.set({ enrolledCourses: enrolledCourses });
+    updateEnrolledUI();
+    if (currentFilter === "enrolled") {
+      renderCourseList(searchQuery);
+    } else {
+      renderCourseList(searchQuery);
+    }
+  }
+
+  // ── End Task 3.2 Helpers ──────────────────────────────────────────────────
+
+    // ── Task 2.4: Prerequisite Tree helpers ────────────────────────────────────
 
   /**
    * Builds a levelled prerequisite chain for a given course code.
@@ -2129,6 +2777,16 @@
     els.detailSlot.value = examSlot;
     els.detailPrereq.value = prerequisites;
     if (els.detailPrereqNote) els.detailPrereqNote.value = (typeof courseData === "object" && courseData !== null) ? (courseData.prerequisiteNote || "") : "";
+    const creditsVal = (typeof courseData === "object" && courseData !== null && courseData.credits !== undefined && courseData.credits !== null) ? courseData.credits : "";
+    if (els.detailCredits) els.detailCredits.value = creditsVal;
+    if (els.detailsCreditsBadge) {
+      if (creditsVal) {
+        els.detailsCreditsBadge.textContent = creditsVal + " Cr";
+        els.detailsCreditsBadge.style.display = "inline-block";
+      } else {
+        els.detailsCreditsBadge.style.display = "none";
+      }
+    }
 
     els.detailName.style.borderColor = "";
 
@@ -2140,6 +2798,9 @@
 
     // Task 2.4 — render prerequisite tree for this course
     renderPrereqTree(code);
+
+    // Task 3.2 — update enrolled status and clash warning
+    updateEnrolledUI();
   }
 
   function exitCourseDetails() {
@@ -2657,18 +3318,128 @@
       }
     });
 
+    // Task 3.3: Exam Calendar Export Event Listeners
+    els.openIcsExportBtn?.addEventListener("click", openExamCalendarModal);
+    els.examExportCloseBtn?.addEventListener("click", closeExamCalendarModal);
+    els.examExportCancelBtn?.addEventListener("click", closeExamCalendarModal);
+    els.examExportModal?.addEventListener("click", (e) => {
+      if (e.target === els.examExportModal) {
+        closeExamCalendarModal();
+      }
+    });
+    els.icsStartDateInput?.addEventListener("change", renderIcsPreview);
+    els.downloadIcsBtn?.addEventListener("click", () => {
+      var entries = getCoursesForCalendar();
+      var startDate = els.icsStartDateInput ? els.icsStartDateInput.value : "";
+      var includeReminders = els.icsRemindersToggle ? els.icsRemindersToggle.checked : true;
+      var icsContent = generateIcsCalendar(entries, startDate, includeReminders);
+      var filename = "uiu-final-exams-" + (startDate || "schedule") + ".ics";
+      downloadIcsBlob(filename, icsContent);
+      showToast("Downloaded exam schedule calendar (.ics)", "success");
+      closeExamCalendarModal();
+    });
+
     document.addEventListener("keydown", (e) => {
+      // Focus trapping inside active modals (Task 3.5)
+      if (e.key === "Tab") {
+        if (els.confirmModal?.classList.contains("show")) {
+          trapModalFocus(els.confirmModal, e);
+        } else if (els.exportModal?.classList.contains("show")) {
+          trapModalFocus(els.exportModal, e);
+        } else if (els.examExportModal?.classList.contains("show")) {
+          trapModalFocus(els.examExportModal, e);
+        } else if (els.importPreviewModal?.classList.contains("show")) {
+          trapModalFocus(els.importPreviewModal, e);
+        }
+      }
+
+      // Hierarchical Escape key navigation (Task 3.5)
       if (e.key === "Escape") {
         if (els.importPreviewModal?.classList.contains("show")) {
           closeImportPreviewModal();
         } else if (els.exportModal?.classList.contains("show")) {
           closeExportModal();
+        } else if (els.examExportModal?.classList.contains("show")) {
+          closeExamCalendarModal();
         } else if (els.confirmModal?.classList.contains("show")) {
-          els.confirmModal.classList.remove("show");
+          closeModalSafely(els.confirmModal);
           pendingAction = null;
           pendingSaveVal = null;
+        } else if (els.viewWrapper.classList.contains("show-details")) {
+          els.detailsBackBtn?.click();
+        } else if (els.viewWrapper.classList.contains("show-import")) {
+          els.importBackBtn?.click();
+        } else if (els.viewWrapper.classList.contains("show-settings")) {
+          els.settingsBackBtn?.click();
+        } else if (els.viewWrapper.classList.contains("show-courses")) {
+          els.backBtn?.click();
         }
       }
+    });
+
+    // Arrow navigation for tabs, theme options, filter row, and prereq toggle (Task 3.5)
+    els.tabSingleCourse?.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        activateBatchUploadTab();
+        els.tabBulkImport?.focus();
+      }
+    });
+    els.tabBulkImport?.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        activateSingleCourseTab();
+        els.tabSingleCourse?.focus();
+      }
+    });
+
+    const themeOptionBtns = [els.themeSystem, els.themeLight, els.themeDark].filter(Boolean);
+    themeOptionBtns.forEach((btn, idx) => {
+      btn.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+          e.preventDefault();
+          const next = themeOptionBtns[(idx + 1) % themeOptionBtns.length];
+          next.click();
+          next.focus();
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const prev = themeOptionBtns[(idx - 1 + themeOptionBtns.length) % themeOptionBtns.length];
+          prev.click();
+          prev.focus();
+        }
+      });
+    });
+
+    els.prereqToggleCode?.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        els.prereqToggleName?.click();
+        els.prereqToggleName?.focus();
+      }
+    });
+    els.prereqToggleName?.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        els.prereqToggleCode?.click();
+        els.prereqToggleCode?.focus();
+      }
+    });
+
+    const filterBtnsArr = Array.from(document.querySelectorAll("#courseFilterRow .filter-btn"));
+    filterBtnsArr.forEach((btn, idx) => {
+      btn.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          const next = filterBtnsArr[(idx + 1) % filterBtnsArr.length];
+          next.click();
+          next.focus();
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          const prev = filterBtnsArr[(idx - 1 + filterBtnsArr.length) % filterBtnsArr.length];
+          prev.click();
+          prev.focus();
+        }
+      });
     });
 
 
@@ -2717,6 +3488,7 @@
       isTrashMode = false;
       els.coursesPanelTitle.textContent = "Course Database";
       updateCourseCount();
+      updateEnrolledUI();
       updateSearchClearBtn();
       if (els.courseTableCard) els.courseTableCard.classList.remove("trash-mode");
       if (els.colHeaderAction) els.colHeaderAction.textContent = "";
@@ -2739,9 +3511,16 @@
       els.viewWrapper.classList.remove("show-settings");
     });
 
+    // Theme preference option buttons (Task 3.4)
+    els.themeSystem?.addEventListener("click", () => setTheme("system"));
+    els.themeLight?.addEventListener("click", () => setTheme("light"));
+    els.themeDark?.addEventListener("click", () => setTheme("dark"));
+
     function activateSingleCourseTab() {
       els.tabSingleCourse?.classList.add("active");
+      els.tabSingleCourse?.setAttribute("aria-selected", "true");
       els.tabBulkImport?.classList.remove("active");
+      els.tabBulkImport?.setAttribute("aria-selected", "false");
       if (els.singleCourseSection) els.singleCourseSection.style.display = "flex";
       if (els.bulkImportSection) els.bulkImportSection.style.display = "none";
       const subtitle = document.getElementById("importViewSubtitle");
@@ -2753,7 +3532,9 @@
 
     function activateBatchUploadTab(showMessage = false) {
       els.tabBulkImport?.classList.add("active");
+      els.tabBulkImport?.setAttribute("aria-selected", "true");
       els.tabSingleCourse?.classList.remove("active");
+      els.tabSingleCourse?.setAttribute("aria-selected", "false");
       if (els.singleCourseSection) els.singleCourseSection.style.display = "none";
       if (els.bulkImportSection) els.bulkImportSection.style.display = "flex";
       const subtitle = document.getElementById("importViewSubtitle");
@@ -2868,9 +3649,23 @@
         newPrereqs = newPrereqRaw.split(",").map(s => s.trim()).filter(Boolean);
       }
 
+      const newCreditsRaw = els.detailCredits ? els.detailCredits.value.trim() : "";
+      let newCredits = null;
+      if (newCreditsRaw) {
+        const parsed = parseFloat(newCreditsRaw);
+        if (!isNaN(parsed) && parsed > 0) newCredits = parsed;
+      }
+
       let newVal;
-      if (newDay || newSlot || newPrereqs.length > 0 || newPrereqNote) {
-        newVal = { name: newName, examDay: newDay, examSlot: newSlot, prerequisites: newPrereqs, prerequisiteNote: newPrereqNote };
+      if (newDay || newSlot || newPrereqs.length > 0 || newPrereqNote || newCredits !== null) {
+        newVal = {
+          name: newName,
+          examDay: newDay,
+          examSlot: newSlot,
+          prerequisites: newPrereqs,
+          prerequisiteNote: newPrereqNote
+        };
+        if (newCredits !== null) newVal.credits = newCredits;
       } else {
         newVal = newName;
       }
@@ -3258,6 +4053,8 @@
       const rawSlot = els.singleCourseSlot?.value.trim() || "";
       const rawPrereq = els.singleCoursePrereq?.value.trim() || "";
       const prereqNote = els.singleCoursePrereqNote ? els.singleCoursePrereqNote.value.trim() : "";
+      const rawCredits = els.singleCourseCredits?.value.trim() || "";
+      const singleCredits = rawCredits ? (parseFloat(rawCredits) || null) : null;
 
       if (!rawCode && !rawName) {
         els.singleCourseCode?.classList.add("input-error");
@@ -3292,6 +4089,9 @@
         prerequisites: prereqs,
         prerequisiteNote: prereqNote
       };
+      if (singleCredits !== null && singleCredits > 0) {
+        courseObj.credits = singleCredits;
+      }
 
       // Un-delete if this course was previously soft or hard deleted
       if (softDeletedCourses.includes(code)) {
@@ -3324,6 +4124,7 @@
         if (els.singleCourseName) els.singleCourseName.value = "";
         if (els.singleCourseDay) els.singleCourseDay.value = "";
         if (els.singleCourseSlot) els.singleCourseSlot.value = "";
+        if (els.singleCourseCredits) els.singleCourseCredits.value = "";
         if (els.singleCoursePrereq) els.singleCoursePrereq.value = "";
         if (els.singleCoursePrereqNote) els.singleCoursePrereqNote.value = "";
         els.singleCourseCode?.focus();

@@ -3,7 +3,8 @@
     "name": "Financial and Managerial Accounting",
     "examDay": "Day 2",
     "examSlot": "T3",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "ACT 3101": {
     "name": "Financial and Managerial Accounting",
@@ -135,7 +136,8 @@
     "name": "History of the Emergence of Bangladesh",
     "examDay": "Day 6",
     "examSlot": "T1",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 2
   },
   "BDS 2201": {
     "name": "Bangladesh Studies",
@@ -153,13 +155,15 @@
     "name": "Biology for Engineers",
     "examDay": "Day 3",
     "examSlot": "T3",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "BIO 3107": {
     "name": "Biology",
     "examDay": "Day 3",
     "examSlot": "T3",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "BNG 1102": {
     "name": "Bangla Language and Literature",
@@ -207,7 +211,8 @@
     "name": "Introduction to Computer Systems",
     "examDay": "",
     "examSlot": "",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 1
   },
   "CSE 1111": {
     "name": "Structured Programming Language",
@@ -215,7 +220,8 @@
     "examSlot": "T2",
     "prerequisites": [
       "CSE 1110"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 1112": {
     "name": "Structured Programming Language Laboratory",
@@ -223,7 +229,8 @@
     "examSlot": "",
     "prerequisites": [
       "CSE 1110"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 1115": {
     "name": "Object Oriented Programming",
@@ -231,7 +238,8 @@
     "examSlot": "T2",
     "prerequisites": [
       "CSE 2215"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 1116": {
     "name": "Object Oriented Programming Laboratory",
@@ -239,19 +247,22 @@
     "examSlot": "",
     "prerequisites": [
       "CSE 2216"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 1325": {
     "name": "Digital Logic Design",
     "examDay": "Day 3",
     "examSlot": "T3",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "CSE 1326": {
     "name": "Digital Logic Design Laboratory",
     "examDay": "",
     "examSlot": "",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 1
   },
   "CSE 2118": {
     "name": "Advanced Object Oriented Programming Laboratory",
@@ -259,13 +270,15 @@
     "examSlot": "",
     "prerequisites": [
       "CSE 1116"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 2213": {
     "name": "Discrete Mathematics",
     "examDay": "Day 3",
     "examSlot": "T2",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "CSE 2215": {
     "name": "Data Structure and Algorithms I",
@@ -274,7 +287,8 @@
     "prerequisites": [
       "DS 1115",
       "DS 1116"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 2216": {
     "name": "Data Structure and Algorithms I Laboratory",
@@ -283,7 +297,8 @@
     "prerequisites": [
       "DS 1115",
       "DS 1116"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 2217": {
     "name": "Data Structure and Algorithms II",
@@ -292,7 +307,8 @@
     "prerequisites": [
       "CSE 2215",
       "CSE 2216"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 2218": {
     "name": "Data Structure and Algorithms II Laboratory",
@@ -301,13 +317,15 @@
     "prerequisites": [
       "CSE 2215",
       "CSE 2216"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 2233": {
     "name": "Theory of Computation",
     "examDay": "Day 7",
     "examSlot": "T2",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "CSE 3313": {
     "name": "Computer Architecture",
@@ -315,7 +333,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 1325"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 3411": {
     "name": "System Analysis and Design",
@@ -323,7 +342,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "CSE 3521"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 3412": {
     "name": "System Analysis and Design Laboratory",
@@ -331,7 +351,8 @@
     "examSlot": "",
     "prerequisites": [
       "CSE 3522"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 3421": {
     "name": "Software Engineering",
@@ -339,7 +360,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 3411"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 3422": {
     "name": "Software Engineering Laboratory",
@@ -347,7 +369,8 @@
     "examSlot": "",
     "prerequisites": [
       "CSE 3412"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 3521": {
     "name": "Database Management Systems",
@@ -355,7 +378,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "CSE 2215"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 3522": {
     "name": "Database Management Systems Laboratory",
@@ -363,7 +387,8 @@
     "examSlot": "",
     "prerequisites": [
       "CSE 2216"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 3711": {
     "name": "Computer Networks",
@@ -371,13 +396,15 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 2217"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 3712": {
     "name": "Computer Networks Laboratory",
     "examDay": "",
     "examSlot": "",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 1
   },
   "CSE 3715": {
     "name": "Data Communication",
@@ -392,7 +419,8 @@
     "prerequisites": [
       "MATH 2205",
       "CSE 2217"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 3812": {
     "name": "Artificial Intelligence Laboratory",
@@ -401,7 +429,8 @@
     "prerequisites": [
       "MATH 2205",
       "CSE 2218"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 4000A": {
     "name": "Final Year Design Project - I",
@@ -433,7 +462,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 4531"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4133": {
     "name": "Business Intelligence",
@@ -441,7 +471,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 3411"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4165": {
     "name": "Web Programming",
@@ -450,7 +481,8 @@
     "prerequisites": [
       "CSE 1115",
       "CSE 1116"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4181": {
     "name": "Mobile Application Development",
@@ -458,7 +490,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 4165"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4197": {
     "name": "Introduction to Internet of Things (IoT)",
@@ -472,7 +505,8 @@
     "examSlot": "T2",
     "prerequisites": [
       "CSE 3313"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4326": {
     "name": "Microprocessors and Microcontrollers Laboratory",
@@ -480,7 +514,8 @@
     "examSlot": "",
     "prerequisites": [
       "EEE 2124"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 4327": {
     "name": "VLSI Design",
@@ -488,7 +523,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "CSE 4327"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4337": {
     "name": "Robotics",
@@ -509,20 +545,23 @@
     "prerequisites": [
       "CSE 1111",
       "CSE 4325"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4435": {
     "name": "Software Architecture",
     "examDay": "Day 4",
     "examSlot": "T2",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "CSE 4451": {
     "name": "Human Computer Interaction",
     "examDay": "Day 3",
     "examSlot": "T1",
     "prerequisites": [],
-    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 70"
+    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 70",
+    "credits": 3
   },
   "CSE 4495": {
     "name": "Software Testing and Quality Assurance",
@@ -530,7 +569,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 3421"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4509": {
     "name": "Operating Systems",
@@ -539,7 +579,8 @@
     "prerequisites": [
       "CSE 2217",
       "CSE 3313"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4510": {
     "name": "Operating Systems Laboratory",
@@ -547,7 +588,8 @@
     "examSlot": "",
     "prerequisites": [
       "CSE 2218"
-    ]
+    ],
+    "credits": 1
   },
   "CSE 4511": {
     "name": "Operating Systems and Scripting",
@@ -564,7 +606,8 @@
     "prerequisites": [
       "CSE 3711",
       "CSE 4509"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4587": {
     "name": "Cloud Computing",
@@ -572,7 +615,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 4511"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4611": {
     "name": "Compiler Design",
@@ -580,7 +624,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "CSE 2233"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4621": {
     "name": "Computer Graphics",
@@ -589,7 +634,8 @@
     "prerequisites": [
       "MATH 2201",
       "MATH 2183"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4777": {
     "name": "Networks Security",
@@ -597,7 +643,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 4531"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4783": {
     "name": "Cryptography",
@@ -619,7 +666,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 4889"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4817": {
     "name": "Big Data Analytics",
@@ -627,7 +675,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 4889"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4883": {
     "name": "Digital Image Processing",
@@ -635,7 +684,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "CSE 4889"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4889": {
     "name": "Machine Learning",
@@ -645,7 +695,8 @@
       "CSE 3811",
       "CSE 3812",
       "MATH 2183"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4891": {
     "name": "Data Mining",
@@ -653,7 +704,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "CSE 4889"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4893": {
     "name": "Introduction to Bioinformatics",
@@ -661,13 +713,15 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 4889"
-    ]
+    ],
+    "credits": 3
   },
   "CSE 4945": {
     "name": "UI: Concepts and Design",
     "examDay": "Day 1",
     "examSlot": "T2",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "CST 1303": {
     "name": "Computer Application in Business",
@@ -688,7 +742,8 @@
     "prerequisites": [
       "DS 1115",
       "DS 1116"
-    ]
+    ],
+    "credits": 3
   },
   "DS 1115": {
     "name": "Object Oriented Programming for Data Science",
@@ -697,7 +752,8 @@
     "prerequisites": [
       "DS 1501",
       "DS 1502"
-    ]
+    ],
+    "credits": 3
   },
   "DS 1116": {
     "name": "Object Oriented Programming Laboratory for Data Science",
@@ -706,19 +762,22 @@
     "prerequisites": [
       "DS 1501",
       "DS 1502"
-    ]
+    ],
+    "credits": 1
   },
   "DS 1501": {
     "name": "Programming for Data Science",
     "examDay": "Day 4",
     "examSlot": "T2",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "DS 1502": {
     "name": "Programming for Data Science Laboratory",
     "examDay": "",
     "examSlot": "",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 1
   },
   "DS 2251": {
     "name": "Bayesian Statistics",
@@ -727,7 +786,8 @@
     "prerequisites": [
       "DS 1101",
       "MATH 1151"
-    ]
+    ],
+    "credits": 3
   },
   "DS 3101": {
     "name": "Advanced Probability and Statistics",
@@ -736,14 +796,16 @@
     "prerequisites": [
       "MATH 2205",
       "MATH 2107"
-    ]
+    ],
+    "credits": 3
   },
   "DS 3120": {
     "name": "Technical Report Writing and Presentation",
     "examDay": "Day 6",
     "examSlot": "T3",
     "prerequisites": [],
-    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 55"
+    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 55",
+    "credits": 2
   },
   "DS 3521": {
     "name": "Data Visualization",
@@ -751,7 +813,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "DS 3885"
-    ]
+    ],
+    "credits": 3
   },
   "DS 3522": {
     "name": "Data Visualization Laboratory",
@@ -759,7 +822,8 @@
     "examSlot": "",
     "prerequisites": [
       "DS 3885"
-    ]
+    ],
+    "credits": 1
   },
   "DS 3881": {
     "name": "Regression and Multivariate Analysis",
@@ -768,7 +832,8 @@
     "prerequisites": [
       "DS 1101",
       "MATH 1151"
-    ]
+    ],
+    "credits": 3
   },
   "DS 3885": {
     "name": "Data Wrangling",
@@ -776,14 +841,16 @@
     "examSlot": "T2",
     "prerequisites": [
       "DS 1101"
-    ]
+    ],
+    "credits": 3
   },
   "DS 4000A": {
     "name": "Capstone Project - I",
     "examDay": "",
     "examSlot": "",
     "prerequisites": [],
-    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 85"
+    "prerequisiteNote": "MINIMUM COMPLETED CREDIT 85",
+    "credits": 2
   },
   "DS 4000B": {
     "name": "Capstone Project - II",
@@ -872,7 +939,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "DS 4889"
-    ]
+    ],
+    "credits": 3
   },
   "DS 4213": {
     "name": "Natural Language Processing",
@@ -894,7 +962,8 @@
     "examSlot": "T2",
     "prerequisites": [
       "DS 3885"
-    ]
+    ],
+    "credits": 3
   },
   "DS 4219": {
     "name": "Game Theory",
@@ -940,7 +1009,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "DS 4889"
-    ]
+    ],
+    "credits": 3
   },
   "DS 4523": {
     "name": "Simulation and Modeling",
@@ -949,7 +1019,8 @@
     "prerequisites": [
       "MATH 2107",
       "MATH 2205"
-    ]
+    ],
+    "credits": 3
   },
   "DS 4817": {
     "name": "Big Data",
@@ -957,7 +1028,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "CSE 3521"
-    ]
+    ],
+    "credits": 3
   },
   "DS 4821": {
     "name": "Generative Machine Learning",
@@ -985,7 +1057,8 @@
       "MATH 1151",
       "MATH 2107",
       "MATH 2205"
-    ]
+    ],
+    "credits": 3
   },
   "DS 4891": {
     "name": "Data Analytics",
@@ -993,7 +1066,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "DS 3885"
-    ]
+    ],
+    "credits": 3
   },
   "DS 4892": {
     "name": "Data Analytics Laboratory",
@@ -1001,7 +1075,8 @@
     "examSlot": "",
     "prerequisites": [
       "DS 3885"
-    ]
+    ],
+    "credits": 1
   },
   "DS 4921": {
     "name": "Special Topic - I",
@@ -1037,7 +1112,8 @@
     "name": "Economics",
     "examDay": "Day 6",
     "examSlot": "T1",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "EEE 1001": {
     "name": "Electrical Circuits I",
@@ -1097,7 +1173,8 @@
     "name": "Electrical Circuits",
     "examDay": "Day 6",
     "examSlot": "T3",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "EEE 2123": {
     "name": "Electronics",
@@ -1105,13 +1182,15 @@
     "examSlot": "T3",
     "prerequisites": [
       "EEE 2113"
-    ]
+    ],
+    "credits": 3
   },
   "EEE 2124": {
     "name": "Electronics Laboratory",
     "examDay": "",
     "examSlot": "",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 1
   },
   "EEE 2200": {
     "name": "Electrical Wiring and Drafting",
@@ -1375,7 +1454,8 @@
     "name": "Green Computing",
     "examDay": "Day 5",
     "examSlot": "T1",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "EEE 4311": {
     "name": "Microwave Engineering",
@@ -1591,7 +1671,8 @@
     "name": "English I",
     "examDay": "Day 1",
     "examSlot": "T1",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "ENG 1013": {
     "name": "English II",
@@ -1599,7 +1680,8 @@
     "examSlot": "T2",
     "prerequisites": [
       "ENG 1011"
-    ]
+    ],
+    "credits": 3
   },
   "FIN 2319": {
     "name": "Principles of Finance",
@@ -1761,7 +1843,8 @@
     "name": "AI Literacy and Prompt Engineering",
     "examDay": "Day 1",
     "examSlot": "T1",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "GED 4000": {
     "name": "Entrepreneurship and Career",
@@ -1833,7 +1916,8 @@
     "name": "Fundamental Calculus",
     "examDay": "Day 2",
     "examSlot": "T2",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "MATH 1153": {
     "name": "Advanced Calculus",
@@ -1841,7 +1925,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "MATH 1151"
-    ]
+    ],
+    "credits": 3
   },
   "MATH 2107": {
     "name": "Linear Algebra",
@@ -1849,7 +1934,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "MATH 1151"
-    ]
+    ],
+    "credits": 3
   },
   "MATH 2183": {
     "name": "Calculus and Linear Algebra",
@@ -1857,7 +1943,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "MATH 1151"
-    ]
+    ],
+    "credits": 3
   },
   "MATH 2201": {
     "name": "Coordinate Geometry and Vector Analysis",
@@ -1865,7 +1952,8 @@
     "examSlot": "T1",
     "prerequisites": [
       "MATH 1151"
-    ]
+    ],
+    "credits": 3
   },
   "MATH 2205": {
     "name": "Probability and Statistics",
@@ -1873,7 +1961,8 @@
     "examSlot": "T3",
     "prerequisites": [
       "MATH 1151"
-    ]
+    ],
+    "credits": 3
   },
   "MGT 1307": {
     "name": "Principles of Management",
@@ -1963,13 +2052,15 @@
     "name": "Physics",
     "examDay": "Day 7",
     "examSlot": "T3",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "PHY 2106": {
     "name": "Physics Laboratory",
     "examDay": "",
     "examSlot": "",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 1
   },
   "PMG 4101": {
     "name": "Project Management",
@@ -1977,7 +2068,8 @@
     "examSlot": "T2",
     "prerequisites": [
       "CSE 3411"
-    ]
+    ],
+    "credits": 3
   },
   "PSY 2101": {
     "name": "Psychology",
@@ -2019,7 +2111,8 @@
     "name": "Society, Environment and Engineering Ethics",
     "examDay": "Day 1",
     "examSlot": "T3",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "SOC 2102": {
     "name": "Society, Environment and Computing Ethics",
@@ -2055,7 +2148,8 @@
     "name": "Technology Entrepreneurship",
     "examDay": "Day 3",
     "examSlot": "T2",
-    "prerequisites": []
+    "prerequisites": [],
+    "credits": 3
   },
   "URC 1101": {
     "name": "Life Skills for Success",

@@ -17,20 +17,20 @@ flowchart TD
         R1_7 --> R1_8["1.8 Chrome Web Store Submission Package ✅"]
     end
 
-    subgraph R2["Release 2: Usability Polish (Next In Queue ⏳)"]
+    subgraph R2["Release 2: Usability Polish (Completed ✅)"]
         R2_1["2.1 Contextual Export in Manager Header ✅"]
         R2_2["2.2 File Import with Pre-Commit Preview ✅"]
         R2_3["2.3 Allowed Domains Full-Height & Search ✅"]
-        R2_4["2.4 Prerequisite Tree & 'Unlocks' Explorer"]
-        R2_5["2.5 GitHub Pages Help & Docs"]
+        R2_4["2.4 Prerequisite Tree & 'Unlocks' Explorer ✅"]
+        R2_5["2.5 GitHub Pages Help & Docs ✅"]
     end
 
-    subgraph R3["Release 3: Daily Academic Value (Planned 🔮)"]
-        R3_1["3.1 Credits Field in Schema"]
-        R3_2["3.2 My Courses & Exam Clash Detector"]
-        R3_3["3.3 Exam Week .ics Calendar Export"]
-        R3_4["3.4 Dark Mode Palette"]
-        R3_5["3.5 Keyboard Accessibility & ARIA"]
+    subgraph R3["Release 3: Daily Academic Value (Completed 🎉)"]
+        R3_1["3.1 Credits Field in Schema ✅"]
+        R3_2["3.2 My Courses & Exam Clash Detector ✅"]
+        R3_3["3.3 Exam Week .ics Calendar Export ✅"]
+        R3_4["3.4 Dark Mode Palette ✅"]
+        R3_5["3.5 Keyboard Accessibility & ARIA ✅"]
     end
 
     R1 --> R2 --> R3
@@ -92,7 +92,7 @@ flowchart TD
 
 ---
 
-## Milestone 2: Release 2 — Usability Polish (Status: In Progress ⏳)
+## Milestone 2: Release 2 — Usability Polish (Status: Completed 🎉)
 *Primary Goal: Streamline data management workflows, provide visual prerequisite tree exploration, and enhance catalog maintenance.*
 
 ### [x] 2.1 Contextual Export in Course Manager
@@ -126,32 +126,74 @@ flowchart TD
   - Row-level multi-select checkboxes with click-to-select row toggle and active highlight (`.allowlist-item.is-selected`).
   - Full Zero-`innerHTML` security compliance with 100% test coverage in `tests/test_allowed_domains_management.js`.
 
-### 2.4 Prerequisite Tree & "Unlocks" Explorer ✅
-- **Delivered**: Interactive prerequisite dependency explorer in View 3 (Course Details panel).
-- **Prerequisite Chain card** (`#prereqChainCard`): BFS traversal of the full ancestry — Direct (L1, green badges) and transitive (L2+, indigo badges). Missing catalog codes shown in amber "missing" badges. Depth labels ("Direct", "L2", "L3"...) with `›` arrows.
-- **Unlocks card** (`#unlocksCard`): Reverse lookup — scans all catalog entries to find courses that list the current course as a direct prerequisite; results rendered as green clickable badges.
-- **Clickable navigation**: Every in-catalog badge is a `<button>` that calls `openCourseDetails(code)` on click.
-- **Cycle-safe**: visited `Set` prevents infinite loops from circular prerequisite references.
-- **Zero innerHTML**: Entire implementation uses `createElement`, `textContent`, `appendChild`, `addEventListener` exclusively.
-- **Test**: `tests/test_prereq_tree.js` — 17 assertions, 17 passing.
+### [x] 2.4 Prerequisite Tree & "Unlocks" Explorer
+- **Delivered**:
+  - Interactive prerequisite dependency explorer in View 3 (Course Details panel).
+  - **Prerequisite Chain card** (`#prereqChainCard`): BFS traversal of the full ancestry — Direct (L1, green badges) and transitive (L2+, indigo badges). Missing catalog codes shown in amber "missing" badges. Depth labels ("Direct", "L2", "L3"...) with `›` arrows.
+  - **Reverse "Unlocks" Tree** (`#unlocksCard`): Reverse lookup — scans all catalog entries to find courses that list the current course as a direct prerequisite; results rendered as green clickable badges.
+  - **Code ↔ Name View Toggle** (`#prereqViewToggle`): Instant segmented switcher allowing students to view badges by Course Code or Course Name, with inverted hover tooltips and local storage persistence (`prereqShowNames`).
+  - **Clickable navigation**: Every in-catalog badge is a `<button>` that calls `openCourseDetails(code)` on click.
+  - **Cycle-safe**: visited `Set` prevents infinite loops from circular prerequisite references.
+  - **Zero innerHTML**: Entire implementation uses `createElement`, `textContent`, `appendChild`, `addEventListener` exclusively.
+  - **Test**: `tests/test_prereq_tree.js` — 29 assertions, 29 passing.
 
-### 2.5 GitHub Pages Documentation
-- Host a public documentation and visual course explorer page via GitHub Pages for students wanting to look up courses without installing the extension.
+### [x] 2.5 GitHub Pages Documentation & Web Course Explorer
+- **Delivered**:
+  - Full-featured standalone web application deployed under `docs/` for public access via GitHub Pages (`https://litch07.github.io/uiu-course-decoder/`).
+  - **Instant Search & Department Filtering**: Fast client-side search across all 315+ courses with department filter pills for CSE, Data Science, EEE, Business & Finance, Math & Sciences, and Humanities & General.
+  - **Secondary Filters & Sorting**: Filter by "Has Prerequisites", "Unlocks Future Courses", "Foundational (No Prereqs)" and sort by Code, Name, Most Prereqs, or Most Unlocks.
+  - **Interactive Course Inspector Modal**: Deep-dive view featuring Course Code, Title, Department tag, Exam Routine (Day & Slot), and Special Credit Requirements (`prerequisiteNote`).
+  - **Visual Prerequisite & Unlocks Explorer**: Complete ancestry tree (Direct L1, transitive L2+) and reverse unlocks with click-to-inspect navigation.
+  - **Segmented Code ↔ Name Toggle**: Allows instant switching between Course Code and Course Name display with tooltip inversion and `localStorage` preference persistence.
+  - **Deep-Linking & Shareable URLs**: URL hash routing (`#CSE-2215`) opens the exact course inspector directly with a 1-click "Share Link" clipboard generator.
+  - **Dark / Light Mode**: System-adaptive and user-toggleable theme with persistent storage.
+  - **Automated CI Deployment**: `.github/workflows/deploy-pages.yml` deploying `docs/` artifacts automatically on push to `main`.
+  - **Zero-`innerHTML` Security**: Strict programmatic DOM construction preventing any DOM-based XSS.
+  - **Test**: `tests/test_github_pages_docs.js` — 36 assertions, 36 passing.
 
 ---
 
-## Milestone 3: Release 3 — Daily Academic Value (Status: Future 🔮)
+## Milestone 3: Release 3 — Daily Academic Value (Status: In Progress ⏳)
 *Primary Goal: Elevate the extension from a passive decoder to an active academic assistant.*
 
-### 3.1 Course Credits Field in Schema
-- Add official credit counts (e.g., `3.0`, `1.5`, `1.0`) to the catalog schema and display cards.
+### [x] 3.1 Course Credits Field in Schema
+- **Delivered**:
+  - Official UIU undergraduate course credit counts (e.g. `3.0`, `1.5`, `1.0`, `2.0`) integrated directly into `courses.json` and `docs/courses.json` from departmental offerings.
+  - Schema validation updated in CI to verify all credit definitions are positive numeric values.
+  - View 1 (Course List Table): Displays course credit chips (`.course-credit-chip`, e.g. `3.0 Cr`) on course rows.
+  - View 3 (Course Details): Added `#detailCredits` input in `.form-row` and `#detailsCreditsBadge` in panel header. Persists custom credits across saves.
+  - View 4 (Add / Import Courses): Added `#singleCourseCredits` input in single course addition form (`.form-row-3col`).
+  - Pre-Commit Diff Engine: `computeImportDiff` detects, compares, and displays credit modifications (`oldVal` vs `newVal`) before committing bulk imports.
+  - Content Script Overlay (`content.js`): `buildTooltipDom` renders a dedicated `Credits: X Cr` detail row inside the hover card.
+  - Public Web Explorer (`docs/`): Displays credit badges on course cards and in the course inspector modal.
+  - Regression Test Suite: `tests/test_course_credits.js` — 31 assertions, 31 passing.
 
-### 3.2 "My Courses" & Exam Routine Clash Detector
-- Allow students to bookmark their enrolled courses for the trimester.
-- Detect overlapping exam routine slots (same Day and Slot) and display prominent clash warnings.
+### [x] 3.2 "My Courses" & Exam Routine Clash Detector
+- **Delivered**:
+  - **Pinned / Enrolled Course Management**: Students can bookmark their active enrolled courses for the trimester via quick-star (`★`/`☆`) toggle buttons on course rows or via `#detailsEnrollBtn` in View 3.
+  - **Persistent Storage**: Enrolled courses persist in `chrome.storage.local` under `enrolledCourses: [...]`.
+  - **Filter by Enrolled Courses**: View 1 includes `#filterEnrolledBtn` (`★ My Courses`) with real-time count badge `#enrolledCountBadge`.
+  - **Enrolled Summary Card** (`#enrolledSummaryCard`): Displays total enrolled course count, computed total credit count (e.g. `10.0 Cr`), and a 1-click `Clear` button.
+  - **Exam Routine Clash Detection Engine** (`detectExamClashes`):
+    - Identifies overlapping final exam routine slots (same Day and Slot, e.g. Day 4, Slot T2).
+    - Ignores lab finals, in-class evaluations, and N/A / empty routines to eliminate false positives.
+    - Groups 2-way and 3-way collisions and displays a prominent clash alert box (`#clashAlertBox`).
+  - **Visual Clash Warning Badges**:
+    - Conflicting course rows in View 1 are highlighted with `.is-clashing` red border styling.
+    - Course Details (View 3) displays a dedicated warning banner (`#detailClashWarning`) if the inspected course conflicts with another enrolled course.
+    - Home View (View 0) features `#homeEnrolledCard` with a quick clash indicator (`✓ No Exam Clashes` vs `⚠️ N Exam Clashes`).
+  - **Zero-`innerHTML` Security**: Built strictly with programmatic DOM manipulation.
+  - **Automated Regression Suite**: `tests/test_my_courses_clash_detector.js` — 31 assertions, 31 passing.
 
-### 3.3 Exam Week Calendar Export (.ics)
-- 1-click export generating an `.ics` calendar file with exact final exam dates and times for Google Calendar and Apple Calendar.
+### [x] 3.3 Exam Week Calendar Export (.ics)
+- **Delivered**:
+  - **iCalendar (.ics / RFC 5545) Generator**: Serializes enrolled course final exam schedules into standard `.ics` format compatible with Google Calendar, Apple Calendar, and Outlook.
+  - **Exam Routine Slot Mapping**: Maps UIU exam slots (`T1` &rarr; 09:00 - 11:00, `T2` &rarr; 11:30 - 13:30, `T3` &rarr; 14:30 - 16:30) and day offsets (`Day 1`..`Day 8`) from a selectable exam week start date.
+  - **Calendar Export Dialog** (`#examExportModal`): Accessible directly from the Enrolled Courses summary toolbar via `#openIcsExportBtn`. Includes interactive date picker (`#icsStartDateInput`), live scheduled exam counter (`#icsEventCount`), and preview list (`#icsPreviewList`).
+  - **Customizable Reminders**: Includes dual `VALARM` notifications (24 hours and 2 hours prior to each final exam) with toggle control (`#icsRemindersToggle`).
+  - **Smart Filtering**: Automatically filters out unscheduled courses, lab finals, and in-class evaluations to prevent calendar clutter.
+  - **Zero-`innerHTML` Security**: Programmatic node generation across all modal views and preview cards.
+  - **Automated Regression Suite**: `tests/test_exam_calendar_export.js` — 25 assertions, 25 passing.
 
 ### 3.4 System-Adaptive Dark Mode Palette
 - Enhanced OLED dark theme aligning with browser and OS color scheme preferences.

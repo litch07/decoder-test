@@ -8,9 +8,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6.svg?style=flat-square)](LICENSE)
 [![Zero Telemetry](https://img.shields.io/badge/Telemetry-Zero-10b981.svg?style=flat-square)](PRIVACY.md)
 [![Security Hardened](https://img.shields.io/badge/Security-Zero--innerHTML-emerald.svg?style=flat-square)](SECURITY.md)
+[![Web Course Explorer](https://img.shields.io/badge/Web_Explorer-Live-6366f1.svg?style=flat-square)](https://litch07.github.io/uiu-course-decoder/)
 [![UIU Community](https://img.shields.io/badge/Community-UIU%20Students-f97316.svg?style=flat-square)](https://github.com/litch07/uiu-course-decoder)
 
 </div>
+
+> 🌐 **Don't want to install the extension?** Use the public [**UIU Web Course & Prerequisite Explorer**](https://litch07.github.io/uiu-course-decoder/) directly in your browser.
 
 <p align="center">
   <img src="assets/demo.png" alt="UIU Course Code Decoder in action on university portal" width="100%" />
@@ -74,6 +77,11 @@ Choose how decoded course details appear on your screen:
 - **Layered Data Architecture**: Add unlisted courses, override exam slots, or import batch JSON catalogs (with an enforced 2 MB safety limit). Custom modifications survive official catalog updates.
 - **Safe Trash & Recovery**: Soft-delete courses to a dedicated Trash panel where they can be restored at any time or permanently purged.
 - **One-Click Issue Reporting**: Spot outdated information? Click **Report Wrong Data** in the Course Details view to open an automated, pre-formatted GitHub issue for maintainers.
+- **Course Credits & Cumulative Degree Tracking**: Official UIU credit counts (`3.0`, `1.5`, `1.0`, `2.0` Cr) integrated across all catalog views and webpage hover cards.
+- **"My Courses" & Exam Clash Detector**: Pin active trimester courses with 1-click star toggles, track total enrolled credits, and automatically detect conflicting final exam slots in real time.
+- **Exam Week Calendar Export (.ics)**: Export scheduled final exam routines directly into standard iCalendar (`.ics`) files for Google Calendar, Apple Calendar, and Microsoft Outlook.
+- **System-Adaptive OLED Dark Mode Palette**: Ultra-low-power OLED deep dark theme (`#090d16`) supporting System Default, Light, and Dark modes with zero flash of white.
+- **Keyboard Navigation & ARIA Accessibility**: Full WCAG-compliant keyboard navigation across panels, modal focus-trapping, hierarchical Escape retreat, and high-contrast visible focus indicators.
 
 ---
 
@@ -174,11 +182,8 @@ The extension includes a complete built-in management interface accessible direc
 The repository contains an automated test suite verifying data integrity, security constraints, and storage operations:
 
 ```bash
-# Run the Release 1 verification suite
-node tests/test_release1.js
-
-# Run the complete test suite
-Get-ChildItem tests/test_*.js | ForEach-Object { node $_.FullName }
+# Run the entire test suite (all 22 test files)
+node tests/run_all.js
 ```
 
 Every Pull Request is automatically verified by GitHub Actions via [`.github/workflows/validate-catalog.yml`](.github/workflows/validate-catalog.yml).
