@@ -371,7 +371,7 @@ chrome.permissions.onAdded.addListener(async (permissions) => {
 
 // Automatically inject content.js on page reload or navigation for permitted sites
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (changeInfo.status !== "loading" && changeInfo.status !== "complete") return;
+  if (changeInfo.status !== "complete") return;
   if (!tab.url || !tab.url.startsWith("http")) return;
 
   try {

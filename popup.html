@@ -21,6 +21,78 @@
     </div>
   </div>
 
+  <!-- Export Modal -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal-content export-modal-content">
+      <div class="export-modal-header">
+        <div class="export-modal-title-row">
+          <svg class="export-modal-icon" viewBox="0 0 24 24">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+          </svg>
+          <div class="export-modal-title">Export Courses</div>
+        </div>
+        <button type="button" class="export-modal-close-btn" id="exportModalCloseBtn" title="Close export dialog"
+          aria-label="Close export dialog">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+      </div>
+      <p class="export-modal-desc">Download course data as clean JSON. Compatible with Batch Upload, sharing, and
+        repository contributions.</p>
+
+      <div class="export-options-list" id="exportOptionsList"></div>
+
+      <div class="modal-actions" style="margin-top: 14px;">
+        <button type="button" class="btn-modal-cancel" id="exportModalCancelBtn" style="width: 100%;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-Commit Import Preview Modal -->
+  <div class="modal-overlay" id="importPreviewModal">
+    <div class="modal-content preview-modal-content">
+      <div class="preview-modal-header">
+        <div class="preview-modal-title-row">
+          <div class="preview-modal-icon-badge">
+            <svg class="preview-modal-icon" viewBox="0 0 24 24">
+              <path
+                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+            </svg>
+          </div>
+          <div>
+            <div class="preview-modal-title">Review &amp; Import Courses</div>
+            <div class="preview-modal-subtitle">Verify additions and updates before committing</div>
+          </div>
+        </div>
+        <button type="button" class="preview-modal-close-btn" id="previewCloseBtn" title="Close preview"
+          aria-label="Close preview">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Diff summary pills -->
+      <div class="preview-summary-row" id="previewSummaryRow"></div>
+
+      <!-- Diff items list -->
+      <div class="preview-diff-list" id="previewDiffList"></div>
+
+      <div class="preview-modal-actions">
+        <button type="button" class="btn-modal-cancel" id="previewCancelBtn">Cancel</button>
+        <button type="button" class="btn-modal-confirm" id="previewConfirmBtn">
+          <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: currentColor;">
+            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
+          </svg>
+          Confirm &amp; Merge
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Slide container: holds both views side by side; CSS translateX switches between them -->
   <div class="view-wrapper" id="viewWrapper">
 
@@ -177,14 +249,22 @@
           <h1 id="coursesPanelTitle">Course Database</h1>
           <p id="coursesPanelCount">— courses loaded</p>
         </div>
-        <button id="viewTrashBtn" class="header-trash-btn" title="Trash Bin">
-          <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-          </svg>
-          <div id="trashBadge"
-            style="position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; border-radius: 50%; font-size: 0.55rem; width: 15px; height: 15px; display: none; align-items: center; justify-content: center; font-weight: bold; border: 1.5px solid var(--accent); line-height: 1;">
-          </div>
-        </button>
+        <div class="header-actions">
+          <button type="button" id="exportCoursesBtn" class="header-export-btn" title="Export Courses"
+            aria-label="Export Courses">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+            </svg>
+          </button>
+          <button id="viewTrashBtn" class="header-trash-btn" title="Trash Bin">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+            </svg>
+            <div id="trashBadge"
+              style="position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; border-radius: 50%; font-size: 0.55rem; width: 15px; height: 15px; display: none; align-items: center; justify-content: center; font-weight: bold; border: 1.5px solid var(--accent); line-height: 1;">
+            </div>
+          </button>
+        </div>
       </div>
 
       <div class="body">
@@ -295,7 +375,8 @@
 
           <div class="form-group">
             <label class="form-label" for="detailPrereqNote">Prerequisite Note</label>
-            <input type="text" id="detailPrereqNote" class="form-input" placeholder="e.g. Minimum completed credit 70" />
+            <input type="text" id="detailPrereqNote" class="form-input"
+              placeholder="e.g. Minimum completed credit 70" />
           </div>
 
           <div class="form-row">
@@ -328,16 +409,20 @@
         <div class="report-card">
           <div class="report-card-header">
             <svg class="report-card-icon" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
             </svg>
             <span class="report-card-title">Notice an error with this course?</span>
           </div>
           <div class="report-card-body">
-            If the course title, exam routine, or prerequisites are incorrect or outdated, report it so we can fix it for all UIU students.
+            If the course title, exam routine, or prerequisites are incorrect or outdated, report it so we can fix it
+            for all UIU students.
           </div>
-          <button type="button" class="btn-report-issue" id="reportIssueBtn" title="Report incorrect course data via GitHub">
+          <button type="button" class="btn-report-issue" id="reportIssueBtn"
+            title="Report incorrect course data via GitHub">
             <svg class="report-btn-icon" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
             </svg>
             <span>Report Wrong Data for this Course</span>
             <svg class="report-external-icon" viewBox="0 0 24 24">
@@ -474,7 +559,8 @@
           <div class="form-group">
             <label class="form-label" for="singleCoursePrereqNote">
               <svg class="label-icon" viewBox="0 0 24 24">
-                <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                <path
+                  d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
               </svg>
               Prerequisite Note
             </label>
@@ -520,8 +606,36 @@
             </button>
           </div>
           <div class="import-hint">
-            Import courses using a JSON object or click <strong>Copy</strong> for a sample template. Course code and title are required.
+            Import courses using a JSON object or click <strong>Copy</strong> for a sample template. Course code and
+            title are required.
           </div>
+          <!-- File Drag-and-Drop Zone -->
+          <div class="file-drop-zone" id="fileDropZone" tabindex="0" role="button"
+            aria-label="Upload JSON course catalog">
+            <input type="file" id="jsonFileInput" accept=".json,application/json" style="display: none;" />
+            <div class="drop-zone-idle" id="dropZoneIdle">
+              <div class="drop-zone-icon-circle">
+                <svg class="drop-zone-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                </svg>
+              </div>
+              <div class="drop-zone-text-group">
+                <div class="drop-zone-primary-line">
+                  <span class="drop-zone-main-text">Drop your JSON catalog here,</span>
+                  <span class="drop-zone-or">or</span>
+                  <button type="button" class="drop-zone-browse-pill" id="browseFileBtn">browse files</button>
+                </div>
+                <div class="drop-zone-sub">Supports valid UIU JSON schema up to 2 MB</div>
+              </div>
+            </div>
+            <div class="drop-zone-file-info" id="dropZoneFileInfo" style="display: none;"></div>
+          </div>
+
+          <div class="drop-zone-divider-bar">
+            <span>or paste JSON directly</span>
+          </div>
+
           <div class="editor-header-bar">
             <span class="editor-label">JSON Editor</span>
             <span class="editor-badge" id="batchJsonBadge">Ready</span>

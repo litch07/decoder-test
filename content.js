@@ -3,6 +3,19 @@
 (function () {
   "use strict";
 
+  // Guard against missing, restricted, or invalidated extension context.
+  // In orphaned frames, restricted/sandboxed frames, or during extension reload,
+  // extension APIs (chrome.runtime, chrome.storage) may be undefined.
+  if (
+    typeof chrome === "undefined" ||
+    !chrome.runtime ||
+    !chrome.runtime.id ||
+    !chrome.storage ||
+    !chrome.storage.local
+  ) {
+    return;
+  }
+
   // Prevent duplicate injections in the same frame
   if (window.__UIU_COURSE_DECODER_INJECTED__) return;
   window.__UIU_COURSE_DECODER_INJECTED__ = true;
@@ -1233,6 +1246,7 @@
 
   // Load everything up once we have our settings from storage
   function init(storageData) {
+    if (!storageData || typeof storageData !== "object") return;
     courses = storageData.courses || {};
     mode = storageData.mode || "highlight";
     showExamInfo = storageData.showExamInfo || false;
@@ -1246,6 +1260,7 @@
     injectStyles();
 
     const rootNode = document.body || document.documentElement;
+    if (!rootNode) return;
     normalizeCourseSplits(rootNode);
     processNode(rootNode);
     startObserver();
@@ -1271,67 +1286,90 @@
     } catch (e) {}
   }
 
-  chrome.storage.local.get(["courses", "mode", "allowedSites", "showExamInfo", "showPrerequisites"], init);
-
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === "local") {
-      let needsFullRedecoration = false;
-      let needsDomUpdate = false;
-
-      if (changes.allowedSites !== undefined) {
-        const allowedSites = changes.allowedSites.newValue || [];
-        const isNowEnabled = isHostAllowed(window.location.hostname, allowedSites);
-        if (isNowEnabled !== enabled) {
-          enabled = isNowEnabled;
-          if (!enabled) {
-            stopObserver();
-            undecorateAll();
-          } else {
-            if (Object.keys(courses).length > 0) {
-              needsFullRedecoration = true;
-            }
+  if (chrome?.storage?.local?.get) {
+    try {
+      chrome.storage.local.get(
+        ["courses", "mode", "allowedSites", "showExamInfo", "showPrerequisites"],
+        (data) => {
+          if (chrome.runtime?.lastError || !chrome.runtime?.id) return;
+          if (data) {
+            init(data);
           }
         }
-      }
-      
-      if (changes.mode !== undefined) {
-        mode = changes.mode.newValue || "highlight";
-        if (enabled) needsFullRedecoration = true;
-      }
-      
-      if (changes.courses !== undefined) {
-        courses = changes.courses.newValue || {};
-        courseRegex = Object.keys(courses).length > 0 ? buildRegex(courses) : null;
-        if (enabled) needsFullRedecoration = true;
-      }
-
-      if (changes.showExamInfo !== undefined) {
-        showExamInfo = changes.showExamInfo.newValue || false;
-        needsDomUpdate = true;
-      }
-      if (changes.showPrerequisites !== undefined) {
-        showPrerequisites = changes.showPrerequisites.newValue || false;
-        needsDomUpdate = true;
-      }
-
-      if (needsFullRedecoration && enabled) {
-        if (!courseRegex && Object.keys(courses).length > 0) {
-          courseRegex = buildRegex(courses);
-        }
-        if (courseRegex) {
-          injectStyles();
-          stopObserver();
-          undecorateAll();
-          const rootNode = document.body || document.documentElement;
-          normalizeCourseSplits(rootNode);
-          processNode(rootNode);
-          startObserver();
-        }
-      } else if (needsDomUpdate && enabled) {
-        stopObserver();
-        updateAllDecoratedElements();
-        startObserver();
-      }
+      );
+    } catch (_) {
+      // Context invalidated or storage unavailable during reload
     }
-  });
+  }
+
+  if (chrome?.storage?.onChanged?.addListener) {
+    try {
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (!chrome.runtime?.id) return;
+        if (area === "local") {
+          let needsFullRedecoration = false;
+          let needsDomUpdate = false;
+
+          if (changes.allowedSites !== undefined) {
+            const allowedSites = changes.allowedSites.newValue || [];
+            const isNowEnabled = isHostAllowed(window.location.hostname, allowedSites);
+            if (isNowEnabled !== enabled) {
+              enabled = isNowEnabled;
+              if (!enabled) {
+                stopObserver();
+                undecorateAll();
+              } else {
+                if (Object.keys(courses).length > 0) {
+                  needsFullRedecoration = true;
+                }
+              }
+            }
+          }
+          
+          if (changes.mode !== undefined) {
+            mode = changes.mode.newValue || "highlight";
+            if (enabled) needsFullRedecoration = true;
+          }
+          
+          if (changes.courses !== undefined) {
+            courses = changes.courses.newValue || {};
+            courseRegex = Object.keys(courses).length > 0 ? buildRegex(courses) : null;
+            if (enabled) needsFullRedecoration = true;
+          }
+
+          if (changes.showExamInfo !== undefined) {
+            showExamInfo = changes.showExamInfo.newValue || false;
+            needsDomUpdate = true;
+          }
+          if (changes.showPrerequisites !== undefined) {
+            showPrerequisites = changes.showPrerequisites.newValue || false;
+            needsDomUpdate = true;
+          }
+
+          if (needsFullRedecoration && enabled) {
+            if (!courseRegex && Object.keys(courses).length > 0) {
+              courseRegex = buildRegex(courses);
+            }
+            if (courseRegex) {
+              injectStyles();
+              stopObserver();
+              undecorateAll();
+              const rootNode = document.body || document.documentElement;
+              if (rootNode) {
+                normalizeCourseSplits(rootNode);
+                processNode(rootNode);
+                startObserver();
+              }
+            }
+          } else if (needsDomUpdate && enabled) {
+            stopObserver();
+            updateAllDecoratedElements();
+            startObserver();
+          }
+        }
+      });
+    } catch (_) {
+      // Listener registration failed or context invalidated
+    }
+  }
 })();

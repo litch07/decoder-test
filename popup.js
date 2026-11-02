@@ -27,9 +27,25 @@
     settingsBackBtn: document.getElementById("settingsBackBtn"),
     backBtn: document.getElementById("backBtn"),
     coursesPanelTitle: document.getElementById("coursesPanelTitle"),
+    exportCoursesBtn: document.getElementById("exportCoursesBtn"),
     viewTrashBtn: document.getElementById("viewTrashBtn"),
     trashBadge: document.getElementById("trashBadge"),
     coursesPanelCount: document.getElementById("coursesPanelCount"),
+    exportModal: document.getElementById("exportModal"),
+    exportModalCloseBtn: document.getElementById("exportModalCloseBtn"),
+    exportModalCancelBtn: document.getElementById("exportModalCancelBtn"),
+    exportOptionsList: document.getElementById("exportOptionsList"),
+    fileDropZone: document.getElementById("fileDropZone"),
+    jsonFileInput: document.getElementById("jsonFileInput"),
+    browseFileBtn: document.getElementById("browseFileBtn"),
+    dropZoneIdle: document.getElementById("dropZoneIdle"),
+    dropZoneFileInfo: document.getElementById("dropZoneFileInfo"),
+    importPreviewModal: document.getElementById("importPreviewModal"),
+    previewCloseBtn: document.getElementById("previewCloseBtn"),
+    previewCancelBtn: document.getElementById("previewCancelBtn"),
+    previewConfirmBtn: document.getElementById("previewConfirmBtn"),
+    previewSummaryRow: document.getElementById("previewSummaryRow"),
+    previewDiffList: document.getElementById("previewDiffList"),
     trashActionsRow: document.getElementById("trashActionsRow"),
     restoreAllBtn: document.getElementById("restoreAllBtn"),
     emptyTrashBtn: document.getElementById("emptyTrashBtn"),
@@ -137,6 +153,9 @@
     } else if (type === 'remove') {
       svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
       path.setAttribute("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
+    } else if (type === 'export' || type === 'download') {
+      svg.setAttribute("style", "width:16px;height:16px;fill:currentColor;");
+      path.setAttribute("d", "M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z");
     }
 
     svg.appendChild(path);
@@ -564,6 +583,833 @@
     } else {
       return { class: "official", label: "Official" };
     }
+  }
+
+  // ── EXPORT COURSE CATALOG ──
+  function formatCourseForExport(courseData) {
+    const norm = normalizeCourseData(courseData);
+    const out = {
+      name: norm.name,
+      examDay: norm.examDay || "",
+      examSlot: norm.examSlot || "",
+      prerequisites: Array.isArray(norm.prerequisites) ? norm.prerequisites : []
+    };
+    if (norm.prerequisiteNote) {
+      out.prerequisiteNote = norm.prerequisiteNote;
+    }
+    return out;
+  }
+
+  function getExportDateString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function downloadJsonFile(filename, dataObj) {
+    try {
+      const jsonStr = JSON.stringify(dataObj, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        if (a.parentNode) {
+          a.parentNode.removeChild(a);
+        }
+        URL.revokeObjectURL(url);
+      }, 150);
+    } catch (err) {
+      console.error("Failed to export JSON file", err);
+    }
+  }
+
+  function triggerExportSuccessFeedback() {
+    if (!els.exportCoursesBtn) return;
+    const successIcon = createIcon('success');
+    successIcon.style.color = '#10b981';
+    els.exportCoursesBtn.textContent = "";
+    els.exportCoursesBtn.appendChild(successIcon);
+    els.exportCoursesBtn.classList.add("export-success");
+    els.exportCoursesBtn.title = "Export downloaded successfully!";
+
+    setTimeout(() => {
+      if (!els.exportCoursesBtn) return;
+      els.exportCoursesBtn.textContent = "";
+      els.exportCoursesBtn.appendChild(createIcon('export'));
+      els.exportCoursesBtn.classList.remove("export-success");
+      els.exportCoursesBtn.title = "Export Courses";
+    }, 1800);
+  }
+
+  function createExportOptionCard({ badge, title, countText, desc, isContextual, isDisabled, onClick }) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "export-option-card" + (isContextual ? " contextual" : "") + (isDisabled ? " disabled" : "");
+    if (isDisabled) {
+      card.disabled = true;
+    }
+
+    const topRow = document.createElement("div");
+    topRow.className = "export-option-top";
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "export-option-title";
+    titleEl.textContent = title;
+
+    if (badge) {
+      const badgeEl = document.createElement("span");
+      badgeEl.className = "export-option-badge";
+      badgeEl.textContent = badge;
+      titleEl.appendChild(badgeEl);
+    }
+
+    const countEl = document.createElement("span");
+    countEl.className = "export-option-count";
+    countEl.textContent = countText;
+
+    topRow.appendChild(titleEl);
+    topRow.appendChild(countEl);
+
+    const descEl = document.createElement("div");
+    descEl.className = "export-option-desc";
+    descEl.textContent = desc;
+
+    card.appendChild(topRow);
+    card.appendChild(descEl);
+
+    if (!isDisabled && typeof onClick === "function") {
+      card.addEventListener("click", () => {
+        onClick();
+        closeExportModal();
+        triggerExportSuccessFeedback();
+      });
+    }
+
+    return card;
+  }
+
+  function renderExportOptions() {
+    if (!els.exportOptionsList) return;
+    els.exportOptionsList.textContent = "";
+    const dateStr = getExportDateString();
+
+    const lc = (searchQuery || "").toLowerCase().trim();
+    const isFiltered = currentFilter !== "all" || lc.length > 0;
+
+    // 1. Contextual Option (Visible when a filter or search is active)
+    if (isFiltered) {
+      const visibleEntries = Object.entries(courses).filter(([code, courseData]) => {
+        const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
+        if (lc && !String(code).toLowerCase().includes(lc) && !String(name).toLowerCase().includes(lc)) {
+          return false;
+        }
+        const inBundled = !!bundledCourses[code];
+        const inRemote = !!remoteCourses[code];
+        const inUser = !!userCourses[code];
+        let origin = "";
+        if (!inBundled && !inRemote && inUser) origin = "user";
+        else if ((inBundled || inRemote) && inUser) origin = "edited";
+        else origin = "official";
+        if (currentFilter !== "all" && currentFilter !== origin) return false;
+        return true;
+      }).sort((a, b) => a[0].localeCompare(b[0]));
+
+      let filterLabel = "";
+      if (currentFilter === "user") filterLabel = "User Added";
+      else if (currentFilter === "edited") filterLabel = "Edited";
+      else if (currentFilter === "official") filterLabel = "Official";
+
+      let contextualTitle = "Current View";
+      let contextualDesc = "Export only the courses currently matched and visible in your list.";
+      let filenamePart = "filtered";
+
+      if (currentFilter !== "all" && lc) {
+        contextualTitle = `Current View: "${lc}" in ${filterLabel}`;
+        contextualDesc = `Export ${visibleEntries.length} course${visibleEntries.length !== 1 ? 's' : ''} matching "${lc}" in ${filterLabel}.`;
+        filenamePart = `${currentFilter}-${lc.replace(/[^a-z0-9]/gi, "_")}`;
+      } else if (lc) {
+        contextualTitle = `Search Results: "${lc}"`;
+        contextualDesc = `Export ${visibleEntries.length} course${visibleEntries.length !== 1 ? 's' : ''} matching search term "${lc}".`;
+        filenamePart = `search-${lc.replace(/[^a-z0-9]/gi, "_")}`;
+      } else if (currentFilter !== "all") {
+        contextualTitle = `Filter: ${filterLabel}`;
+        contextualDesc = `Export all ${visibleEntries.length} courses in the ${filterLabel} view.`;
+        filenamePart = currentFilter;
+      }
+
+      const contextualCard = createExportOptionCard({
+        badge: "CURRENT VIEW",
+        title: contextualTitle,
+        countText: `${visibleEntries.length} course${visibleEntries.length !== 1 ? 's' : ''}`,
+        desc: contextualDesc,
+        isContextual: true,
+        isDisabled: visibleEntries.length === 0,
+        onClick: () => {
+          const payload = {};
+          for (const [code, data] of visibleEntries) {
+            payload[code] = formatCourseForExport(data);
+          }
+          downloadJsonFile(`uiu-courses-${filenamePart}-${dateStr}.json`, payload);
+        }
+      });
+      els.exportOptionsList.appendChild(contextualCard);
+    }
+
+    // 2. Active Catalog (All Courses)
+    const allEntries = Object.entries(courses).sort((a, b) => a[0].localeCompare(b[0]));
+    const allCard = createExportOptionCard({
+      title: "Active Catalog (All Courses)",
+      countText: `${allEntries.length} course${allEntries.length !== 1 ? 's' : ''}`,
+      desc: "Complete merged catalog including official baseline, remote sync updates, and your customizations.",
+      isContextual: false,
+      isDisabled: allEntries.length === 0,
+      onClick: () => {
+        const payload = {};
+        for (const [code, data] of allEntries) {
+          payload[code] = formatCourseForExport(data);
+        }
+        downloadJsonFile(`uiu-courses-catalog-${dateStr}.json`, payload);
+      }
+    });
+    els.exportOptionsList.appendChild(allCard);
+
+    // 3. Custom Additions & Edits
+    const customEntries = Object.entries(userCourses)
+      .filter(([code]) => !softDeletedCourses.includes(code) && !hardDeletedCourses.includes(code))
+      .sort((a, b) => a[0].localeCompare(b[0]));
+    const customCard = createExportOptionCard({
+      title: "Custom Additions & Edits",
+      countText: `${customEntries.length} course${customEntries.length !== 1 ? 's' : ''}`,
+      desc: customEntries.length > 0
+        ? "Only courses you created or modified locally. Ideal for personal backups or sharing with classmates."
+        : "No custom courses or edits saved yet. Add courses to enable this export.",
+      isContextual: false,
+      isDisabled: customEntries.length === 0,
+      onClick: () => {
+        const payload = {};
+        for (const [code, data] of customEntries) {
+          const finalData = courses[code] || data;
+          payload[code] = formatCourseForExport(finalData);
+        }
+        downloadJsonFile(`uiu-custom-courses-${dateStr}.json`, payload);
+      }
+    });
+    els.exportOptionsList.appendChild(customCard);
+  }
+
+  function openExportModal() {
+    renderExportOptions();
+    els.exportModal?.classList.add("show");
+  }
+
+  function closeExportModal() {
+    els.exportModal?.classList.remove("show");
+  }
+
+  let pendingImportDiff = null;
+
+  // ── PRE-COMMIT IMPORT DIFF & PREVIEW ──
+  function computeImportDiff(parsedData, currentCourses) {
+    const toAdd = [];
+    const toUpdate = [];
+    const unchanged = [];
+    const errors = [];
+
+    for (const [k, v] of Object.entries(parsedData)) {
+      if (typeof k !== "string" || !k.trim()) {
+        errors.push({ code: String(k), reason: "Empty or invalid course code" });
+        continue;
+      }
+      const code = k.trim().toUpperCase();
+
+      let incoming;
+      let isNameOnly = false;
+      if (typeof v === "string" && v.trim()) {
+        incoming = { name: v.trim(), examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "" };
+        isNameOnly = true;
+      } else if (typeof v === "object" && v !== null && typeof v.name === "string" && v.name.trim()) {
+        incoming = {
+          name: v.name.trim(),
+          examDay: typeof v.examDay === "string" ? v.examDay.trim() : "",
+          examSlot: typeof v.examSlot === "string" ? v.examSlot.trim() : "",
+          prerequisites: Array.isArray(v.prerequisites)
+            ? v.prerequisites.map(p => String(p).trim()).filter(Boolean).sort()
+            : [],
+          prerequisiteNote: typeof v.prerequisiteNote === "string" ? v.prerequisiteNote.trim() : ""
+        };
+        const hasExamDay = !!incoming.examDay;
+        const hasExamSlot = !!incoming.examSlot;
+        const hasPrereqs = incoming.prerequisites.length > 0;
+        const hasPrereqNote = !!incoming.prerequisiteNote;
+        if (!hasExamDay && !hasExamSlot && !hasPrereqs && !hasPrereqNote) {
+          isNameOnly = true;
+        }
+      } else {
+        errors.push({ code, reason: "Missing required course title or invalid format" });
+        continue;
+      }
+
+      const existing = currentCourses[code];
+      if (!existing) {
+        toAdd.push({ code, incoming, isNameOnly });
+      } else {
+        const normExisting = normalizeCourseData(existing);
+        if (areCourseDataEqual(normExisting, incoming)) {
+          unchanged.push({ code, existing: normExisting });
+        } else {
+          const changes = [];
+          if (normExisting.name !== incoming.name) {
+            changes.push({ field: "Course Title", oldVal: normExisting.name || "—", newVal: incoming.name });
+          }
+          const oldExam = [normExisting.examDay, normExisting.examSlot].filter(Boolean).join(" / ") || "—";
+          const newExam = [incoming.examDay, incoming.examSlot].filter(Boolean).join(" / ") || "—";
+          if (oldExam !== newExam) {
+            changes.push({ field: "Exam Routine", oldVal: oldExam, newVal: newExam });
+          }
+          const oldPrereqs = normExisting.prerequisites.join(", ") || "None";
+          const newPrereqs = incoming.prerequisites.join(", ") || "None";
+          if (oldPrereqs !== newPrereqs) {
+            changes.push({ field: "Prerequisites", oldVal: oldPrereqs, newVal: newPrereqs });
+          }
+          if (normExisting.prerequisiteNote !== incoming.prerequisiteNote) {
+            changes.push({ field: "Prerequisite Note", oldVal: normExisting.prerequisiteNote || "None", newVal: incoming.prerequisiteNote || "None" });
+          }
+          toUpdate.push({ code, oldData: normExisting, incoming, changes, isNameOnly });
+        }
+      }
+    }
+
+    return { toAdd, toUpdate, unchanged, errors };
+  }
+
+  function renderImportPreview(diff) {
+    if (!els.previewSummaryRow || !els.previewDiffList) return;
+    els.previewSummaryRow.textContent = "";
+    els.previewDiffList.textContent = "";
+
+    function createSummaryPill(className, iconPathD, label) {
+      const pill = document.createElement("span");
+      pill.className = "summary-pill " + className;
+      if (iconPathD) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("d", iconPathD);
+        svg.appendChild(p);
+        pill.appendChild(svg);
+      }
+      pill.appendChild(document.createTextNode(label));
+      return pill;
+    }
+
+    // Summary pills
+    if (diff.toAdd.length > 0) {
+      els.previewSummaryRow.appendChild(
+        createSummaryPill("pill-new", "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z", "+" + diff.toAdd.length + " New")
+      );
+    }
+    if (diff.toUpdate.length > 0) {
+      els.previewSummaryRow.appendChild(
+        createSummaryPill("pill-update", "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z", "~" + diff.toUpdate.length + " Modified")
+      );
+    }
+    if (diff.unchanged.length > 0) {
+      els.previewSummaryRow.appendChild(
+        createSummaryPill("pill-unchanged", "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z", "=" + diff.unchanged.length + " Identical")
+      );
+    }
+    if (diff.errors.length > 0) {
+      els.previewSummaryRow.appendChild(
+        createSummaryPill("pill-invalid", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z", "!" + diff.errors.length + " Skipped")
+      );
+    }
+
+    // Dynamic confirm button updates
+    const totalChanges = diff.toAdd.length + diff.toUpdate.length;
+    if (els.previewConfirmBtn) {
+      els.previewConfirmBtn.textContent = "";
+      const checkSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      checkSvg.setAttribute("viewBox", "0 0 24 24");
+      checkSvg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
+      const checkPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      checkPath.setAttribute("d", "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z");
+      checkSvg.appendChild(checkPath);
+      els.previewConfirmBtn.appendChild(checkSvg);
+
+      if (totalChanges > 0) {
+        els.previewConfirmBtn.disabled = false;
+        els.previewConfirmBtn.style.opacity = "1";
+        els.previewConfirmBtn.style.cursor = "pointer";
+        els.previewConfirmBtn.appendChild(document.createTextNode("Confirm & Merge (" + totalChanges + ")"));
+      } else {
+        els.previewConfirmBtn.disabled = true;
+        els.previewConfirmBtn.style.opacity = "0.55";
+        els.previewConfirmBtn.style.cursor = "not-allowed";
+        els.previewConfirmBtn.appendChild(document.createTextNode("No Changes to Merge"));
+      }
+    }
+
+    // Render Updated Courses first (higher impact)
+    diff.toUpdate.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "diff-card is-update";
+
+      const header = document.createElement("div");
+      header.className = "diff-card-header";
+
+      const codeEl = document.createElement("span");
+      codeEl.className = "diff-card-code";
+      codeEl.textContent = item.code;
+
+      const badge = document.createElement("span");
+      badge.className = "diff-badge badge-update";
+      badge.textContent = "~ UPDATE";
+
+      header.appendChild(codeEl);
+      header.appendChild(badge);
+      card.appendChild(header);
+
+      const table = document.createElement("table");
+      table.className = "diff-table";
+
+      item.changes.forEach(ch => {
+        const tr = document.createElement("tr");
+
+        const tdField = document.createElement("td");
+        tdField.className = "diff-field-name";
+        tdField.textContent = ch.field;
+
+        const tdVal = document.createElement("td");
+        const valWrapper = document.createElement("div");
+        valWrapper.className = "diff-values-col";
+
+        const oldSpan = document.createElement("span");
+        oldSpan.className = "diff-old-val";
+        oldSpan.textContent = ch.oldVal;
+
+        const arrow = document.createElement("span");
+        arrow.className = "diff-arrow-icon";
+        arrow.textContent = "\u2192";
+
+        const newSpan = document.createElement("span");
+        newSpan.className = "diff-new-val";
+        newSpan.textContent = ch.newVal;
+
+        valWrapper.appendChild(oldSpan);
+        valWrapper.appendChild(arrow);
+        valWrapper.appendChild(newSpan);
+        tdVal.appendChild(valWrapper);
+
+        tr.appendChild(tdField);
+        tr.appendChild(tdVal);
+        table.appendChild(tr);
+      });
+
+      card.appendChild(table);
+      els.previewDiffList.appendChild(card);
+    });
+
+    // Render New Courses
+    diff.toAdd.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "diff-card is-new";
+
+      const header = document.createElement("div");
+      header.className = "diff-card-header";
+
+      const codeEl = document.createElement("span");
+      codeEl.className = "diff-card-code";
+      codeEl.textContent = item.code;
+
+      const badge = document.createElement("span");
+      badge.className = "diff-badge badge-new";
+      badge.textContent = "+ NEW";
+
+      header.appendChild(codeEl);
+      header.appendChild(badge);
+      card.appendChild(header);
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "diff-new-title";
+      titleEl.textContent = item.incoming.name || item.code;
+      card.appendChild(titleEl);
+
+      const chipsRow = document.createElement("div");
+      chipsRow.className = "diff-chips-row";
+
+      const examDay = item.incoming.examDay;
+      const examSlot = item.incoming.examSlot;
+      if (examDay || examSlot) {
+        const examChip = document.createElement("span");
+        examChip.className = "diff-meta-chip";
+        examChip.textContent = "Exam: " + [examDay, examSlot].filter(Boolean).join(" \u2022 ");
+        chipsRow.appendChild(examChip);
+      }
+
+      if (item.incoming.prerequisites && item.incoming.prerequisites.length > 0) {
+        const prereqChip = document.createElement("span");
+        prereqChip.className = "diff-meta-chip";
+        prereqChip.textContent = "Prereq: " + item.incoming.prerequisites.join(", ");
+        chipsRow.appendChild(prereqChip);
+      }
+
+      if (item.incoming.prerequisiteNote) {
+        const noteChip = document.createElement("span");
+        noteChip.className = "diff-meta-chip note";
+        noteChip.textContent = "Note: " + item.incoming.prerequisiteNote;
+        chipsRow.appendChild(noteChip);
+      }
+
+      if (!chipsRow.hasChildNodes()) {
+        const titleOnlyChip = document.createElement("span");
+        titleOnlyChip.className = "diff-meta-chip";
+        titleOnlyChip.textContent = "Title only";
+        chipsRow.appendChild(titleOnlyChip);
+      }
+
+      card.appendChild(chipsRow);
+      els.previewDiffList.appendChild(card);
+    });
+
+    if (totalChanges === 0) {
+      const emptyBox = document.createElement("div");
+      emptyBox.style.cssText = "display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:22px 12px; gap:7px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px;";
+
+      const checkSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      checkSvg.setAttribute("viewBox", "0 0 24 24");
+      checkSvg.setAttribute("style", "width:26px; height:26px; fill:#10b981;");
+      const checkPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      checkPath.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z");
+      checkSvg.appendChild(checkPath);
+
+      const emptyTitle = document.createElement("div");
+      emptyTitle.style.cssText = "font-size:0.78rem; font-weight:700; color:#0f172a;";
+      emptyTitle.textContent = "All Courses Up to Date";
+
+      const emptySub = document.createElement("div");
+      emptySub.style.cssText = "font-size:0.67rem; color:#64748b; line-height:1.35;";
+      emptySub.textContent = "All " + diff.unchanged.length + " courses in this file already match your database identically.";
+
+      emptyBox.appendChild(checkSvg);
+      emptyBox.appendChild(emptyTitle);
+      emptyBox.appendChild(emptySub);
+      els.previewDiffList.appendChild(emptyBox);
+    }
+  }
+
+  function openImportPreviewModal(diff) {
+    pendingImportDiff = diff;
+    renderImportPreview(diff);
+    els.importPreviewModal?.classList.add("show");
+  }
+
+  function closeImportPreviewModal() {
+    els.importPreviewModal?.classList.remove("show");
+  }
+
+  async function executeCommitImportDiff(diff) {
+    if (!diff) return;
+
+    let addedCount = 0;
+    let updatedCount = 0;
+    let nameOnlyCount = 0;
+
+    for (const item of diff.toAdd) {
+      const key = item.code;
+      const val = item.isNameOnly && typeof item.incoming === "object" && !item.incoming.examDay && !item.incoming.examSlot && item.incoming.prerequisites.length === 0 && !item.incoming.prerequisiteNote
+        ? item.incoming.name
+        : item.incoming;
+
+      if (softDeletedCourses.includes(key)) {
+        softDeletedCourses = softDeletedCourses.filter(c => c !== key);
+      }
+      if (hardDeletedCourses.includes(key)) {
+        hardDeletedCourses = hardDeletedCourses.filter(c => c !== key);
+      }
+      courses[key] = val;
+      userCourses[key] = val;
+      addedCount++;
+      if (item.isNameOnly) nameOnlyCount++;
+    }
+
+    for (const item of diff.toUpdate) {
+      const key = item.code;
+      const val = item.isNameOnly && typeof item.incoming === "object" && !item.incoming.examDay && !item.incoming.examSlot && item.incoming.prerequisites.length === 0 && !item.incoming.prerequisiteNote
+        ? item.incoming.name
+        : item.incoming;
+
+      if (softDeletedCourses.includes(key)) {
+        softDeletedCourses = softDeletedCourses.filter(c => c !== key);
+      }
+      if (hardDeletedCourses.includes(key)) {
+        hardDeletedCourses = hardDeletedCourses.filter(c => c !== key);
+      }
+      courses[key] = val;
+      userCourses[key] = val;
+      updatedCount++;
+      if (item.isNameOnly) nameOnlyCount++;
+    }
+
+    await chrome.storage.local.set({ courses, userCourses, softDeletedCourses, hardDeletedCourses });
+    updateCourseCount();
+    renderCourseList(searchQuery);
+    if (els.jsonInput) els.jsonInput.value = "";
+    updateJsonBadge();
+    clearDropZoneFileInfo();
+    closeImportPreviewModal();
+
+    const totalMerged = addedCount + updatedCount;
+    let summaryText = "";
+    if (addedCount > 0 && updatedCount > 0) {
+      summaryText = `Added ${addedCount} new, updated ${updatedCount} existing course${totalMerged !== 1 ? 's' : ''}.`;
+    } else if (addedCount > 0) {
+      summaryText = `Successfully imported ${addedCount} new course${addedCount !== 1 ? 's' : ''}.`;
+    } else if (updatedCount > 0) {
+      summaryText = `Successfully updated ${updatedCount} course${updatedCount !== 1 ? 's' : ''}.`;
+    }
+
+    if (diff.errors.length > 0) {
+      summaryText += ` Skipped ${diff.errors.length} invalid entr${diff.errors.length === 1 ? 'y' : 'ies'}.`;
+    }
+    if (nameOnlyCount > 0) {
+      summaryText += ` (${nameOnlyCount} saved as title-only).`;
+    }
+
+    showImportMsg("success", summaryText);
+    showToast(`Merged ${totalMerged} course${totalMerged !== 1 ? 's' : ''}`, "success");
+  }
+
+  function triggerDropZoneError(msg) {
+    if (els.fileDropZone) {
+      els.fileDropZone.classList.add("has-error");
+      setTimeout(() => {
+        els.fileDropZone?.classList.remove("has-error");
+      }, 3000);
+    }
+    showImportMsg("error", msg);
+  }
+
+  function showDropZoneFileInfo(fileName, fileSize, courseCount, parseError) {
+    if (!els.dropZoneFileInfo) return;
+    els.dropZoneFileInfo.textContent = "";
+
+    if (els.dropZoneIdle) {
+      els.dropZoneIdle.style.display = "none";
+    }
+    if (els.fileDropZone) {
+      els.fileDropZone.classList.add("has-file");
+      els.fileDropZone.classList.remove("has-error");
+    }
+
+    const card = document.createElement("div");
+    card.className = "drop-file-card";
+
+    // File type badge (JSON with icon)
+    const badge = document.createElement("div");
+    badge.className = "drop-file-badge";
+
+    const docSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    docSvg.setAttribute("viewBox", "0 0 24 24");
+    docSvg.setAttribute("class", "drop-file-badge-icon");
+    const docPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    docPath.setAttribute("d", "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z");
+    docSvg.appendChild(docPath);
+    badge.appendChild(docSvg);
+
+    const tag = document.createElement("span");
+    tag.className = "drop-file-badge-tag";
+    tag.textContent = "JSON";
+    badge.appendChild(tag);
+    card.appendChild(badge);
+
+    // File metadata (Name + Size + Status Pill)
+    const meta = document.createElement("div");
+    meta.className = "drop-file-meta";
+
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "drop-zone-file-name";
+    nameSpan.textContent = fileName;
+    nameSpan.title = fileName;
+    meta.appendChild(nameSpan);
+
+    const stats = document.createElement("div");
+    stats.className = "drop-file-stats";
+
+    const sizeSpan = document.createElement("span");
+    sizeSpan.className = "drop-zone-file-size";
+    const kb = (fileSize / 1024).toFixed(1);
+    sizeSpan.textContent = kb + " KB";
+    stats.appendChild(sizeSpan);
+
+    const dot = document.createElement("span");
+    dot.className = "drop-file-dot";
+    dot.textContent = "\u2022";
+    stats.appendChild(dot);
+
+    const statusPill = document.createElement("span");
+    if (parseError) {
+      statusPill.className = "drop-status-pill danger";
+      const errSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      errSvg.setAttribute("viewBox", "0 0 24 24");
+      errSvg.setAttribute("style", "width:10px;height:10px;fill:currentColor;");
+      const errPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      errPath.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z");
+      errSvg.appendChild(errPath);
+      statusPill.appendChild(errSvg);
+      statusPill.appendChild(document.createTextNode("Syntax error"));
+    } else if (courseCount !== undefined && courseCount > 0) {
+      statusPill.className = "drop-status-pill success";
+      const checkSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      checkSvg.setAttribute("viewBox", "0 0 24 24");
+      checkSvg.setAttribute("style", "width:10px;height:10px;fill:currentColor;");
+      const checkPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      checkPath.setAttribute("d", "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z");
+      checkSvg.appendChild(checkPath);
+      statusPill.appendChild(checkSvg);
+      statusPill.appendChild(document.createTextNode(courseCount + " courses ready"));
+    } else {
+      statusPill.className = "drop-status-pill neutral";
+      statusPill.textContent = "Ready";
+    }
+    stats.appendChild(statusPill);
+    meta.appendChild(stats);
+    card.appendChild(meta);
+
+    // Actions: Preview Pill Button + Clean Remove Button
+    const actions = document.createElement("div");
+    actions.className = "drop-file-actions";
+
+    if (!parseError && pendingImportDiff && (pendingImportDiff.toAdd.length > 0 || pendingImportDiff.toUpdate.length > 0)) {
+      const previewBtn = document.createElement("button");
+      previewBtn.type = "button";
+      previewBtn.className = "btn-card-preview";
+      previewBtn.title = "Preview changes before committing";
+
+      const eyeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      eyeSvg.setAttribute("viewBox", "0 0 24 24");
+      const eyePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      eyePath.setAttribute("d", "M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z");
+      eyeSvg.appendChild(eyePath);
+
+      const previewTxt = document.createElement("span");
+      previewTxt.textContent = "Preview";
+
+      previewBtn.appendChild(eyeSvg);
+      previewBtn.appendChild(previewTxt);
+      previewBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!pendingImportDiff && els.jsonInput?.value) {
+          try {
+            const parsed = JSON.parse(els.jsonInput.value);
+            pendingImportDiff = computeImportDiff(parsed, courses);
+          } catch (err) {}
+        }
+        if (pendingImportDiff) {
+          openImportPreviewModal(pendingImportDiff);
+        }
+      });
+      actions.appendChild(previewBtn);
+    }
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "drop-zone-file-remove";
+    removeBtn.title = "Remove loaded file";
+    removeBtn.setAttribute("aria-label", "Remove loaded file");
+
+    const removeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    removeSvg.setAttribute("viewBox", "0 0 24 24");
+    removeSvg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
+    const removePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    removePath.setAttribute("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
+    removeSvg.appendChild(removePath);
+    removeBtn.appendChild(removeSvg);
+
+    removeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      clearDropZoneFileInfo();
+      if (els.jsonInput) {
+        els.jsonInput.value = "";
+        updateJsonBadge();
+        showImportMsg("info", "File unloaded.");
+      }
+    });
+    actions.appendChild(removeBtn);
+
+    card.appendChild(actions);
+
+    els.dropZoneFileInfo.appendChild(card);
+    els.dropZoneFileInfo.style.display = "flex";
+  }
+
+  function clearDropZoneFileInfo() {
+    if (!els.dropZoneFileInfo) return;
+    els.dropZoneFileInfo.textContent = "";
+    els.dropZoneFileInfo.style.display = "none";
+    if (els.dropZoneIdle) {
+      els.dropZoneIdle.style.display = "flex";
+    }
+    if (els.fileDropZone) {
+      els.fileDropZone.classList.remove("has-file");
+      els.fileDropZone.classList.remove("has-error");
+    }
+    if (els.jsonFileInput) els.jsonFileInput.value = "";
+    pendingImportDiff = null;
+  }
+
+  function processLoadedJsonFile(file) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".json") && file.type !== "application/json") {
+      triggerDropZoneError("Invalid file \"" + file.name + "\". Only .json files are supported.");
+      return;
+    }
+    const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
+    if (file.size > MAX_IMPORT_BYTES) {
+      triggerDropZoneError("File exceeds 2 MB limit. Please select a smaller file.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result;
+      if (els.jsonInput) {
+        els.jsonInput.value = content;
+        updateJsonBadge();
+
+        let courseCount = 0;
+        let parseError = false;
+        try {
+          const parsed = JSON.parse(content);
+          if (typeof parsed === "object" && !Array.isArray(parsed) && parsed !== null) {
+            courseCount = Object.keys(parsed).length;
+            pendingImportDiff = computeImportDiff(parsed, courses);
+            showDropZoneFileInfo(file.name, file.size, courseCount, false);
+            showImportMsg("info", "Loaded \"" + file.name + "\" (" + (file.size / 1024).toFixed(1) + " KB, " + courseCount + " courses).");
+
+            // Stress the modal: bring it up smoothly so user can immediately verify before committing!
+            openImportPreviewModal(pendingImportDiff);
+          } else {
+            parseError = true;
+            showDropZoneFileInfo(file.name, file.size, 0, true);
+            showImportMsg("error", "JSON file must contain an object map of courses.");
+          }
+        } catch (err) {
+          parseError = true;
+          showDropZoneFileInfo(file.name, file.size, 0, true);
+          showImportMsg("error", "JSON syntax error in \"" + file.name + "\": " + err.message);
+        }
+      }
+    };
+    reader.onerror = () => {
+      triggerDropZoneError("Could not read \"" + file.name + "\".");
+    };
+    reader.readAsText(file);
   }
 
   async function reloadLocalCoursesState() {
@@ -1421,6 +2267,30 @@
   }
 
   function attachEventListeners() {
+    // Export Course Catalog modal controls
+    els.exportCoursesBtn?.addEventListener("click", openExportModal);
+    els.exportModalCloseBtn?.addEventListener("click", closeExportModal);
+    els.exportModalCancelBtn?.addEventListener("click", closeExportModal);
+    els.exportModal?.addEventListener("click", (e) => {
+      if (e.target === els.exportModal) {
+        closeExportModal();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (els.importPreviewModal?.classList.contains("show")) {
+          closeImportPreviewModal();
+        } else if (els.exportModal?.classList.contains("show")) {
+          closeExportModal();
+        } else if (els.confirmModal?.classList.contains("show")) {
+          els.confirmModal.classList.remove("show");
+          pendingAction = null;
+          pendingSaveVal = null;
+        }
+      }
+    });
+
 
     // Report Wrong Data button in Course Details view
     els.reportIssueBtn?.addEventListener("click", () => {
@@ -1470,6 +2340,7 @@
       updateSearchClearBtn();
       if (els.courseTableCard) els.courseTableCard.classList.remove("trash-mode");
       if (els.colHeaderAction) els.colHeaderAction.textContent = "";
+      if (els.exportCoursesBtn) els.exportCoursesBtn.style.display = "grid";
       els.viewTrashBtn.style.display = "grid";
       els.courseFilterRow.style.display = "flex";
       els.openImportBtn.style.display = "flex";
@@ -1540,6 +2411,7 @@
       if (isTrashMode) {
         els.coursesPanelTitle.textContent = "Trash Bin";
         els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
+        if (els.exportCoursesBtn) els.exportCoursesBtn.style.display = "none";
         els.viewTrashBtn.style.display = "none";
         els.courseFilterRow.style.display = "none";
         if (softDeletedCourses.length > 0) {
@@ -1552,6 +2424,7 @@
       } else {
         els.coursesPanelTitle.textContent = "Course Database";
         updateCourseCount();
+        if (els.exportCoursesBtn) els.exportCoursesBtn.style.display = "grid";
         els.viewTrashBtn.style.display = "grid";
         els.courseFilterRow.style.display = "flex";
         els.trashActionsRow.style.display = "none";
@@ -1565,6 +2438,7 @@
         isTrashMode = false;
         els.coursesPanelTitle.textContent = "Course Database";
         updateCourseCount();
+        if (els.exportCoursesBtn) els.exportCoursesBtn.style.display = "grid";
         els.viewTrashBtn.style.display = "grid";
         els.courseFilterRow.style.display = "flex";
         els.trashActionsRow.style.display = "none";
@@ -1938,7 +2812,12 @@
     });
 
     // Real-time batch editor status update
-    els.jsonInput?.addEventListener("input", updateJsonBadge);
+    els.jsonInput?.addEventListener("input", () => {
+      updateJsonBadge();
+      if (!els.jsonInput.value.trim()) {
+        clearDropZoneFileInfo();
+      }
+    });
 
     // Validation & auto-uppercase on single course form inputs
     els.singleCourseCode?.addEventListener("input", () => {
@@ -2078,7 +2957,7 @@
       els.singleCourseCode?.focus();
     });
 
-    // Handle user pasting in a new JSON course list
+    // Handle user clicking Import & Merge (with Pre-Commit Preview)
     els.importBtn?.addEventListener("click", async () => {
       const raw = els.jsonInput.value.trim();
       if (!raw) {
@@ -2106,78 +2985,94 @@
         return;
       }
 
-      let added = 0;
-      let errors = 0;
-      let nameOnlyCount = 0;
-      for (const [k, v] of Object.entries(parsed)) {
-        if (typeof k !== "string" || !k.trim()) {
-          errors++;
-          continue;
-        }
-        const key = k.trim().toUpperCase();
-        let val;
-        let isNameOnly = false;
+      const diff = computeImportDiff(parsed, courses);
 
-        if (typeof v === "string" && v.trim()) {
-          val = v.trim();
-          isNameOnly = true;
-        } else if (typeof v === "object" && v !== null && typeof v.name === "string" && v.name.trim()) {
-          val = {
-            ...v,
-            name: v.name.trim(),
-            prerequisiteNote: (typeof v.prerequisiteNote === "string") ? v.prerequisiteNote.trim() : (val && val.prerequisiteNote ? val.prerequisiteNote : "")
-          };
-          const hasExamDay = !!val.examDay;
-          const hasExamSlot = !!val.examSlot;
-          const hasPrereqs = Array.isArray(val.prerequisites) && val.prerequisites.length > 0;
-          const hasPrereqNote = !!val.prerequisiteNote;
-          if (!hasExamDay && !hasExamSlot && !hasPrereqs && !hasPrereqNote) {
-            isNameOnly = true;
-          }
+      if (diff.toAdd.length === 0 && diff.toUpdate.length === 0) {
+        if (diff.errors.length > 0) {
+          showImportMsg("error", `Found ${diff.errors.length} invalid course entr${diff.errors.length === 1 ? "y" : "ies"}. No valid changes detected.`);
+        } else if (diff.unchanged.length > 0) {
+          showImportMsg("info", `All ${diff.unchanged.length} course${diff.unchanged.length !== 1 ? "s" : ""} already match your database identically.`);
         } else {
-          errors++;
-          continue;
+          showImportMsg("error", "No valid course entries detected in the provided JSON.");
         }
-
-        if (softDeletedCourses.includes(key)) {
-          softDeletedCourses = softDeletedCourses.filter(c => c !== key);
-        }
-        if (hardDeletedCourses.includes(key)) {
-          hardDeletedCourses = hardDeletedCourses.filter(c => c !== key);
-        }
-        courses[key] = val;
-        userCourses[key] = val;
-        added++;
-        if (isNameOnly) nameOnlyCount++;
-      }
-
-      if (added === 0 && errors > 0) {
-        showImportMsg("error", `Found ${errors} invalid course entr${errors === 1 ? "y" : "ies"}. No courses were imported.`);
-        return;
-      } else if (added === 0) {
-        showImportMsg("error", "No valid course entries detected in the provided JSON.");
         return;
       }
 
-      await chrome.storage.local.set({ courses, userCourses, softDeletedCourses, hardDeletedCourses });
-      updateCourseCount();
-      renderCourseList(searchQuery);
-      els.jsonInput.value = "";
-      updateJsonBadge();
-
-      let msg = "";
-      if (errors > 0) {
-        msg = `Successfully imported ${added} course${added !== 1 ? "s" : ""}; skipped ${errors} invalid entr${errors === 1 ? "y" : "ies"}.`;
-      } else {
-        msg = `Successfully imported and merged ${added} course${added !== 1 ? "s" : ""} into catalog.`;
-      }
-
-      if (nameOnlyCount > 0) {
-        msg += ` (${nameOnlyCount} added with title only).`;
-      }
-      showImportMsg("success", msg);
-      showToast(`Imported ${added} course${added !== 1 ? "s" : ""}`, "success");
+      // Open the Pre-Commit Preview Modal
+      openImportPreviewModal(diff);
     });
+
+    // Pre-Commit Preview action handlers
+    els.previewCloseBtn?.addEventListener("click", closeImportPreviewModal);
+    els.previewCancelBtn?.addEventListener("click", closeImportPreviewModal);
+    els.previewConfirmBtn?.addEventListener("click", async () => {
+      if (pendingImportDiff) {
+        await executeCommitImportDiff(pendingImportDiff);
+      }
+    });
+
+    // File Drag-and-Drop and Browse handlers
+    els.browseFileBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      els.jsonFileInput?.click();
+    });
+
+    els.fileDropZone?.addEventListener("click", (e) => {
+      if (!els.fileDropZone.classList.contains("has-file")) {
+        els.jsonFileInput?.click();
+      }
+    });
+
+    els.fileDropZone?.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && !els.fileDropZone.classList.contains("has-file")) {
+        e.preventDefault();
+        els.jsonFileInput?.click();
+      }
+    });
+
+    els.jsonFileInput?.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (file) processLoadedJsonFile(file);
+    });
+
+    // Anti-flicker drag handling
+    let dropZoneDragCounter = 0;
+
+    els.fileDropZone?.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZoneDragCounter++;
+      els.fileDropZone.classList.add("drag-over");
+    });
+
+    els.fileDropZone?.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      els.fileDropZone.classList.add("drag-over");
+    });
+
+    els.fileDropZone?.addEventListener("dragleave", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZoneDragCounter--;
+      if (dropZoneDragCounter <= 0) {
+        dropZoneDragCounter = 0;
+        els.fileDropZone.classList.remove("drag-over");
+      }
+    });
+
+    els.fileDropZone?.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZoneDragCounter = 0;
+      els.fileDropZone.classList.remove("drag-over");
+      const file = e.dataTransfer?.files?.[0];
+      if (file) processLoadedJsonFile(file);
+    });
+
+    // Window-level drop protection to prevent navigating tab on accidental edge drops
+    window.addEventListener("dragover", (e) => e.preventDefault());
+    window.addEventListener("drop", (e) => e.preventDefault());
 
     // Clear JSON editor
     els.clearBtn?.addEventListener("click", () => {
@@ -2189,6 +3084,7 @@
       }
       els.jsonInput.value = "";
       updateJsonBadge();
+      clearDropZoneFileInfo();
       els.jsonInput.focus();
       showImportMsg("info", "Editor cleared.");
     });

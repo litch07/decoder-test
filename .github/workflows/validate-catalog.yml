@@ -99,4 +99,7 @@ jobs:
           node tests/test_single_course_add.js
           node tests/test_sync_diff.js
           node tests/test_release1.js
+          node tests/test_contextual_export.js
+          node tests/test_file_import_preview.js
+          node tests/test_content_script_resilience.js
           echo "All tests passed successfully."

@@ -44,6 +44,29 @@
 
 ---
 
+### B. Release 2 (In Progress): Usability Polish
+1. **Contextual Export in Course Manager (Task 2.1)**:
+   - Added `#exportCoursesBtn` in Course Database header alongside Trash bin button.
+   - Interactive modal (`#exportModal`) with Zero-`innerHTML` DOM node generation, backdrop blur, and Escape key dismissal.
+   - Contextual intelligence: dynamically detects search query or active filter (User Added, Edited, Official) and offers single-click export of currently visible courses.
+   - Active Database export: one-click clean JSON export of all merged active courses with 2-space indentation.
+   - Custom Additions export: exports user-created and modified courses for backups or sharing.
+   - Tactile feedback: animated checkmark on the header export button upon download.
+   - Verified 100% round-trip compatibility with Batch Upload parser and zero `innerHTML` usage.
+
+2. **File Import with Pre-Commit Preview (Task 2.2)**:
+   - Interactive drag-and-drop zone (`#fileDropZone`) and file browse button in Batch Upload.
+   - Real-time pre-commit diff calculation (`computeImportDiff`) categorizing incoming entries into New, Updated (with Before/After comparison), Unchanged, and Invalid.
+   - Pre-Commit Preview Modal (`#importPreviewModal`) with summary pill badges and scrollable field-level change cards.
+   - 1-click "Confirm & Merge" applying verified updates to storage and auto-cleansing soft and hard trash.
+   - Zero-`innerHTML` security throughout with 2 MB safety cap and strict `.json` extension enforcement.
+
+3. **Content Script Context Resilience & Reload Defense**:
+   - Added top-level extension context guards in content.js verifying chrome, chrome.runtime, chrome.runtime.id, chrome.storage, and chrome.storage.local before script execution.
+   - Defensively wrapped chrome.storage.local.get and chrome.storage.onChanged.addListener with try/catch and runtime validity checks, completely eliminating `TypeError: Cannot read properties of undefined (reading 'local')` when reloading the extension in chrome://extensions or navigating pages with unprivileged/sandboxed iframes.
+   - Refined background.js tab update listener to inject strictly on `changeInfo.status === "complete"`, preventing premature script execution in unready frame states.
+   - Added automated verification test suite `tests/test_content_script_resilience.js` (5/5 passing).
+
 ### B. View 4 (Add / Import Courses) Architecture & Design
 1. **Tabbed Navigation (`Single Course` vs `Batch Upload`)**:
    - Tab switcher (`.import-tab-nav` and `.import-tab-btn`) with smooth crossfades and zero layout shifts.
@@ -150,7 +173,7 @@
 - `PRIVACY.md` — Full transparent privacy documentation.
 - `CONTRIBUTING.md` — Contribution guide and course schema specification.
 - `.github/workflows/validate-catalog.yml` — Automated CI workflow validating catalog syntax and running regression tests.
-- `tests/` — Automated test suite (11 test files):
+- `tests/` — Automated test suite (14 test files):
   - `tests/test_release1.js` (Release 1 verification suite)
   - `tests/test_single_and_batch_integration.js`
   - `tests/test_merge.js` / `tests/test_merge_v2.js`
@@ -161,6 +184,9 @@
   - `tests/test_single_course_add.js`
   - `tests/test_batch_upload.js`
   - `tests/test_sync_diff.js`
+  - `tests/test_contextual_export.js`
+  - `tests/test_file_import_preview.js`
+  - `tests/test_content_script_resilience.js`
 
 ---
 
@@ -170,4 +196,4 @@ Run the entire automated test suite from the repository root:
 ```powershell
 Get-ChildItem -Path tests/*.js | ForEach-Object { node $_.FullName }
 ```
-**Expected Result**: All 11 test suites pass with zero failures.
+**Expected Result**: All 14 test suites pass with zero failures.

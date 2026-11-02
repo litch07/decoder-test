@@ -18,8 +18,8 @@ flowchart TD
     end
 
     subgraph R2["Release 2: Usability Polish (Next In Queue ⏳)"]
-        R2_1["2.1 Contextual Export in Manager Header"]
-        R2_2["2.2 File Import with Pre-Commit Preview"]
+        R2_1["2.1 Contextual Export in Manager Header ✅"]
+        R2_2["2.2 File Import with Pre-Commit Preview ✅"]
         R2_3["2.3 Allowed Domains Full-Height & Search"]
         R2_4["2.4 Prerequisite Tree & 'Unlocks' Explorer"]
         R2_5["2.5 GitHub Pages Help & Docs"]
@@ -92,14 +92,29 @@ flowchart TD
 
 ---
 
-## Milestone 2: Release 2 — Usability Polish (Status: Planned ⏳)
+## Milestone 2: Release 2 — Usability Polish (Status: In Progress ⏳)
 *Primary Goal: Streamline data management workflows, provide visual prerequisite tree exploration, and enhance catalog maintenance.*
 
-### 2.1 Contextual Export in Course Manager
-- Add export action in the Course Database header allowing students to export their active catalog or custom additions as clean JSON.
+### [x] 2.1 Contextual Export in Course Manager
+- **Delivered**:
+  - Added dedicated Export action button (`#exportCoursesBtn`) in the Course Database header.
+  - Implemented interactive Export Modal (`#exportModal`) with Zero-`innerHTML` safe DOM generation and Escape key dismissal.
+  - Contextual intelligence: dynamically detects search queries or active tab filters (User Added, Edited, Official) to offer single-click export of the currently visible dataset.
+  - Full catalog export: one-click export of all active merged courses formatted as canonical JSON with 2-space indentation.
+  - Custom additions & edits export: exports user-created and modified courses for easy backup or peer sharing.
+  - Tactile feedback: success icon animation on the header button upon export completion.
+  - Automated test suite `tests/test_contextual_export.js` verifying UI elements, Zero-`innerHTML`, schema adherence, round-trip import compatibility, and filename timestamps.
 
-### 2.2 File Import with Pre-Commit Preview
-- Allow `.json` file drag-and-drop in the Import panel with a side-by-side diff preview before merging changes into local storage.
+### [x] 2.2 File Import with Pre-Commit Preview
+- **Delivered**:
+  - Implemented interactive drag-and-drop zone (`#fileDropZone`) and file browser trigger in the Batch Upload panel.
+  - Enforced 2 MB payload size cap and strict `.json` extension validation on file drops and file selection.
+  - Added visual drop feedback (`.drag-over`) and removable loaded file indicator chip with file size formatting.
+  - Implemented pre-commit diff engine (`computeImportDiff`) categorizing incoming data into New, Updated (with field-level old vs new diffs), Unchanged, and Invalid/Skipped.
+  - Built interactive Pre-Commit Preview Modal (`#importPreviewModal`) with summary badge pills (`+New`, `~Updated`, `=Unchanged`, `!Skipped`) and side-by-side Before/After diff tables.
+  - Safe 1-click "Confirm & Merge" committing approved changes, un-deleting from soft/hard trash, and updating all active displays.
+  - Full Zero-`innerHTML` security compliance across all modal components and diff tables.
+  - Created automated regression suite `tests/test_file_import_preview.js` with 100% passing assertions.
 
 ### 2.3 Allowed Domains Search & Bulk Management
 - Enhance the Settings allowed domains list with real-time domain filtering and bulk-remove capabilities for users managing dozens of web portals.
