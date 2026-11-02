@@ -1,161 +1,85 @@
-# UIU Course Code Decoder — Current State & Recent Improvements
+# UIU Course Code Decoder — Current State & Architectural Specification
 
-> **Purpose**: This document provides a complete technical handover of the current state of the UIU Course Code Decoder browser extension. It details all architectural patterns, UI refinements, data models, and recent improvements made across the extension, specifically formatted for AI assistants (like Claude) and developers to immediately understand the codebase.
+> **Purpose**: This document provides a complete technical handover of the current state of the UIU Course Code Decoder browser extension. It details all architectural patterns, security guarantees, data models, and recent improvements across the extension for developers and AI assistants.
 
 ---
 
 ## 1. Project Overview & Core Philosophy
 
-- **What it is**: A privacy-focused Manifest V3 Chrome extension designed for United International University (UIU) students. It automatically detects course codes (e.g. `CSE 3421`) across webpages (UCAM, LMS, portals) and decodes them into full course names, exam schedules, and prerequisites.
+- **What it is**: A privacy-focused Manifest V3 Chrome extension designed for United International University (UIU) students. It automatically detects course codes (e.g. `CSE 3421`, `ACT 1111`) across webpages (UCAM, LMS, Google Docs, SVG charts) and decodes them into full course names, exam schedules, prerequisites, and degree notes.
 - **Privacy First & Offline Operation**: Runs completely offline. Zero telemetry, zero analytics, zero external scripts. All database queries, user customizations, and storage occur locally in `chrome.storage.local`.
-- **The Only Remote Request**: An optional, user-triggered "Sync Course Database" feature that fetches updates directly from the official GitHub repository (`raw.githubusercontent.com`).
+- **Zero-`innerHTML` Security**: Completely purged of `innerHTML` and `insertAdjacentHTML`. All DOM modifications use safe programmatic browser APIs (`createElement`, `createTextNode`, `textContent`), preventing DOM-based Cross-Site Scripting (XSS).
+- **Per-Site Permissions Model**: Operates under least-privilege optional host permissions (`optional_host_permissions: ["*://*/*"]`), requesting permission only when the user explicitly enables a site. Content scripts are dynamically registered via `chrome.scripting.registerContentScripts` and persist across page reloads.
+- **The Only Remote Request**: An optional, user-triggered "Sync Course Database" feature that fetches updates directly from the official GitHub repository (`raw.githubusercontent.com`) with an enforced 2 MB payload size limit.
 
 ---
 
 ## 2. Comprehensive Changelog of Recent Improvements
 
-### A. View 4 (Add / Import Courses) Architecture & Design
-Previously, course imports were limited to a single raw JSON input box without dedicated workflows for single course additions.
+### A. Release 1: Trust & Ship (Current Release line 2.0.0+)
+1. **Data Normalization & `prerequisiteNote`**:
+   - Extracted non-course credit thresholds (e.g. `MINIMUM 85 credits`, `MINIMUM COMPLETED CREDIT 70`) from `prerequisites` arrays across all baseline catalog entries (`CSE 4000A`, `CSE 4451`, `DS 3120`, `DS 4000A`, `DS 4123`).
+   - Preserved `prerequisites` strictly for valid course code strings.
+   - Added dedicated `prerequisiteNote` inputs and display cards across `popup.html`, `popup.js`, and `content.js`.
+2. **Zero-`innerHTML` Security Hardening**:
+   - Refactored `content.js` and `popup.js` to build all DOM elements, tooltips, inline labels, and alert messages using programmatic node construction (`createElement`, `createTextNode`, `textContent`).
+   - Zero occurrences of `innerHTML` or `insertAdjacentHTML` remain in active extension code.
+   - Enforced a 2 MB payload size cap on both batch JSON imports and remote GitHub sync responses.
+3. **Per-Site Dynamic Permissions & Reload Persistence**:
+   - Replaced blanket `<all_urls>` with `optional_host_permissions: ["*://*/*"]` and `tabs` permission in `manifest.json`.
+   - On site toggle, requests origin permission via `chrome.permissions.request({ origins: [origin] })`.
+   - `background.js` dynamically registers content scripts for allowed sites (`chrome.scripting.registerContentScripts`) and handles tab reloads (`chrome.tabs.onUpdated`).
+   - Added `window.__UIU_COURSE_DECODER_INJECTED__` duplication guard in `content.js`.
+4. **1-Click "Report Wrong Data" Crowdsourcing Action**:
+   - Added a "Report Wrong Data" button to the Course Details view (`details-view`).
+   - Formats a student-friendly GitHub issue prefill with clean Markdown sections, emoji badges, and exact course metadata, without confusing HTML comment brackets.
+5. **CI Validator & Repository Protection**:
+   - Added `.github/workflows/validate-catalog.yml` for automated PR checking (JSON syntax, schema compliance, pure prerequisite arrays, and automated test execution).
+   - Added `SECURITY.md` defining private vulnerability disclosure policies.
+6. **Documentation & Visual Assets Modernization**:
+   - Completely rewrote `README.md`, `PRIVACY.md`, `CONTRIBUTING.md`, and `SECURITY.md` in professional Project Voice.
+   - Created `SCREENSHOTS_GUIDE.md` and pre-rendered dark-themed placeholder PNGs in `assets/` to ensure zero broken image links.
+7. **Production Distribution Packaging**:
+   - Built verified Chrome Web Store distribution package `dist/uiu-course-code-decoder-v2.0.0.zip`.
 
+---
+
+### B. View 4 (Add / Import Courses) Architecture & Design
 1. **Tabbed Navigation (`Single Course` vs `Batch Upload`)**:
-   - Replaced fragmented buttons with a cohesive tab switcher (`.import-tab-nav` and `.import-tab-btn`).
-   - Clean active states with smooth transitions and zero layout shifts.
-
+   - Tab switcher (`.import-tab-nav` and `.import-tab-btn`) with smooth crossfades and zero layout shifts.
 2. **Single Course Addition Form**:
-   - **Streamlined Inputs**:
-     - `Course Code`: Auto-uppercases user input; validates format (e.g., `CSE 3715`).
-     - `Course Name`: Required; primary identifier.
-     - `Prerequisites`: Optional, entered as comma-separated values (e.g., `CSE 1111, MATH 1151`), automatically trimmed and normalized into an array.
-     - `Exam Day` & `Exam Slot`: Normalized UI standards to UIU university terminology:
-       - Exam Day placeholder: `D1`, `D2`, `D3`, `D4`... (e.g. `D4`)
-       - Exam Slot placeholder: `T1`, `T2`, `T3` (e.g. `T2`)
-   - **Removed Clutter**: Purged redundant live previews, complex chip editors, and banner disclaimers that bloated the layout, delivering a fast, focused, and intuitive form.
-   - **Safe Controls**: Added `Save Course` (`#addCourseBtn`) and `Clear` (`#clearSingleBtn`) with keyboard `Enter` submission support.
-
+   - `Course Code`: Auto-uppercases user input; validates format (e.g., `CSE 3715`).
+   - `Course Name`: Required primary title.
+   - `Prerequisites`: Comma-separated list of course codes, trimmed into an array.
+   - `Prerequisite Note`: Dedicated input for credit minimums (e.g. `MINIMUM 85 credits`).
+   - `Exam Day` & `Exam Slot`: Normalized UI standards (`D1-D8`, `T1-T3`).
+   - Safe controls: `Save Course` (`#addCourseBtn`) and `Clear` (`#clearSingleBtn`) with keyboard `Enter` support.
 3. **Batch Upload (JSON) Redesign**:
-   - **Editor Header Bar & Real-Time Badge**:
-     - Added `.editor-header-bar` directly above the JSON editor.
-     - Features an interactive `#batchJsonBadge` status pill that analyzes input live:
-       - `Ready` (neutral pill when empty)
-       - `${count} courses detected` (emerald badge on valid JSON)
-       - `Invalid JSON` / `Expected { ... }` (soft red alert badge on syntax errors)
-   - **Standardized Sample Template & One-Click Copy**:
-     - High-contrast, compact `Copy` button with SVG icon.
-     - Provides a realistic 2-course template (`CSE 3715` with full schedule & `ACT 1111` minimal structure):
-       ```json
-       {
-         "CSE 3715": {
-           "name": "Digital System Design",
-           "examDay": "D4",
-           "examSlot": "T2",
-           "prerequisites": ["CSE 2213"]
-         },
-         "ACT 1111": {
-           "name": "Financial and Managerial Accounting",
-           "examDay": "",
-           "examSlot": "",
-           "prerequisites": []
-         }
-       }
-       ```
-   - **Prevented Catalog Wiping Hazard**:
-     - Replaced the previous dangerous secondary button (which cleared all 600+ courses from the entire database) with a safe editor `Clear` button (`#clearBtn`) that resets only the JSON input field.
-   - **Symmetrical Guidance Box**:
-     - Transformed the disclaimer into a clean `.import-hint`: full width (`width: 100%`), subtle background (`var(--surface2)`), and justified text alignment, with professional declarative copy: *"Import courses using a JSON object or click Copy for a sample template. Course code and title are required."*
-
+   - Header bar with real-time validation status badge (`#batchJsonBadge`).
+   - 2-course sample template with one-click `Copy` button.
+   - Enforced 2 MB payload size limit.
+   - Full-width symmetrical guidance box (`.import-hint`).
 4. **Professional SVG Status Messaging System**:
-   - Upgraded `showImportMsg()` and `showSingleCourseMsg()` from raw emojis (`⚠️`, `❌`, `✅`) to modern, color-coded SVG alert cards:
-     - **Success**: Emerald checkmark icon in `#f0fdf4` container with `#166534` text.
-     - **Error**: Crimson alert icon in `#fef2f2` container with `#991b1b` text.
-     - **Info**: Royal blue info icon in `#eff6ff` container with `#1e40af` text.
-   - Added collision prevention with `clearTimeout()` to eliminate message flickering during rapid clicks.
+   - Color-coded SVG alert cards for Success (emerald checkmark), Error (crimson alert), and Info (blue info icon) with collision prevention.
 
 ---
 
-### B. View 3 (Course Details) Visual Harmonization
-- **Removed Inconsistent Left-Side Orange Stripe / Glow**:
-  - The "Help Fellow UIU Students" callout card (`.contribution-card`) previously had an orange border (`border: 1px solid rgba(242, 101, 34, 0.22)`), peach background (`#fffaf7`), and a thick orange left bar (`border-left: 3.5px solid var(--accent)`).
-  - Because the top card (`.details-card`) was clean white, the orange left border made the page look mismatched and caused an uneven "glow" perception.
-- **Harmonized Design System**:
-  - Aligned `.contribution-card` to match `.details-card`:
-    - Background: `var(--surface)` (clean pure white)
-    - Border: `1px solid var(--border-color)` (subtle neutral border on all 4 sides)
-    - Border Radius: `12px` (matching the extension-wide card standard)
-    - Padding: `12px 14px`
-    - Shadow: `0 1px 3px rgba(0, 0, 0, 0.04)`
-- **Header & Button Polish**:
-  - Header title now uses `var(--text-main)` with the heart icon in `var(--accent)`.
-  - Body text aligned with justified text distribution.
-  - Action button (`.contribution-btn`) converted to a clean secondary button (`background: #f8fafc`, `border: 1px solid var(--border-color)`, `color: var(--text-main)`, and dark `#24292e` GitHub mark).
+### C. View 3 (Course Details) Visual Harmonization
+- Aligned `.contribution-card` to match `.details-card`: pure white surface, subtle neutral border, standard 12px radius, and dark GitHub mark.
+- Clean layout spacing with Code, Name, Exam Routine, Prerequisites, and Prerequisite Note fields.
 
 ---
 
-### C. Modal & Confirmation Message Consistency
-- Standardized **Empty Trash / Permanent Delete All** to use the exact structure and professional tone of **Restore All**:
-  - **Title**: `Permanently delete all ${count} courses?` (`color: var(--text-main)`)
-  - **Subtitle**: `${count === 1 ? 'This course' : 'All courses in Trash'} will be permanently removed from storage and cannot be restored.`
-- Standardized single course permanent delete:
-  - **Title**: `Permanently delete ${code}?`
-  - **Subtitle**: `This course will be permanently removed from storage and cannot be restored.`
-- Toast feedback standardized: `${count === 1 ? 'Course' : `All ${count} courses`} permanently deleted`.
+### D. Modal & Confirmation Message Consistency
+- Standardized **Empty Trash / Permanent Delete All** and single course permanent delete dialogs with confirmation modals and backdrop blur (`backdrop-filter: blur(2px)`).
 
 ---
 
-### D. Layout Spacing & Rhythm (Strict 10px / 8px System)
-- **Eliminated Whitespace Gaps**: Harmonized margins and padding across View 4 (`.import-view .body`), tab switcher, form cards, and action rows.
-- **Consistent Sizing**:
-  - Form action buttons standardized to `min-height: 38px`.
-  - Secondary / trash action buttons standardized to `min-height: 34px`.
-  - Outer card containers standardized to `border-radius: 12px; padding: 14px;`.
-  - All form controls set to `box-sizing: border-box` to prevent horizontal overflow.
-
----
-
-### E. Navigation, Animation & Tactile Micro-Interactions
-- **Native Stack-Based View Navigation**:
-  - Replaced the rigid 500% horizontal carousel strip with an iOS/Material-style layered navigation stack (`position: absolute; inset: 0;`).
-  - **Single-Screen Transitions with Depth Shadows**:
-    * Each child screen (`courses-view`, `details-view`, `import-view`, `settings-view`) slides in from the right (`translateX(100%) -> translateX(0)`) with a soft elevation shadow (`box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12)`).
-    * Underlying parent screens subtly parallax shift left (`translateX(-15%)`) and dim (`opacity: 0.85`), providing authentic physical depth.
-    * Eliminates all multi-screen skipping: Going Courses $\leftrightarrow$ Import never flashes Details in between; Home $\leftrightarrow$ Settings never flashes Courses or Import. Every transition travels exactly 1 screen width (360px) in 0.28s.
-  - Resolved focus scroll conflicts where focusing off-screen textareas or inputs caused the browser popup container to violently shift or clip headers.
-- **Header Icon Interactivity**:
-  - Main extension logo (`.header-icon`) now displays `cursor: pointer` on hover with a subtle spring lift (`transform: scale(1.05)`) and tactile click depression (`scale(0.95)`).
-- **Tactile Button Press Feedback (`:active`)**:
-  - Consistent spring-eased compressions across all controls:
-    * Primary & action buttons (`.btn-courses`, `.btn-sync:active:not(.is-loading)`, `#allowlistBtn`, `.btn-copy-sample`, `.contribution-btn`): `scale(0.96)` to `scale(0.98)`.
-    * Header navigation (`.header-back:active` scales down to `0.92`, while hover nudges arrow `translateX(-2px)`).
-    * Settings gear button (`.header-btn:hover` rotates 35deg; `:active` rotates 45deg + scales to `0.92`).
-    * Display mode options (`.mode-btn:active` compresses to `0.96`).
-    * Course list rows (`.course-grid-row:active` scales to `0.995` with soft slate highlight).
-    * Allowed domains remove button (`.allowlist-item button:hover` scales up to `1.1`; `:active` scales down to `0.9`).
-- **Tab Switching & Card Transitions**:
-  - Single Course and Batch Upload views enter with a gentle crossfade + slide animation (`@keyframes fadeInTab: 0.18s cubic-bezier(0.16, 1, 0.3, 1)`).
-- **Modal Dialog Polish**:
-  - Backdrop blur filter (`backdrop-filter: blur(2px)`), deeper elevation shadows, spring-scale entry (`translateY(8px) scale(0.96)` -> `translateY(0) scale(1)`), and tactile confirmation/cancel button presses.
-- **Accessibility (`prefers-reduced-motion`)**:
-  - Full `@media (prefers-reduced-motion: reduce)` block that zeroes animation durations and disables heavy sliding transforms for motion-sensitive users.
-
----
-
-### F. Main View (Home Screen) Unified Site Card & Global Settings
-- **Zero Redundancy**: Eliminated duplicate status boxes and redundant paused notice cards. Merged the domain name, status indicator, and toggle switch into a single, clean `.site-card` hero.
-- **Global Settings Stability**: Display Mode (`Highlight`, `Tooltip`, `Inline`) and schedule toggles remain permanently accessible as global user preferences rather than collapsing when visiting non-whitelisted sites.
-- **Soft Status Indicator & Column Alignment**:
-  - Active: Emerald green dot + `Active on this page`
-  - Inactive: Calm neutral slate dot (`#94a3b8`) + `Paused on this site` (no alarmist red error dot).
-  - Status dot centered directly on the vertical centerline of the 14px domain globe icon (`margin: 0 3px`), with status text starting at the exact same horizontal coordinate (`20px`) as the domain name.
-- **Balanced Layout**: The combination of `Courses Indexed` pill, unified site hero card, global display settings, and `Manage Course Database` fills the 500px popup naturally without artificial gaps or layout bounce.
-
----
-
-### G. Settings View: Structured Allowed Domains Row Layout
-- **Full-Width Aligned Rows**: Replaced cramped/staggered chips with full-width domain rows (`justify-content: space-between`).
-- **Consistent Right-Hand Column for Actions**: All remove cross buttons (`✕`) are aligned in a single vertical column on the right edge, creating a structured, polished table-like visual hierarchy.
-- **Interactive States**:
-  - Globe SVG icon, monospace font (`ui-monospace`), and subtle hover feedback on each row.
-  - One-click remove button with soft red hover transition (`#fee2e2`).
-  - Sleek slim scrollbar (`width: 4px`) and expanded container (`max-height: 120px`) for comfortable reading.
+### E. Navigation & Tactile Micro-Interactions
+- Layered stack view navigation (`position: absolute; inset: 0;`).
+- Parallax shifts and elevation shadows during screen transitions.
+- Tactile spring-eased compression feedback (`:active`) on buttons, inputs, and toggles.
+- Accessibility support via `@media (prefers-reduced-motion: reduce)`.
 
 ---
 
@@ -167,7 +91,7 @@ Previously, course imports were limited to a single raw JSON input box without d
 | `courses` | `Object` | The active, merged dictionary of courses used by `content.js` |
 | `userCourses` | `Object` | User-created courses and user edits to official courses |
 | `softDeletedCourses` | `Array<string>` | Soft-deleted course codes (Trash view). Reversible via Restore |
-| `hardDeletedCourses` | `Array<string>` | Hard-deleted course codes. Purges overrides; non-restorable |
+| `hardDeletedCourses` | `Array<string>` | Hard-deleted course codes. Purges overrides; permanently excluded |
 | `remoteCourses` | `Object` | Cached catalog fetched from the latest successful Sync |
 | `lastSyncedAt` | `number` | Unix timestamp of last successful sync |
 | `lastSyncResult` | `Object` | Diff summary (`added`, `updated`, `removed` counts and codes) |
@@ -179,11 +103,12 @@ Previously, course imports were limited to a single raw JSON input box without d
 ### Canonical Course Object Schema
 ```json
 {
-  "CSE 3421": {
-    "name": "Database Management Systems",
-    "examDay": "D1",
+  "CSE 4000A": {
+    "name": "Final Year Design Project - I",
+    "examDay": "D4",
     "examSlot": "T2",
-    "prerequisites": ["CSE 2213"]
+    "prerequisites": [],
+    "prerequisiteNote": "MINIMUM 85 credits"
   }
 }
 ```
@@ -205,52 +130,44 @@ Previously, course imports were limited to a single raw JSON input box without d
 ### Deletion Rules
 1. **Soft Delete**: Adds course code to `softDeletedCourses`. Preserves any edit in `userCourses`. Appears in Trash view. Restoring moves it back to active courses with edits intact.
 2. **Hard Delete**: Removes course from `userCourses` and adds code to `hardDeletedCourses`. Permanently excluded.
-3. **Intentional Re-creation**: If a user re-adds or imports a course code that was previously in `hardDeletedCourses` or `softDeletedCourses`, the system automatically cleanses the code from both delete arrays.
+3. **Intentional Re-creation**: If a user re-adds or imports a course code previously in `hardDeletedCourses` or `softDeletedCourses`, the system automatically cleanses the code from both delete arrays.
 4. **Emergency Reset**: "Reset Official Courses to Default" purges `softDeletedCourses` and `hardDeletedCourses` completely while leaving custom `userCourses` intact.
 
 ---
 
 ## 4. Key Files & Structure
 
-- `popup.html` — Lean semantic markup for the popup interface (Main Settings, Course Database, Course Details, Add/Import Courses, and Settings view) with confirmation modals. References `popup.css`.
-- `popup.css` — Dedicated stylesheet containing all design tokens, card styles, transitions, animations, and component layouts (extracted from `popup.html` for token efficiency).
-- `popup.js` — Client-side UI logic, view router, form validation, real-time JSON editor badge, message helpers, and storage listener integrations.
-- `background.js` — Service worker. Handles catalog merging, storage migration, remote synchronization, and course count queries.
-- `content.js` — Injected script. Builds regex matcher from `courses`, decorates DOM nodes (inline, tooltip, or highlight), manages Highcharts SVG overlays, and utilizes `MutationObserver` safely.
-- `courses.json` — Bundled baseline catalog (~44KB) ensuring 100% offline functionality.
-- `tests/` — Automated test suite:
-  - `tests/test_single_and_batch_integration.js` (End-to-end single course + batch upload validation)
+- `manifest.json` — Manifest V3, optional host permissions (`*://*/*`), `tabs`, `scripting`, `storage`.
+- `popup.html` — 5-view sliding stack UI (Home, Courses, Details, Import, Settings) with zero `innerHTML`.
+- `popup.css` — Dedicated stylesheet containing all design tokens, card styles, transitions, animations, and component layouts.
+- `popup.js` — Client-side UI logic, view router, form validation, real-time JSON editor badge, message helpers, dynamic permission requests, and GitHub issue generator.
+- `background.js` — Service worker. Handles catalog merging, storage migration, remote synchronization, dynamic content script registration, and tab update listeners.
+- `content.js` — Injected script with Zero-`innerHTML` security. Builds regex matcher from `courses`, decorates DOM nodes (inline, tooltip, or highlight), manages Highcharts SVG overlays, and uses `MutationObserver` safely.
+- `courses.json` — Bundled baseline catalog (~44KB, ~315 courses) ensuring 100% offline functionality.
+- `assets/` — Visual screenshots and pre-rendered dark-themed placeholder PNGs for documentation.
+- `SCREENSHOTS_GUIDE.md` — Complete visual capture instructions for all documentation assets.
+- `SECURITY.md` — Vulnerability disclosure policy & security model.
+- `PRIVACY.md` — Full transparent privacy documentation.
+- `CONTRIBUTING.md` — Contribution guide and course schema specification.
+- `.github/workflows/validate-catalog.yml` — Automated CI workflow validating catalog syntax and running regression tests.
+- `tests/` — Automated test suite (11 test files):
+  - `tests/test_release1.js` (Release 1 verification suite)
+  - `tests/test_single_and_batch_integration.js`
   - `tests/test_merge.js` / `tests/test_merge_v2.js`
   - `tests/test_migration.js`
   - `tests/test_official_hard_delete.js`
   - `tests/test_empty_trash_all.js`
+  - `tests/test_restore_official.js`
+  - `tests/test_single_course_add.js`
+  - `tests/test_batch_upload.js`
   - `tests/test_sync_diff.js`
 
 ---
 
-## 5. Recent Git Commits Reference
-
-- `e3d9a39` — `refactor(ui): harmonize contribution card with details card styling and remove left border glow`
-- `6d55a14` — `refactor(ui): align permanent delete modal messages and styling with restore all`
-- `36e8b1c` — `style(ui): make batch upload guidance hint full width and justified`
-- `c63da2b` — `refactor(ui): modernize batch upload page, live status badge, SVG messages, and safe editor controls`
-- `dae0185` — `refactor(ui): harmonize layout gaps, margins, and card padding for Add and Import view`
-- `0fb8a5a` — `refactor(ui): remove intro banner and standardize exam day placeholders to D1/D2/D3`
-- `b488b41` — `refactor(ui): streamline single course form, remove redundant live preview, and align slot format to T1/T2/T3`
-- `d2ad025` — `feat(ui): modernize single course add form with section groups, icons, live preview and prereq chips`
-- `2bf2788` — `Add automated integration tests for single course add and batch upload flows`
-- `600997f` — `Rename Copy Sample JSON button to Copy with icon and remove batch upload banner from single course view`
-- `099c681` — `Fix View 4 slide navigation, resolve offscreen focus scroll conflict and enforce import transform precedence`
-- `ad698c7` — `Restore single Add / Import Courses button on bottom of database with single and batch tab options`
-- `baa3b6a` — `Add batch upload button, 2-course sample JSON template and feedback messaging`
-- `06cb3af` — `feat(courses): add single course creation form with validation and tab switcher in View 4`
-
----
-
-## 6. How to Verify Codebase Health
+## 5. How to Verify Codebase Health
 
 Run the entire automated test suite from the repository root:
 ```powershell
 Get-ChildItem -Path tests/*.js | ForEach-Object { node $_.FullName }
 ```
-**Expected Result**: All test suites pass with zero failures.
+**Expected Result**: All 11 test suites pass with zero failures.
