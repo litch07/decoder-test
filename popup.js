@@ -1415,7 +1415,7 @@
 
     if (totalChanges === 0) {
       const emptyBox = document.createElement("div");
-      emptyBox.style.cssText = "display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:22px 12px; gap:7px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px;";
+      emptyBox.className = "preview-empty-state";
 
       const checkSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       checkSvg.setAttribute("viewBox", "0 0 24 24");
@@ -1425,11 +1425,11 @@
       checkSvg.appendChild(checkPath);
 
       const emptyTitle = document.createElement("div");
-      emptyTitle.style.cssText = "font-size:0.78rem; font-weight:700; color:#0f172a;";
+      emptyTitle.className = "preview-empty-title";
       emptyTitle.textContent = "All Courses Up to Date";
 
       const emptySub = document.createElement("div");
-      emptySub.style.cssText = "font-size:0.67rem; color:#64748b; line-height:1.35;";
+      emptySub.className = "preview-empty-sub";
       emptySub.textContent = "All " + diff.unchanged.length + " courses in this file already match your database identically.";
 
       emptyBox.appendChild(checkSvg);
@@ -4335,7 +4335,9 @@
       els.singleCourseName,
       els.singleCourseDay,
       els.singleCourseSlot,
-      els.singleCoursePrereq
+      els.singleCourseCredits,
+      els.singleCoursePrereq,
+      els.singleCoursePrereqNote
     ].forEach(input => {
       input?.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
@@ -4449,7 +4451,9 @@
       }
       if (els.singleCourseDay) els.singleCourseDay.value = "";
       if (els.singleCourseSlot) els.singleCourseSlot.value = "";
+      if (els.singleCourseCredits) els.singleCourseCredits.value = "";
       if (els.singleCoursePrereq) els.singleCoursePrereq.value = "";
+      if (els.singleCoursePrereqNote) els.singleCoursePrereqNote.value = "";
       if (els.singleCourseMsg) {
         els.singleCourseMsg.className = "import-msg";
         els.singleCourseMsg.style.display = "none";

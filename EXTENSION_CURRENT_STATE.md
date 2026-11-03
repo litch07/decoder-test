@@ -140,21 +140,25 @@
 
 ### B. View 4 (Add / Import Courses) Architecture & Design
 1. **Tabbed Navigation (`Single Course` vs `Batch Upload`)**:
-   - Tab switcher (`.import-tab-nav` and `.import-tab-btn`) with smooth crossfades and zero layout shifts.
+   - Clean segmented tab switcher (`.import-tab-nav` and `.import-tab-btn`) with smooth cubic-bezier transitions, theme-adaptive surfaces, and zero layout shift.
 2. **Single Course Addition Form**:
-   - `Course Code`: Auto-uppercases user input; validates format (e.g., `CSE 3715`).
+   - `Course Code`: Auto-uppercases user input; validates non-empty format (e.g., `CSE 3715`).
    - `Course Name`: Required primary title.
-   - `Prerequisites`: Comma-separated list of course codes, trimmed into an array.
-   - `Prerequisite Note`: Dedicated input for credit minimums (e.g. `MINIMUM 85 credits`).
-   - `Exam Day` & `Exam Slot`: Normalized UI standards (`D1-D8`, `T1-T3`).
-   - Safe controls: `Save Course` (`#addCourseBtn`) and `Clear` (`#clearSingleBtn`) with keyboard `Enter` support.
+   - `Schedule & Credits (3-Column Responsive Row)`: Exam Day (`D1-D8`), Exam Slot (`T1-T3`), and Credits (`0.5-15` step) fitting side-by-side in 360px viewport without label wrapping.
+   - `Prerequisites`: Comma-separated list of course codes, automatically trimmed and upper-cased into an array.
+   - `Prerequisite Note`: Dedicated input for credit minimums (e.g. `Minimum completed credit 70`).
+   - Clean Typography & Spacing: Uncluttered labels with red asterisks for required fields; no distracting per-field SVG icons.
+   - Safe controls: `Add Course to Catalog` (`#addSingleCourseBtn`) and `Clear` (`#clearSingleFormBtn`) with keyboard `Enter` support across all 7 fields and complete state reset.
 3. **Batch Upload (JSON) Redesign**:
    - Header bar with real-time validation status badge (`#batchJsonBadge`).
    - 2-course sample template with one-click `Copy` button.
-   - Enforced 2 MB payload size limit.
-   - Full-width symmetrical guidance box (`.import-hint`).
-4. **Professional SVG Status Messaging System**:
-   - Color-coded SVG alert cards for Success (emerald checkmark), Error (crimson alert), and Info (blue info icon) with collision prevention.
+   - Drag-and-drop zone (`#fileDropZone`) with file card display, 2 MB payload size limit, and keyboard accessible file browse pill.
+   - High-contrast, theme-adaptive guidance box (`.import-hint`) with left accent border.
+4. **Pre-Commit Diff Modal (`#importPreviewModal`) & Feedback System**:
+   - Complete theme adaptability: Modal content, title, subtitle, close button, diff cards, and before/after comparison tables dynamically adapt to light and OLED dark palettes.
+   - Summary badges: `+N New`, `~N Modified`, `=N Identical`, `!N Skipped` with dark mode contrast overrides.
+   - Clean empty state (`.preview-empty-state`) when imported file matches local database identically.
+   - Color-coded SVG status messages for Success, Error, and Info with smooth fadeIn animations.
 
 ---
 
