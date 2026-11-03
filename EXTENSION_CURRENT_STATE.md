@@ -106,14 +106,15 @@
    - Public Web Explorer (`docs/`): Displays credit badges on course cards and in the course inspector modal.
    - Full automated test suite in `tests/test_course_credits.js` (31/31 passing).
 
-2. **"My Courses" Bookmarking & Exam Routine Clash Detector (Task 3.2)**:
-   - Enrolled Trimester Course Bookmarking: Students can pin enrolled courses via quick-star buttons (`★`/`☆`) in the course table or via `#detailsEnrollBtn` in View 3.
-   - Persistent Local Storage: Stored under `enrolledCourses` array in `chrome.storage.local`.
-   - Trimester Filter & Summary: View 1 contains dedicated `★ My Courses` filter pill with counter badge, plus an interactive summary card displaying total course count and cumulative credit sum (e.g. `13.0 Cr`).
-   - Exam Schedule Collision Engine (`detectExamClashes`): Groups non-empty exam Day & Slot routines and flags collisions, while ignoring lab and in-class evaluations.
-   - Comprehensive Clash Alerts: Highlights conflicting rows in the course table (`.is-clashing`), surfaces collision alert banners in Course Details (`#detailClashWarning`), and provides quick clash indicators on the Home panel (`#homeEnrolledCard`).
+2. **Dedicated "My Courses & Exam Routine" Screen & Clash Detector (Task 3.2)**:
+   - Dedicated Feature View (`.mycourses-view`): Transformed "My Courses" from an overloaded table filter into a full-featured personal academic planner screen accessible directly from the clean Home Screen button (`#homeEnrolledCard`) and course details.
+   - Cleaned Catalog Table: Removed star icons (`★`) and inline credit chips from the Course Database table rows in View 1, restoring over 100px of width for course titles and eliminating table overflow/cramming within the 360px viewport.
+   - Quick Add Search with Autocomplete: Real-time search box (`#myCoursesSearchInput`) in the My Courses screen that suggests unenrolled courses on-the-fly with 1-click addition (`+ Add`).
+   - Trimester Summary & Load Indicator: Real-time summary card showing total enrolled courses, total credit hours, and academic load indicator badge (`#enrolledLoadBadge`, e.g. `12.0 / 15.0 Cr`).
+   - Exam Schedule Collision Engine (`detectExamClashes`): Evaluates enrolled course routines, groups overlapping Day & Slot timings, and alerts students of exam conflicts while intelligently filtering out labs and in-class evaluations.
+   - Rich Enrolled Course Cards: Displays enrolled courses with day/slot badges, credit badges, quick "Inspect" navigation into View 3, and individual "Drop" buttons (`btn-card-drop`).
+   - Drop All Courses Safety Action: Allows clearing enrolled courses with confirmation (`#clearEnrolledBtn`).
    - Strict Zero-`innerHTML` DOM generation with 100% test coverage in `tests/test_my_courses_clash_detector.js` (31/31 passing).
-
 3. **Exam Week Calendar Export (.ics / RFC 5545) (Task 3.3)**:
    - iCalendar Serialization Engine: Formats scheduled course exams into standard `.ics` events compatible with Google Calendar, Apple Calendar, and Microsoft Outlook.
    - Intelligent Slot Mapping: Automatically maps exam slots (`T1` &rarr; 09:00–11:00, `T2` &rarr; 11:30–13:30, `T3` &rarr; 14:30–16:30) and calculates calendar dates based on user-chosen exam week start dates.

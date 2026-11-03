@@ -99,6 +99,17 @@
     homeEnrolledCount: document.getElementById("homeEnrolledCount"),
     homeEnrolledCredits: document.getElementById("homeEnrolledCredits"),
     homeClashBadge: document.getElementById("homeClashBadge"),
+    mycoursesView: document.querySelector(".mycourses-view"),
+    myCoursesBackBtn: document.getElementById("myCoursesBackBtn"),
+    myCoursesHeaderSubtitle: document.getElementById("myCoursesHeaderSubtitle"),
+    myCoursesAddCard: document.getElementById("myCoursesAddCard"),
+    myCoursesSearchInput: document.getElementById("myCoursesSearchInput"),
+    myCoursesSearchClearBtn: document.getElementById("myCoursesSearchClearBtn"),
+    myCoursesSuggestionsList: document.getElementById("myCoursesSuggestionsList"),
+    myCoursesList: document.getElementById("myCoursesList"),
+    myCoursesEmptyState: document.getElementById("myCoursesEmptyState"),
+    browseCatalogFromMyCoursesBtn: document.getElementById("browseCatalogFromMyCoursesBtn"),
+    enrolledLoadBadge: document.getElementById("enrolledLoadBadge"),
     filterEnrolledBtn: document.getElementById("filterEnrolledBtn"),
     enrolledCountBadge: document.getElementById("enrolledCountBadge"),
     enrolledSummaryCard: document.getElementById("enrolledSummaryCard"),
@@ -2028,35 +2039,14 @@
       badge.textContent = origin.label;
       typeEl.appendChild(badge);
 
-      if (typeof courseData === "object" && courseData !== null && courseData.credits) {
-        const creditChip = document.createElement("span");
-        creditChip.className = "course-credit-chip";
-        creditChip.textContent = courseData.credits + " Cr";
-        typeEl.appendChild(creditChip);
-      }
-
-      // Task 3.2: Star enrollment button & clash detection
-      var isEnrolled = enrolledCourses.indexOf(code) !== -1;
+      // Check for clashing status
       var activeClashes = detectExamClashes(enrolledCourses, courses);
-      var isClashing = false;
       for (var ci = 0; ci < activeClashes.length; ci++) {
-        if (activeClashes[ci].courses.indexOf(code) !== -1) {
-          isClashing = true;
+        if (activeClashes[ci].courses.indexOf(code) !== -1 && enrolledCourses.indexOf(code) !== -1) {
+          row.classList.add("is-clashing");
           break;
         }
       }
-      if (isClashing) row.classList.add("is-clashing");
-
-      var starBtn = document.createElement("button");
-      starBtn.type = "button";
-      starBtn.className = "btn-row-enroll" + (isEnrolled ? " is-enrolled" : "");
-      starBtn.textContent = isEnrolled ? "★" : "☆";
-      starBtn.title = isEnrolled ? "Remove from My Courses" : "Pin to My Courses";
-      starBtn.addEventListener("click", function(e) {
-        e.stopPropagation();
-        toggleEnrollCourse(code);
-      });
-      typeEl.appendChild(starBtn);
 
       const arrowEl = document.createElement("div");
       arrowEl.className = "course-row-arrow";
@@ -2421,88 +2411,251 @@
     var clashes = detectExamClashes(enrolledCourses, courses);
     var hasClashes = clashes.length > 0;
 
-    // View 0 (Home) Quick Card
+    // 1. View 0 (Home) Button
     if (els.homeEnrolledCard) {
-      if (totalEnrolled > 0) {
-        els.homeEnrolledCard.style.display = "block";
-        if (els.homeEnrolledCount) els.homeEnrolledCount.textContent = String(totalEnrolled);
-        if (els.homeEnrolledCredits) els.homeEnrolledCredits.textContent = totalCredits + " Cr";
-        if (els.homeClashBadge) {
-          if (hasClashes) {
-            els.homeClashBadge.className = "clash-badge danger";
-            els.homeClashBadge.textContent = "⚠️ " + clashes.length + " Exam Clash" + (clashes.length > 1 ? "es" : "");
-          } else {
-            els.homeClashBadge.className = "clash-badge ok";
-            els.homeClashBadge.textContent = "✓ No Exam Clashes";
-          }
+      if (els.homeEnrolledCount) els.homeEnrolledCount.textContent = String(totalEnrolled);
+      if (els.homeEnrolledCredits) els.homeEnrolledCredits.textContent = totalCredits.toFixed(1) + " Cr";
+      if (els.homeClashBadge) {
+        if (totalEnrolled === 0 || !hasClashes) {
+          els.homeClashBadge.style.display = "none";
+          els.homeClashBadge.className = "clash-badge ok";
+        } else {
+          els.homeClashBadge.style.display = "inline-flex";
+          els.homeClashBadge.className = "clash-badge danger";
+          els.homeClashBadge.textContent = "⚠️ " + clashes.length + " Clash" + (clashes.length > 1 ? "es" : "");
         }
-      } else {
-        els.homeEnrolledCard.style.display = "none";
       }
     }
 
-    // View 1 Filter Count Badge
-    if (els.enrolledCountBadge) {
-      if (totalEnrolled > 0) {
-        els.enrolledCountBadge.textContent = String(totalEnrolled);
-        els.enrolledCountBadge.style.display = "inline-block";
+    // 2. Dedicated My Courses View Header & Summary
+    if (els.myCoursesHeaderSubtitle) {
+      els.myCoursesHeaderSubtitle.textContent = totalEnrolled + " enrolled • " + totalCredits.toFixed(1) + " credits";
+    }
+    if (els.enrolledTotalCourses) els.enrolledTotalCourses.textContent = String(totalEnrolled);
+    if (els.enrolledTotalCredits) els.enrolledTotalCredits.textContent = totalCredits.toFixed(1);
+
+    if (els.enrolledLoadBadge) {
+      var loadStatus = totalCredits < 9 ? "Light" : totalCredits <= 15 ? "Normal" : "Overload";
+      els.enrolledLoadBadge.textContent = totalCredits.toFixed(1) + " / 15.0 Cr (" + loadStatus + ")";
+    }
+
+    var loadFill = document.getElementById("enrolledLoadFill");
+    if (loadFill) {
+      var pct = Math.min(100, Math.round((totalCredits / 15.0) * 100));
+      loadFill.style.width = pct + "%";
+      if (totalCredits > 15) {
+        loadFill.style.background = "linear-gradient(90deg, #f59e0b, #ef4444)";
       } else {
-        els.enrolledCountBadge.style.display = "none";
+        loadFill.style.background = "linear-gradient(90deg, #FF7A00, #f26522)";
       }
     }
 
-    // View 1 Enrolled Summary & Clash Alert Box
-    if (els.enrolledSummaryCard) {
-      if (currentFilter === "enrolled" || (hasClashes && !isTrashMode)) {
-        els.enrolledSummaryCard.style.display = "flex";
-        if (els.enrolledTotalCourses) els.enrolledTotalCourses.textContent = String(totalEnrolled);
-        if (els.enrolledTotalCredits) els.enrolledTotalCredits.textContent = String(totalCredits);
+    // 3. Clash Alert Box in My Courses
+    if (els.clashAlertBox) {
+      if (hasClashes && totalEnrolled > 0) {
+        els.clashAlertBox.style.display = "flex";
+        if (els.clashAlertList) {
+          while (els.clashAlertList.firstChild) els.clashAlertList.removeChild(els.clashAlertList.firstChild);
+          clashes.forEach(function(c) {
+            var item = document.createElement("div");
+            item.className = "clash-item";
+            var itemIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            itemIcon.setAttribute("viewBox", "0 0 24 24");
+            itemIcon.setAttribute("style", "width:13px;height:13px;fill:currentColor;flex-shrink:0;");
+            var itemPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            itemPath.setAttribute("d", "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z");
+            itemIcon.appendChild(itemPath);
 
-        if (els.clashAlertBox) {
-          if (hasClashes) {
-            els.clashAlertBox.style.display = "block";
-            if (els.clashAlertList) {
-              while (els.clashAlertList.firstChild) els.clashAlertList.removeChild(els.clashAlertList.firstChild);
-              clashes.forEach(function(c) {
-                var item = document.createElement("div");
-                item.className = "clash-item";
-                item.textContent = c.day + ", Slot " + c.slot + ": " + c.courses.join(" & ");
-                els.clashAlertList.appendChild(item);
-              });
-            }
-          } else {
-            els.clashAlertBox.style.display = "none";
-          }
+            var itemText = document.createElement("span");
+            itemText.textContent = c.day + " • Slot " + c.slot + ": " + c.courses.join(" & ");
+            item.appendChild(itemIcon);
+            item.appendChild(itemText);
+            els.clashAlertList.appendChild(item);
+          });
         }
       } else {
+        els.clashAlertBox.style.display = "none";
+      }
+    }
+
+    // 4. Enrolled Cards List vs Empty State
+    if (els.myCoursesEmptyState && els.myCoursesList && els.enrolledSummaryCard) {
+      if (totalEnrolled === 0) {
+        els.myCoursesEmptyState.style.display = "flex";
+        els.myCoursesList.style.display = "none";
         els.enrolledSummaryCard.style.display = "none";
+      } else {
+        els.myCoursesEmptyState.style.display = "none";
+        els.myCoursesList.style.display = "flex";
+        els.enrolledSummaryCard.style.display = "flex";
+
+        while (els.myCoursesList.firstChild) {
+          els.myCoursesList.removeChild(els.myCoursesList.firstChild);
+        }
+
+        enrolledCourses.forEach(function(code) {
+          var cData = courses[code];
+          var name = typeof cData === "object" && cData !== null ? (cData.name || "") : (cData || "");
+          var credits = typeof cData === "object" && cData !== null && cData.credits ? cData.credits : 3;
+          var examDay = typeof cData === "object" && cData !== null && cData.examDay ? cData.examDay : "";
+          var examSlot = typeof cData === "object" && cData !== null && cData.examSlot ? cData.examSlot : "";
+
+          // Check for clash
+          var isCourseClashing = false;
+          var clashDetailsText = "";
+          for (var ci = 0; ci < clashes.length; ci++) {
+            if (clashes[ci].courses.indexOf(code) !== -1) {
+              isCourseClashing = true;
+              var others = clashes[ci].courses.filter(function(c) { return c !== code; });
+              clashDetailsText = clashes[ci].day + " " + clashes[ci].slot + " with " + others.join(", ");
+              break;
+            }
+          }
+
+          var card = document.createElement("div");
+          card.className = "enrolled-course-card" + (isCourseClashing ? " is-clashing" : "");
+
+          // Top Header: Code, Credit badge, and Drop button
+          var header = document.createElement("div");
+          header.className = "enrolled-card-header";
+
+          var codeRow = document.createElement("div");
+          codeRow.className = "enrolled-card-code-row";
+
+          var codeDiv = document.createElement("div");
+          codeDiv.className = "enrolled-card-code";
+          codeDiv.textContent = code;
+
+          var crChip = document.createElement("span");
+          crChip.className = "course-credit-chip";
+          crChip.textContent = credits.toFixed(1) + " Cr";
+
+          codeRow.appendChild(codeDiv);
+          codeRow.appendChild(crChip);
+
+          var dropBtn = document.createElement("button");
+          dropBtn.type = "button";
+          dropBtn.className = "btn-card-drop";
+          dropBtn.title = "Drop " + code + " from trimester";
+          dropBtn.setAttribute("aria-label", "Drop " + code);
+
+          var dropIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          dropIcon.setAttribute("viewBox", "0 0 24 24");
+          var dropPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          dropPath.setAttribute("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
+          dropIcon.appendChild(dropPath);
+
+          var dropLabel = document.createElement("span");
+          dropLabel.textContent = "Drop";
+
+          dropBtn.appendChild(dropIcon);
+          dropBtn.appendChild(dropLabel);
+
+          dropBtn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            toggleEnrollCourse(code);
+          });
+
+          header.appendChild(codeRow);
+          header.appendChild(dropBtn);
+
+          // Course Name
+          var nameDiv = document.createElement("div");
+          nameDiv.className = "enrolled-card-name";
+          nameDiv.textContent = name;
+          nameDiv.title = name;
+
+          // Routine Info Row
+          var routineRow = document.createElement("div");
+          routineRow.className = "enrolled-card-routine-row";
+
+          var slotChip = document.createElement("span");
+          if (examDay || examSlot) {
+            slotChip.className = "routine-slot-badge";
+            var calIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            calIcon.setAttribute("viewBox", "0 0 24 24");
+            var calPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            calPath.setAttribute("d", "M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z");
+            calIcon.appendChild(calPath);
+            var slotText = document.createElement("span");
+            slotText.textContent = "Exam: " + (examDay ? examDay : "") + (examDay && examSlot ? " • " : "") + (examSlot ? examSlot : "");
+            slotChip.appendChild(calIcon);
+            slotChip.appendChild(slotText);
+          } else {
+            slotChip.className = "routine-slot-badge lab-slot";
+            var labText = document.createElement("span");
+            labText.textContent = "Lab / In-Class Evaluation";
+            slotChip.appendChild(labText);
+          }
+          routineRow.appendChild(slotChip);
+
+          // Clash banner inside card
+          if (isCourseClashing) {
+            var clashPill = document.createElement("div");
+            clashPill.className = "enrolled-card-clash-banner";
+            var warnIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            warnIcon.setAttribute("viewBox", "0 0 24 24");
+            var warnPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            warnPath.setAttribute("d", "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z");
+            warnIcon.appendChild(warnPath);
+            var clashMsg = document.createElement("span");
+            clashMsg.textContent = "Clashes with " + clashDetailsText;
+            clashPill.appendChild(warnIcon);
+            clashPill.appendChild(clashMsg);
+            routineRow.appendChild(clashPill);
+          }
+
+          // Footer: Inspect action
+          var footerRow = document.createElement("div");
+          footerRow.className = "enrolled-card-footer";
+
+          var inspectBtn = document.createElement("button");
+          inspectBtn.type = "button";
+          inspectBtn.className = "btn-card-inspect";
+          inspectBtn.textContent = "View Details & Prereqs ›";
+          inspectBtn.addEventListener("click", function() {
+            openCourseDetails(code);
+          });
+
+          footerRow.appendChild(inspectBtn);
+
+          card.appendChild(header);
+          card.appendChild(nameDiv);
+          card.appendChild(routineRow);
+          card.appendChild(footerRow);
+
+          els.myCoursesList.appendChild(card);
+        });
       }
     }
 
-    // View 3 Details View Toggle & Clash Warning
+    // 5. View 3 Course Details Toggle & Live Clash Warning
     if (currentEditingCode) {
-      var isEnrolled = enrolledCourses.indexOf(currentEditingCode) !== -1;
+      var isEnrolledInDetails = enrolledCourses.indexOf(currentEditingCode) !== -1;
       if (els.detailsEnrollBtn) {
-        els.detailsEnrollBtn.classList.toggle("is-enrolled", isEnrolled);
+        els.detailsEnrollBtn.classList.toggle("is-enrolled", isEnrolledInDetails);
         if (els.detailsEnrollBtnText) {
-          els.detailsEnrollBtnText.textContent = isEnrolled ? "Enrolled" : "Enroll";
+          els.detailsEnrollBtnText.textContent = isEnrolledInDetails ? "Enrolled" : "Enroll";
         }
       }
 
       if (els.detailClashWarning) {
-        var activeClash = null;
-        for (var j = 0; j < clashes.length; j++) {
-          if (clashes[j].courses.indexOf(currentEditingCode) !== -1) {
-            activeClash = clashes[j];
+        var isInspectedClashing = false;
+        var inspectedClashText = "";
+        for (var ci2 = 0; ci2 < clashes.length; ci2++) {
+          if (clashes[ci2].courses.indexOf(currentEditingCode) !== -1) {
+            isInspectedClashing = true;
+            var otherCourses = clashes[ci2].courses.filter(function(c) { return c !== currentEditingCode; });
+            inspectedClashText = clashes[ci2].day + " " + clashes[ci2].slot + " with " + otherCourses.join(", ");
             break;
           }
         }
-        if (activeClash) {
-          var otherCourses = activeClash.courses.filter(function(c) { return c !== currentEditingCode; });
-          if (els.detailClashText) {
-            els.detailClashText.textContent = "⚠️ Exam routine clash on " + activeClash.day + ", Slot " + activeClash.slot + " with " + otherCourses.join(", ");
-          }
+
+        if (isInspectedClashing) {
           els.detailClashWarning.style.display = "flex";
+          if (els.detailClashText) {
+            els.detailClashText.textContent = "Exam Routine Clash: " + inspectedClashText;
+          }
         } else {
           els.detailClashWarning.style.display = "none";
         }
@@ -2511,25 +2664,23 @@
   }
 
   /**
-   * Toggles enrollment for a specific course code and saves to storage.
-   * @param {string} code
+   * Toggles enrollment state for a course and updates chrome.storage.local
    */
-  async function toggleEnrollCourse(code) {
+  function toggleEnrollCourse(code) {
+    if (!code) return;
     var idx = enrolledCourses.indexOf(code);
     if (idx === -1) {
       enrolledCourses.push(code);
-      showToast(code + " added to My Courses", "success");
     } else {
       enrolledCourses.splice(idx, 1);
-      showToast(code + " removed from My Courses", "info");
     }
-    await chrome.storage.local.set({ enrolledCourses: enrolledCourses });
-    updateEnrolledUI();
-    if (currentFilter === "enrolled") {
-      renderCourseList(searchQuery);
-    } else {
-      renderCourseList(searchQuery);
-    }
+
+    chrome.storage.local.set({ enrolledCourses: enrolledCourses }, function() {
+      updateEnrolledUI();
+      if (els.viewWrapper.classList.contains("show-courses")) {
+        renderCourseList();
+      }
+    });
   }
 
   // ── End Task 3.2 Helpers ──────────────────────────────────────────────────
@@ -3369,6 +3520,8 @@
           els.detailsBackBtn?.click();
         } else if (els.viewWrapper.classList.contains("show-import")) {
           els.importBackBtn?.click();
+        } else if (els.viewWrapper.classList.contains("show-mycourses")) {
+          els.myCoursesBackBtn?.click();
         } else if (els.viewWrapper.classList.contains("show-settings")) {
           els.settingsBackBtn?.click();
         } else if (els.viewWrapper.classList.contains("show-courses")) {
@@ -3499,6 +3652,156 @@
       renderCourseList(searchQuery);
       els.viewWrapper.classList.add("show-courses");
     });
+
+    // ── My Courses View Routing & Quick Add (Release 3 Refinement) ────────
+    const openMyCourses = () => {
+      els.viewWrapper.classList.remove("show-courses", "show-details", "show-import", "show-settings");
+      els.viewWrapper.classList.add("show-mycourses");
+      updateEnrolledUI();
+      setTimeout(() => {
+        els.myCoursesSearchInput?.focus({ preventScroll: true });
+      }, 250);
+    };
+
+    els.homeEnrolledCard?.addEventListener("click", openMyCourses);
+    els.homeEnrolledCard?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openMyCourses();
+      }
+    });
+
+    els.myCoursesBackBtn?.addEventListener("click", () => {
+      els.viewWrapper.classList.remove("show-mycourses");
+      setTimeout(() => {
+        els.homeEnrolledCard?.focus({ preventScroll: true });
+      }, 250);
+    });
+
+    els.browseCatalogFromMyCoursesBtn?.addEventListener("click", () => {
+      els.viewWrapper.classList.remove("show-mycourses");
+      els.openCoursesBtn?.click();
+    });
+
+    // Quick add search bar with autocomplete suggestions in My Courses
+    function setupMyCoursesQuickAdd() {
+      if (!els.myCoursesSearchInput || !els.myCoursesSuggestionsList) return;
+
+      function renderSuggestions(query) {
+        const q = (query || "").trim().toLowerCase();
+        while (els.myCoursesSuggestionsList.firstChild) {
+          els.myCoursesSuggestionsList.removeChild(els.myCoursesSuggestionsList.firstChild);
+        }
+
+        if (!q) {
+          els.myCoursesSuggestionsList.style.display = "none";
+          if (els.myCoursesSearchClearBtn) els.myCoursesSearchClearBtn.style.display = "none";
+          return;
+        }
+
+        if (els.myCoursesSearchClearBtn) els.myCoursesSearchClearBtn.style.display = "block";
+
+        const matchedCodes = Object.keys(courses).filter(code => {
+          if (enrolledCourses.indexOf(code) !== -1) return false;
+          const cData = courses[code];
+          const name = typeof cData === "object" && cData !== null ? (cData.name || "") : (cData || "");
+          return code.toLowerCase().includes(q) || name.toLowerCase().includes(q);
+        }).slice(0, 5);
+
+        if (matchedCodes.length === 0) {
+          els.myCoursesSuggestionsList.style.display = "flex";
+          const emptyItem = document.createElement("div");
+          emptyItem.style.padding = "6px 8px";
+          emptyItem.style.fontSize = "0.68rem";
+          emptyItem.style.color = "var(--text-muted)";
+          emptyItem.textContent = `No un-enrolled courses matching "${query}".`;
+          els.myCoursesSuggestionsList.appendChild(emptyItem);
+          return;
+        }
+
+        els.myCoursesSuggestionsList.style.display = "flex";
+        matchedCodes.forEach(code => {
+          const cData = courses[code];
+          const name = typeof cData === "object" && cData !== null ? (cData.name || "") : (cData || "");
+          const credits = typeof cData === "object" && cData !== null && cData.credits ? cData.credits : 3;
+          const examDay = typeof cData === "object" && cData !== null && cData.examDay ? cData.examDay : "";
+          const examSlot = typeof cData === "object" && cData !== null && cData.examSlot ? cData.examSlot : "";
+
+          const item = document.createElement("div");
+          item.className = "mycourses-suggestion-item";
+
+          const info = document.createElement("div");
+          info.className = "suggestion-info";
+
+          const codeRow = document.createElement("div");
+          codeRow.className = "suggestion-code-row";
+
+          const codeSpan = document.createElement("span");
+          codeSpan.className = "suggestion-code";
+          codeSpan.textContent = code;
+          codeRow.appendChild(codeSpan);
+
+          if (examDay || examSlot) {
+            const slotSpan = document.createElement("span");
+            slotSpan.className = "course-slot-chip";
+            slotSpan.style.fontSize = "0.58rem";
+            slotSpan.textContent = (examDay ? examDay : "") + (examDay && examSlot ? " " : "") + (examSlot ? examSlot : "");
+            codeRow.appendChild(slotSpan);
+          }
+
+          const titleDiv = document.createElement("div");
+          titleDiv.className = "suggestion-title";
+          titleDiv.textContent = name;
+          titleDiv.title = name;
+
+          info.appendChild(codeRow);
+          info.appendChild(titleDiv);
+
+          const chipsDiv = document.createElement("div");
+          chipsDiv.className = "suggestion-chips";
+
+          const crSpan = document.createElement("span");
+          crSpan.className = "course-credit-chip";
+          crSpan.style.fontSize = "0.58rem";
+          crSpan.textContent = credits.toFixed(1) + " Cr";
+          chipsDiv.appendChild(crSpan);
+
+          const addBtn = document.createElement("button");
+          addBtn.type = "button";
+          addBtn.className = "btn-suggestion-add";
+          addBtn.textContent = "+ Add";
+
+          chipsDiv.appendChild(addBtn);
+
+          item.appendChild(info);
+          item.appendChild(chipsDiv);
+
+          const handleAdd = (e) => {
+            e.stopPropagation();
+            toggleEnrollCourse(code);
+            els.myCoursesSearchInput.value = "";
+            renderSuggestions("");
+          };
+
+          item.addEventListener("click", handleAdd);
+          addBtn.addEventListener("click", handleAdd);
+
+          els.myCoursesSuggestionsList.appendChild(item);
+        });
+      }
+
+      els.myCoursesSearchInput.addEventListener("input", (e) => {
+        renderSuggestions(e.target.value);
+      });
+
+      els.myCoursesSearchClearBtn?.addEventListener("click", () => {
+        els.myCoursesSearchInput.value = "";
+        renderSuggestions("");
+        els.myCoursesSearchInput.focus();
+      });
+    }
+
+    setupMyCoursesQuickAdd();
 
     const openSettings = () => {
       els.viewWrapper.classList.remove("show-courses", "show-details", "show-import");

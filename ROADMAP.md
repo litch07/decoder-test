@@ -168,22 +168,16 @@ flowchart TD
   - Public Web Explorer (`docs/`): Displays credit badges on course cards and in the course inspector modal.
   - Regression Test Suite: `tests/test_course_credits.js` — 31 assertions, 31 passing.
 
-### [x] 3.2 "My Courses" & Exam Routine Clash Detector
+### [x] 3.2 Dedicated "My Courses" Academic Planner & Clash Detector
 - **Delivered**:
-  - **Pinned / Enrolled Course Management**: Students can bookmark their active enrolled courses for the trimester via quick-star (`★`/`☆`) toggle buttons on course rows or via `#detailsEnrollBtn` in View 3.
-  - **Persistent Storage**: Enrolled courses persist in `chrome.storage.local` under `enrolledCourses: [...]`.
-  - **Filter by Enrolled Courses**: View 1 includes `#filterEnrolledBtn` (`★ My Courses`) with real-time count badge `#enrolledCountBadge`.
-  - **Enrolled Summary Card** (`#enrolledSummaryCard`): Displays total enrolled course count, computed total credit count (e.g. `10.0 Cr`), and a 1-click `Clear` button.
-  - **Exam Routine Clash Detection Engine** (`detectExamClashes`):
-    - Identifies overlapping final exam routine slots (same Day and Slot, e.g. Day 4, Slot T2).
-    - Ignores lab finals, in-class evaluations, and N/A / empty routines to eliminate false positives.
-    - Groups 2-way and 3-way collisions and displays a prominent clash alert box (`#clashAlertBox`).
-  - **Visual Clash Warning Badges**:
-    - Conflicting course rows in View 1 are highlighted with `.is-clashing` red border styling.
-    - Course Details (View 3) displays a dedicated warning banner (`#detailClashWarning`) if the inspected course conflicts with another enrolled course.
-    - Home View (View 0) features `#homeEnrolledCard` with a quick clash indicator (`✓ No Exam Clashes` vs `⚠️ N Exam Clashes`).
-  - **Zero-`innerHTML` Security**: Built strictly with programmatic DOM manipulation.
-  - **Automated Regression Suite**: `tests/test_my_courses_clash_detector.js` — 31 assertions, 31 passing.
+  - **Dedicated Personal Planner Screen (`.mycourses-view`)**: Replaced the cramped View 1 filter button with a dedicated sliding screen accessible directly from the Home Hero Card (`#homeEnrolledCard`).
+  - **Streamlined Catalog Layout**: Cleaned up the 360px Course Database table by removing star icons and inline credit chips, giving over 100px back to course titles and completely fixing layout overflow.
+  - **Quick Add Search & Autocomplete**: Added a responsive search box (`#myCoursesSearchInput`) that displays instant course suggestions with a 1-click `+ Add` button.
+  - **Trimester Credit Load Tracker**: Real-time summary displaying course count, total credit hours, and a load indicator badge (`#enrolledLoadBadge`).
+  - **Exam Collision Engine (`detectExamClashes`)**: Groups overlapping exam Day & Slot routines, displaying prominent clash alerts while ignoring labs and in-class evaluations.
+  - **Course Details Integration**: Added 1-click enroll/drop action (`#detailsEnrollBtn`) and live collision warning banner (`#detailClashWarning`) in View 3.
+  - **Rich Enrolled Course Cards**: Includes quick "Inspect" and "Drop" actions with zero-`innerHTML` DOM creation.
+  - **Automated Regression Suite**: `tests/test_my_courses_clash_detector.js` &mdash; 31 assertions, 31 passing.
 
 ### [x] 3.3 Exam Week Calendar Export (.ics)
 - **Delivered**:

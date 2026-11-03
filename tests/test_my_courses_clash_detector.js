@@ -43,8 +43,8 @@ assert('HTML has #homeEnrolledCount and #homeEnrolledCredits',
   popupHtml.includes('id="homeEnrolledCount"') && popupHtml.includes('id="homeEnrolledCredits"'));
 assert('HTML has #homeClashBadge', popupHtml.includes('id="homeClashBadge"'));
 
-assert('HTML has #filterEnrolledBtn in View 1 filter row', popupHtml.includes('id="filterEnrolledBtn"'));
-assert('HTML has #enrolledCountBadge', popupHtml.includes('id="enrolledCountBadge"'));
+assert('HTML has dedicated .mycourses-view screen', popupHtml.includes('class="view mycourses-view"'));
+assert('HTML has #myCoursesSearchInput for quick course lookup', popupHtml.includes('id="myCoursesSearchInput"'));
 
 assert('HTML has #enrolledSummaryCard', popupHtml.includes('id="enrolledSummaryCard"'));
 assert('HTML has #enrolledTotalCourses and #enrolledTotalCredits',

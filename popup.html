@@ -210,7 +210,7 @@
 
         <div class="card" id="displaySettingsCard">
           <span class="card-title">Display Mode</span>
-          <div class="mode-group">
+          <div class="mode-group" role="radiogroup" aria-label="Decoder display mode">
             <label class="mode-option">
               <input type="radio" name="mode" value="highlight" id="modeHighlight" />
               <span class="mode-btn" title="Yellow background, name on hover">
@@ -257,23 +257,23 @@
           </div>
         </div>
 
-        <!-- Enrolled Courses Quick Card (Task 3.2) -->
-        <div class="card enrolled-quick-card" id="homeEnrolledCard" style="display: none;">
-          <div class="enrolled-quick-header">
-            <span class="enrolled-quick-title">★ My Courses (<span id="homeEnrolledCount">0</span>)</span>
-            <span class="enrolled-quick-credits" id="homeEnrolledCredits">0 Cr</span>
-          </div>
-          <div class="enrolled-quick-status" id="homeClashStatus">
-            <span class="clash-badge ok" id="homeClashBadge">✓ No Exam Clashes</span>
-          </div>
-        </div>
+        <!-- Feature 1: My Courses Button -->
+        <button class="btn-courses btn-mycourses enrolled-quick-card" id="homeEnrolledCard" type="button" aria-label="Open My Courses and Exam Routine">
+          <svg style="width:16px;height:16px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
+            <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM3.45 9L12 4.34 20.55 9 12 13.66 3.45 9zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+          </svg>
+          <span class="btn-mycourses-text">My Courses (<span id="homeEnrolledCount">0</span>)</span>
+          <span class="clash-badge danger" id="homeClashBadge" style="display: none;">⚠️ Clash</span>
+          <span id="homeEnrolledCredits" style="display: none;">0.0 Cr</span>
+        </button>
 
-        <button class="btn-courses" id="openCoursesBtn" style="margin-top: 2px;">
+        <!-- Feature 2: Browse Course Database Button -->
+        <button class="btn-courses" id="openCoursesBtn" type="button" style="margin-top: 6px;">
           <svg style="width:15px;height:15px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
             <path
               d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z" />
           </svg>
-          Manage Course Database
+          Browse Course Database
         </button>
       </div>
 
@@ -349,7 +349,6 @@
         <!-- Filter row -->
         <div class="filter-row" id="courseFilterRow" role="group" aria-label="Course list filters">
           <button class="filter-btn active" data-filter="all">All</button>
-          <button class="filter-btn" data-filter="enrolled" id="filterEnrolledBtn">★ My Courses <span class="filter-count-badge" id="enrolledCountBadge" style="display: none;">0</span></button>
           <button class="filter-btn" data-filter="user"><span class="filter-dot dot-user"></span>User Added</button>
           <button class="filter-btn" data-filter="edited"><span class="filter-dot dot-edited"></span>Edited</button>
           <button class="filter-btn" data-filter="official"><span
@@ -371,34 +370,6 @@
             </svg>
             Empty Trash
           </button>
-        </div>
-
-        <!-- Enrolled Courses & Exam Routine Clash Banner (Task 3.2) -->
-        <div class="enrolled-summary-card" id="enrolledSummaryCard" style="display: none;">
-          <div class="enrolled-summary-header">
-            <div class="enrolled-summary-title">
-              <span class="enrolled-star-icon">★</span>
-              <span>My Courses (<span id="enrolledTotalCourses">0</span>) &bull; <span id="enrolledTotalCredits">0</span> Cr</span>
-            </div>
-            <div class="enrolled-summary-actions">
-              <button type="button" class="enrolled-cal-btn" id="openIcsExportBtn" title="Export scheduled exams to .ics calendar">
-                <svg viewBox="0 0 24 24">
-                  <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
-                </svg>
-                <span>Calendar (.ics)</span>
-              </button>
-              <button type="button" class="enrolled-clear-all-btn" id="clearEnrolledBtn" title="Clear all enrolled courses">Clear</button>
-            </div>
-          </div>
-          <div class="clash-alert-box" id="clashAlertBox" style="display: none;">
-            <div class="clash-alert-header">
-              <svg class="clash-alert-icon" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-              </svg>
-              <span class="clash-alert-title">Exam Schedule Clash Detected!</span>
-            </div>
-            <div class="clash-alert-list" id="clashAlertList"></div>
-          </div>
         </div>
 
         <!-- Course list card with fixed header -->
@@ -821,6 +792,106 @@
               Clear
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: My Courses & Exam Routine (Dedicated Student Planner) -->
+    <div class="view mycourses-view" role="region" aria-label="My Courses and Exam Routine">
+      <div class="header">
+        <button class="header-back" id="myCoursesBackBtn" title="Go back to Home" aria-label="Back to home">
+          <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+        </button>
+        <div class="header-text" style="flex:1;">
+          <h1>My Courses &amp; Routine</h1>
+          <p id="myCoursesHeaderSubtitle">0 enrolled courses &bull; 0.0 credits</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="header-export-btn" id="openIcsExportBtn" title="Export scheduled exams to .ics calendar" aria-label="Export Exam Calendar">
+            <svg style="width:15px;height:15px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
+            </svg>
+            <span class="export-btn-label">Export .ics</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="body">
+        <!-- Quick Add Spotlight Bar -->
+        <div class="mycourses-search-container" id="myCoursesAddCard">
+          <div class="mycourses-search-box">
+            <svg class="mycourses-search-icon" viewBox="0 0 24 24">
+              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+            </svg>
+            <input type="text" id="myCoursesSearchInput" placeholder="Quick add: search code or title (e.g. CSE 2215)…" autocomplete="off" spellcheck="false" />
+            <button type="button" class="mycourses-search-clear" id="myCoursesSearchClearBtn" style="display: none;" title="Clear search" aria-label="Clear search">&times;</button>
+          </div>
+          <!-- Dropdown autocomplete suggestions -->
+          <div class="mycourses-suggestions-list" id="myCoursesSuggestionsList" style="display: none;"></div>
+        </div>
+
+        <!-- Exam Routine Clash Alert Card -->
+        <div class="clash-alert-box" id="clashAlertBox" style="display: none;">
+          <div class="clash-alert-header">
+            <span class="clash-alert-icon-wrap">
+              <svg viewBox="0 0 24 24">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+              </svg>
+            </span>
+            <div class="clash-alert-text">
+              <span class="clash-alert-title">Exam Schedule Conflict Detected!</span>
+              <span class="clash-alert-subtitle">Two or more enrolled courses share the same final exam slot.</span>
+            </div>
+          </div>
+          <div class="clash-alert-list" id="clashAlertList"></div>
+        </div>
+
+        <!-- Trimester Summary Card & Credit Meter -->
+        <div class="enrolled-summary-card" id="enrolledSummaryCard">
+          <div class="enrolled-summary-header">
+            <div class="enrolled-summary-title">
+              <span class="enrolled-summary-label">Trimester Load</span>
+              <div class="enrolled-summary-stats">
+                <strong><span id="enrolledTotalCourses">0</span> courses</strong>
+                <span class="stat-dot-sep">&bull;</span>
+                <strong><span id="enrolledTotalCredits">0.0</span> Cr</strong>
+              </div>
+            </div>
+            <button type="button" class="btn-clear-enrolled" id="clearEnrolledBtn" title="Drop all courses">
+              <svg viewBox="0 0 24 24" style="width:11px;height:11px;fill:currentColor;flex-shrink:0;">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+              Drop All
+            </button>
+          </div>
+          <div class="enrolled-load-bar" id="enrolledLoadBar">
+            <div class="load-track">
+              <div class="load-fill" id="enrolledLoadFill" style="width: 0%;"></div>
+            </div>
+            <span class="load-badge" id="enrolledLoadBadge">0.0 / 15.0 Cr</span>
+          </div>
+        </div>
+
+        <!-- Enrolled Course Cards List -->
+        <div class="mycourses-list" id="myCoursesList"></div>
+
+        <!-- Empty State -->
+        <div class="mycourses-empty" id="myCoursesEmptyState" style="display: none;">
+          <div class="mycourses-empty-illustration">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM3.45 9L12 4.34 20.55 9 12 13.66 3.45 9zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+            </svg>
+          </div>
+          <div class="mycourses-empty-title">Your Trimester Routine is Empty</div>
+          <div class="mycourses-empty-desc">Quickly add your courses using the search box above to calculate credits, build your exam routine, and detect schedule clashes.</div>
+          <button type="button" class="btn-browse-catalog-cta" id="browseCatalogFromMyCoursesBtn">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;">
+              <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+            </svg>
+            Browse Course Catalog
+          </button>
         </div>
       </div>
     </div>
