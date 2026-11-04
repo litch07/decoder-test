@@ -3293,71 +3293,134 @@
 
     // ── Render prerequisite chain ──────────────────────────────────────────
     if (!hasChain) {
-      var emptySpan = document.createElement("span");
-      emptySpan.className = "prereq-empty";
-      emptySpan.textContent = "No prerequisites (Direct entry)";
-      chainBody.appendChild(emptySpan);
+      var emptyState = document.createElement("div");
+      emptyState.className = "prereq-empty-state";
+      var emptyIcon = document.createElement("div");
+      emptyIcon.className = "prereq-empty-icon direct";
+      emptyIcon.textContent = "✓";
+      emptyState.appendChild(emptyIcon);
+      var emptyTitle = document.createElement("strong");
+      emptyTitle.textContent = "Direct Entry Course";
+      emptyState.appendChild(emptyTitle);
+      var emptyDesc = document.createElement("span");
+      emptyDesc.textContent = "No prior coursework or prerequisites required. You can enroll directly.";
+      emptyState.appendChild(emptyDesc);
+      chainBody.appendChild(emptyState);
     } else {
-      chain.levels.forEach(function(level, idx) {
-        // Arrow between depth levels (not before the first)
-        if (idx > 0) {
-          var arrowEl = document.createElement("span");
-          arrowEl.className = "prereq-chain-arrow";
-          arrowEl.setAttribute("aria-hidden", "true");
-          arrowEl.textContent = "›";
-          chainBody.appendChild(arrowEl);
-        }
-
-        // Depth label
-        var depthLabel = document.createElement("span");
-        depthLabel.className = "prereq-depth-label";
-        depthLabel.textContent = idx === 0 ? "Direct" : ("L" + level.depth);
-        chainBody.appendChild(depthLabel);
-
-        // Badge for each code in this level
-        level.codes.forEach(function(prereqCode) {
-          var inCatalog = !!courses[prereqCode];
-          var isDirect = idx === 0;
-          var content = badgeContent(prereqCode);
-
-          var badge = document.createElement("button");
-          badge.type = "button";
-          badge.className = "prereq-badge" +
-            (inCatalog ? (isDirect ? " is-direct" : " is-indirect") : " is-missing") +
-            (content.nameMode ? " is-name-mode" : "");
-          badge.textContent = content.label;
-          badge.title = content.tooltip;
-
-          if (inCatalog) {
-            badge.addEventListener("click", (function(c) {
-              return function() { openCourseDetails(c, courses[c], "flow"); };
-            })(prereqCode));
-          } else {
-            badge.setAttribute("aria-disabled", "true");
+      // Collect all prerequisite codes in order from deepest foundation to direct
+      var allPrereqCodes = [];
+      var seenCodes = new Set();
+      // Reverse levels so base foundation comes first, direct prereqs lead into target
+      for (var lIdx = chain.levels.length - 1; lIdx >= 0; lIdx--) {
+        var lvl = chain.levels[lIdx];
+        for (var cIdx = 0; cIdx < lvl.codes.length; cIdx++) {
+          var pCode = lvl.codes[cIdx];
+          if (!seenCodes.has(pCode)) {
+            seenCodes.add(pCode);
+            allPrereqCodes.push(pCode);
           }
-          chainBody.appendChild(badge);
-        });
+        }
+      }
+
+      allPrereqCodes.forEach(function(prereqCode) {
+        var inCatalog = !!courses[prereqCode];
+        var pData = inCatalog ? normalizeCourseData(courses[prereqCode]) : null;
+        var pName = pData ? (pData.name || "") : "";
+        var numCr = pData && pData.credits ? parseFloat(pData.credits) : NaN;
+        var pCr = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Cr";
+
+        var card = document.createElement("button");
+        card.type = "button";
+        card.className = "unlock-course-card prereq-course-card prereq-badge is-direct";
+        card.title = inCatalog ? (prereqCode + " — " + (pName || "Course details")) : (prereqCode + " — not in catalog");
+
+        var cardTop = document.createElement("div");
+        cardTop.className = "unlock-card-top";
+
+        var codeSpan = document.createElement("strong");
+        codeSpan.className = "unlock-card-code";
+        codeSpan.textContent = prereqCode;
+        cardTop.appendChild(codeSpan);
+
+        var crSpan = document.createElement("span");
+        crSpan.className = "unlock-card-cr";
+        crSpan.textContent = pCr;
+        cardTop.appendChild(crSpan);
+
+        card.appendChild(cardTop);
+
+        var nameSpan = document.createElement("span");
+        nameSpan.className = "unlock-card-name";
+        nameSpan.textContent = pName || prereqCode;
+        card.appendChild(nameSpan);
+
+        if (inCatalog) {
+          card.addEventListener("click", (function(c) {
+            return function() { openCourseDetails(c, courses[c], "flow"); };
+          })(prereqCode));
+        } else {
+          card.setAttribute("aria-disabled", "true");
+        }
+        chainBody.appendChild(card);
       });
     }
 
     // ── Render unlocks ─────────────────────────────────────────────────────
     if (!hasUnlocks) {
-      var emptyUnlocks = document.createElement("span");
-      emptyUnlocks.className = "prereq-empty";
-      emptyUnlocks.textContent = "No courses unlocked (Terminal course)";
+      var emptyUnlocks = document.createElement("div");
+      emptyUnlocks.className = "prereq-empty-state";
+      var termIcon = document.createElement("div");
+      termIcon.className = "prereq-empty-icon terminal";
+      termIcon.textContent = "🎓";
+      emptyUnlocks.appendChild(termIcon);
+      var termTitle = document.createElement("strong");
+      termTitle.textContent = "Specialized / Capstone Course";
+      emptyUnlocks.appendChild(termTitle);
+      var termDesc = document.createElement("span");
+      termDesc.textContent = "No subsequent courses list this as a prerequisite. Completes this curriculum branch.";
+      emptyUnlocks.appendChild(termDesc);
       unlocksBody.appendChild(emptyUnlocks);
     } else {
       unlocks.forEach(function(unlockCode) {
-        var content = badgeContent(unlockCode);
-        var badge = document.createElement("button");
-        badge.type = "button";
-        badge.className = "prereq-badge is-direct" + (content.nameMode ? " is-name-mode" : "");
-        badge.textContent = content.label;
-        badge.title = content.tooltip;
-        badge.addEventListener("click", (function(c) {
-          return function() { openCourseDetails(c, courses[c], "flow"); };
-        })(unlockCode));
-        unlocksBody.appendChild(badge);
+        var inCatalog = !!courses[unlockCode];
+        var uData = inCatalog ? normalizeCourseData(courses[unlockCode]) : null;
+        var uName = uData ? (uData.name || "") : "";
+        var numCr = uData && uData.credits ? parseFloat(uData.credits) : NaN;
+        var uCr = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Cr";
+
+        var card = document.createElement("button");
+        card.type = "button";
+        card.className = "unlock-course-card prereq-badge is-direct";
+        card.title = inCatalog ? (unlockCode + " — " + (uName || "Course details")) : (unlockCode + " — not in catalog");
+
+        var cardTop = document.createElement("div");
+        cardTop.className = "unlock-card-top";
+
+        var codeSpan = document.createElement("strong");
+        codeSpan.className = "unlock-card-code";
+        codeSpan.textContent = unlockCode;
+        cardTop.appendChild(codeSpan);
+
+        var crSpan = document.createElement("span");
+        crSpan.className = "unlock-card-cr";
+        crSpan.textContent = uCr;
+        cardTop.appendChild(crSpan);
+
+        card.appendChild(cardTop);
+
+        var nameSpan = document.createElement("span");
+        nameSpan.className = "unlock-card-name";
+        nameSpan.textContent = uName || unlockCode;
+        card.appendChild(nameSpan);
+
+        if (inCatalog) {
+          card.addEventListener("click", (function(c) {
+            return function() { openCourseDetails(c, courses[c], "flow"); };
+          })(unlockCode));
+        } else {
+          card.setAttribute("aria-disabled", "true");
+        }
+        unlocksBody.appendChild(card);
       });
     }
 
@@ -3576,14 +3639,9 @@
       }
     }
 
-    // Default edit form: expanded for custom/edited courses, collapsed for official courses
-    if (els.detailsFormContainer && els.editToggleBadge) {
-      var isCustom = origin.class !== "official";
-      els.detailsFormContainer.style.display = isCustom ? "block" : "none";
-      els.editToggleBadge.textContent = isCustom ? "Hide Form ▴" : "Edit Data ▾";
-      if (els.toggleEditFormBtn) {
-        els.toggleEditFormBtn.setAttribute("aria-expanded", String(isCustom));
-      }
+    // Form is directly open and editable
+    if (els.detailsFormContainer) {
+      els.detailsFormContainer.style.display = "block";
     }
 
     els.viewWrapper.classList.add("show-details");
@@ -3645,9 +3703,35 @@
       if (els.detailsCourseSubtitle) {
         els.detailsCourseSubtitle.textContent = newVal.name || "Course Details & Routine";
       }
+      if (els.detailCourseTitle) els.detailCourseTitle.textContent = newVal.name || code;
+      var numCr = parseFloat(newVal.credits);
+      var crStr = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Cr";
+      if (els.detailHeroCreditsBadge) els.detailHeroCreditsBadge.textContent = crStr;
+      if (els.detailMetricCreditsVal) els.detailMetricCreditsVal.textContent = crStr;
+
+      var lowerD = (newVal.examDay || "").trim().toLowerCase();
+      var slotTimes = { "T1": "09:00–11:00", "T2": "11:30–13:30", "T3": "14:30–16:30" };
+      if (lowerD === "in-class") {
+        if (els.detailMetricRoutineVal) els.detailMetricRoutineVal.textContent = "In-Class";
+        if (els.detailMetricRoutineTime) els.detailMetricRoutineTime.textContent = "Lab / Viva";
+      } else if (newVal.examDay && newVal.examSlot && lowerD !== "n/a" && lowerD !== "none") {
+        if (els.detailMetricRoutineVal) els.detailMetricRoutineVal.textContent = newVal.examDay + " • " + newVal.examSlot;
+        if (els.detailMetricRoutineTime) els.detailMetricRoutineTime.textContent = slotTimes[newVal.examSlot] || "Routine Slot";
+      } else {
+        if (els.detailMetricRoutineVal) els.detailMetricRoutineVal.textContent = "TBA";
+        if (els.detailMetricRoutineTime) els.detailMetricRoutineTime.textContent = "Routine TBA";
+      }
+
+      var pList = Array.isArray(newVal.prerequisites) ? newVal.prerequisites.filter(function(p) { return p && p.toUpperCase() !== "NONE"; }) : [];
+      if (els.detailMetricPrereqsVal) {
+        els.detailMetricPrereqsVal.textContent = pList.length > 0 ? (pList.length + (pList.length === 1 ? " Prereq" : " Prereqs")) : "Direct Entry";
+      }
+
+      // Re-render prereq tree for updated course data
+      renderPrereqTree(code);
       updateDetailReportCard(code, newVal);
 
-      // Show Post-Save Contribution Prompt Banner asking if they want to contribute to the official catalog
+      // Show Post-Save Contribution Prompt Banner smoothly
       if (els.detailSaveContribPrompt) {
         els.detailSaveContribPrompt.style.display = "flex";
         els.detailSaveContribPrompt.scrollIntoView({ behavior: "smooth", block: "nearest" });
