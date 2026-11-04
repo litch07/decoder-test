@@ -100,13 +100,36 @@ assert.ok(contribBlockIdx !== -1 && contribBlockEnd !== -1, "Found GitHub contri
 const contribSnippet = JS.substring(contribBlockIdx, contribBlockEnd + 100);
 assert.ok(!contribSnippet.includes(".innerHTML"), "Zero innerHTML in GitHub contribution handlers");
 
-// ── 5. Contribution / Info Modal Settings Navigation Check ────────────────────
-assert.ok(HTML.includes('id="contribModalSettingsBtn"'), "HTML has #contribModalSettingsBtn in modal header");
-assert.ok(HTML.includes('id="contribOpenSettingsBtn"'), "HTML has #contribOpenSettingsBtn in modal list");
-assert.ok(JS.includes("contribOpenSettingsBtn: document.getElementById(\"contribOpenSettingsBtn\")"), "popup.js references #contribOpenSettingsBtn");
-assert.ok(JS.includes("contribModalSettingsBtn: document.getElementById(\"contribModalSettingsBtn\")"), "popup.js references #contribModalSettingsBtn");
+// ── 5. Header Settings Navigation Check (Courses & Import Headers) ─────────────
+assert.ok(HTML.includes('id="coursesSettingsBtn"'), "HTML has #coursesSettingsBtn in Catalog header");
+assert.ok(HTML.includes('id="importSettingsBtn"'), "HTML has #importSettingsBtn in Import header");
+assert.ok(HTML.includes('id="detailsSettingsBtn"'), "HTML has #detailsSettingsBtn in Details header");
+assert.ok(JS.includes("coursesSettingsBtn: document.getElementById(\"coursesSettingsBtn\")"), "popup.js references #coursesSettingsBtn");
+assert.ok(JS.includes("importSettingsBtn: document.getElementById(\"importSettingsBtn\")"), "popup.js references #importSettingsBtn");
+assert.ok(JS.includes("detailsSettingsBtn: document.getElementById(\"detailsSettingsBtn\")"), "popup.js references #detailsSettingsBtn");
 assert.ok(JS.includes("settingsOriginView"), "popup.js tracks settingsOriginView for smart back-navigation");
-assert.ok(CSS.includes(".contrib-modal-header-actions"), "CSS defines .contrib-modal-header-actions");
-assert.ok(CSS.includes(".contrib-action-icon.settings"), "CSS defines .contrib-action-icon.settings");
+
+// ── 6. Header Writing & Architectural Polish Checks ──────────────────────────
+assert.ok(HTML.includes("Academic Assistant &amp; Routine Decoder"), "Home subtitle is updated");
+assert.ok(HTML.includes('id="coursesPanelTitle">Course Catalog<'), "Catalog header title is updated");
+assert.ok(HTML.includes("details-header-title-row"), "Details view features code-first header title row");
+assert.ok(HTML.includes('id="detailsCourseSubtitle"'), "Details view has dynamic subtitle element");
+assert.ok(HTML.includes("Add &amp; Import Courses"), "Add / Import title is updated");
+assert.ok(HTML.includes("Theme, site permissions &amp; sync"), "Settings subtitle is updated");
+assert.ok(CSS.includes(".details-header-title-row"), "CSS has .details-header-title-row");
+assert.ok(JS.includes("detailsCourseSubtitle"), "popup.js references #detailsCourseSubtitle");
+
+// ── 7. Single Border Focus on Text Inputs (No Double Border) ─────────────────
+assert.ok(CSS.includes(".form-input:focus-visible") && CSS.includes("outline: none !important"), "CSS eliminates double-border on text inputs");
+
+// ── 8. Warm Welcome & Orientation Card Checks ────────────────────────────────
+assert.ok(HTML.includes('id="welcomeCard"'), "HTML has #welcomeCard");
+assert.ok(HTML.includes('id="welcomeDismissBtn"'), "HTML has #welcomeDismissBtn");
+assert.ok(HTML.includes('id="welcomeActionBtn"'), "HTML has #welcomeActionBtn");
+assert.ok(HTML.includes('id="contribShowWelcomeBtn"'), "HTML has #contribShowWelcomeBtn in info modal");
+assert.ok(CSS.includes(".welcome-card"), "CSS has .welcome-card styles");
+assert.ok(CSS.includes(".btn-welcome-dismiss"), "CSS has .btn-welcome-dismiss styles");
+assert.ok(JS.includes("welcomeCard: document.getElementById(\"welcomeCard\")"), "popup.js references #welcomeCard");
+assert.ok(JS.includes("welcomeDismissed"), "popup.js checks and persists welcomeDismissed in storage");
 
 console.log("All Schedule, Prerequisite & GitHub Prompt Tests Passed! 🎉");

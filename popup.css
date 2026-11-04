@@ -87,6 +87,13 @@ body {
   pointer-events: auto;
 }
 
+.view-wrapper.show-welcome .main-view {
+  transform: translateX(-15%);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 .view-wrapper.show-courses .main-view,
 .view-wrapper.show-details .main-view,
 .view-wrapper.show-import .main-view,
@@ -391,6 +398,342 @@ body {
   margin: 0 !important;
 }
 
+/* ── Dedicated Welcome & Onboarding View ────────────────────────────── */
+.welcome-view {
+  z-index: 45;
+  transform: translateX(100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: var(--bg);
+  box-sizing: border-box;
+}
+
+.view-wrapper.show-welcome .welcome-view {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.welcome-screen-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 14px 16px 12px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* Top bar with pill and close button */
+.welcome-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.welcome-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(242, 101, 34, 0.12);
+  border: 1px solid rgba(242, 101, 34, 0.28);
+  border-radius: 20px;
+  padding: 2.5px 8px;
+  font-size: 0.60rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.welcome-tag-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.welcome-skip-btn {
+  background: transparent;
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.welcome-skip-btn:hover {
+  background: var(--surface2);
+  color: var(--text-main);
+}
+
+.welcome-skip-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* Hero Section */
+.welcome-hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.welcome-brand-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 122, 0, 0.16) 0%, rgba(242, 101, 34, 0.08) 100%);
+  border: 1.5px solid rgba(242, 101, 34, 0.3);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 14px rgba(242, 101, 34, 0.15);
+  margin-bottom: 8px;
+  transition: transform 0.2s ease;
+}
+
+.welcome-brand-badge:hover {
+  transform: translateY(-2px);
+}
+
+.welcome-brand-img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.welcome-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.welcome-subtitle {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 2px 0 0;
+}
+
+.welcome-intro-desc {
+  font-size: 0.67rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+  max-width: 310px;
+}
+
+/* 3 Feature Highlight Cards */
+.welcome-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+.welcome-feature-card,
+.welcome-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  padding: 8px 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.welcome-feature-card:hover {
+  border-color: rgba(242, 101, 34, 0.4);
+  transform: translateY(-1px);
+}
+
+.welcome-feature-icon-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.welcome-feature-icon-box svg {
+  width: 15px;
+  height: 15px;
+}
+
+.welcome-feature-icon-box.icon-offline {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+.welcome-feature-icon-box.icon-offline svg {
+  fill: #10b981;
+}
+
+.welcome-feature-icon-box.icon-routine {
+  background: rgba(242, 101, 34, 0.12);
+  color: var(--accent);
+}
+.welcome-feature-icon-box.icon-routine svg {
+  fill: var(--accent);
+}
+
+.welcome-feature-icon-box.icon-hover {
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+}
+.welcome-feature-icon-box.icon-hover svg {
+  fill: #6366f1;
+}
+
+.welcome-feature-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.welcome-feature-heading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+}
+
+.welcome-feature-detail {
+  font-size: 0.63rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.welcome-feature-detail em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.welcome-feature-detail code {
+  background: rgba(242, 101, 34, 0.12);
+  color: var(--accent);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.61rem;
+}
+
+/* Bottom Action Area */
+.welcome-bottom-action {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.btn-welcome-dismiss {
+  height: 38px;
+  background: linear-gradient(135deg, #FF7A00 0%, var(--accent) 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 3px 10px rgba(242, 101, 34, 0.32);
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.btn-welcome-dismiss:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(242, 101, 34, 0.42);
+}
+
+.btn-welcome-dismiss:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(242, 101, 34, 0.25);
+}
+
+.btn-welcome-dismiss svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  transition: transform 0.15s ease;
+}
+
+.btn-welcome-dismiss:hover svg {
+  transform: translateX(2px);
+}
+
+.welcome-footer-hint {
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  text-align: center;
+  opacity: 0.8;
+}
+
+/* Dark mode for Welcome Screen */
+[data-theme="dark"] .welcome-view,
+:root:not([data-theme="light"]) .welcome-view {
+  background: #0B0F19;
+}
+
+[data-theme="dark"] .welcome-brand-badge,
+:root:not([data-theme="light"]) .welcome-brand-badge {
+  background: linear-gradient(135deg, rgba(255, 122, 0, 0.18) 0%, rgba(242, 101, 34, 0.08) 100%);
+  border-color: rgba(242, 101, 34, 0.45);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .welcome-feature-card,
+[data-theme="dark"] .welcome-card,
+:root:not([data-theme="light"]) .welcome-feature-card,
+:root:not([data-theme="light"]) .welcome-card {
+  background: #111827;
+  border-color: #1F2937;
+}
+
+[data-theme="dark"] .welcome-feature-card:hover,
+:root:not([data-theme="light"]) .welcome-feature-card:hover {
+  border-color: rgba(242, 101, 34, 0.5);
+}
+
+[data-theme="dark"] .welcome-skip-btn:hover,
+:root:not([data-theme="light"]) .welcome-skip-btn:hover {
+  background: #1F2937;
+  color: #F9FAFB;
+}
+
 /* ── Top Hero: Clickable Course Catalog Card (Release 3.2 Polish) ── */
 .stat-pill {
   background: var(--surface);
@@ -549,6 +892,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .toggle-row {
@@ -694,6 +1038,24 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
+}
+
+.card-title-row .card-title {
+  font-size: 0.64rem;
+  letter-spacing: 0.035em;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.card-title-hint {
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  opacity: 0.85;
+  white-space: nowrap;
+  margin-left: 1px;
 }
 
 .domains-count-badge {
@@ -1621,7 +1983,7 @@ body {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-shrink: 0;
 }
 
@@ -1805,14 +2167,43 @@ body {
   border: 1px solid #a7f3d0;
 }
 
-/* Course details header badge */
+/* Course details header layout & badge */
+.details-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.details-header-title-row h1 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#detailsCourseSubtitle {
+  font-size: 0.68rem;
+  opacity: 0.88;
+  margin-top: 1px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 210px;
+}
+
 .details-view .header .origin-badge {
   background: #ffffff !important;
   font-size: 0.62rem;
   font-weight: 700;
   padding: 3px 9px;
   border-radius: 99px;
-  margin-left: auto;
+  margin-left: 0;
   margin-top: 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
   letter-spacing: 0.05em;
@@ -1820,6 +2211,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .details-view .header .origin-badge.official {
@@ -5430,6 +5822,12 @@ body {
   border-color: #243048;
 }
 
+[data-theme="dark"] .details-view .header .origin-badge,
+:root:not([data-theme="light"]) .details-view .header .origin-badge {
+  background: #182235 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
 [data-theme="dark"] .origin-badge.official,
 :root:not([data-theme="light"]) .origin-badge.official {
   background: #182235;
@@ -5722,14 +6120,14 @@ body {
 
 /* Visible Focus Indicator Ring */
 :focus-visible {
-  outline: 2px solid var(--accent) !important;
-  outline-offset: 2px !important;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 button:focus-visible,
-input:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible,
 select:focus-visible,
-textarea:focus-visible,
 [role="button"]:focus-visible,
 [role="tab"]:focus-visible,
 [role="radio"]:focus-visible,
@@ -5739,20 +6137,85 @@ textarea:focus-visible,
 .mode-btn:focus-visible,
 .theme-option-btn:focus-visible,
 .prereq-toggle-btn:focus-visible {
-  outline: 2px solid var(--accent) !important;
-  outline-offset: 2px !important;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 [data-theme="dark"] :focus-visible {
-  outline: 2px solid #ff7733 !important;
-  outline-offset: 2px !important;
+  outline: 2px solid #ff7733;
+  outline-offset: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) :focus-visible {
-    outline: 2px solid #ff7733 !important;
-    outline-offset: 2px !important;
+    outline: 2px solid #ff7733;
+    outline-offset: 2px;
   }
+}
+
+/* Text inputs & textareas: crisp single border with soft unified halo (eliminates double-border glitch) */
+.form-input,
+input[type="text"],
+input[type="number"],
+input[type="date"],
+textarea,
+.json-textarea,
+.allowlist-input-row input {
+  outline: none;
+}
+
+.form-input:focus,
+.form-input:focus-visible,
+input[type="text"]:focus,
+input[type="text"]:focus-visible,
+input[type="number"]:focus,
+input[type="number"]:focus-visible,
+input[type="date"]:focus,
+input[type="date"]:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+.json-textarea:focus,
+.json-textarea:focus-visible,
+.allowlist-input-row input:focus,
+.allowlist-input-row input:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2.5px rgba(242, 101, 34, 0.18) !important;
+}
+
+[data-theme="dark"] .form-input:focus,
+[data-theme="dark"] .form-input:focus-visible,
+[data-theme="dark"] input[type="text"]:focus,
+[data-theme="dark"] input[type="text"]:focus-visible,
+[data-theme="dark"] input[type="number"]:focus,
+[data-theme="dark"] input[type="number"]:focus-visible,
+[data-theme="dark"] input[type="date"]:focus,
+[data-theme="dark"] input[type="date"]:focus-visible,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] textarea:focus-visible,
+[data-theme="dark"] .json-textarea:focus,
+[data-theme="dark"] .json-textarea:focus-visible,
+[data-theme="dark"] .allowlist-input-row input:focus,
+[data-theme="dark"] .allowlist-input-row input:focus-visible,
+:root:not([data-theme="light"]) .form-input:focus,
+:root:not([data-theme="light"]) .form-input:focus-visible,
+:root:not([data-theme="light"]) input[type="text"]:focus,
+:root:not([data-theme="light"]) input[type="text"]:focus-visible,
+:root:not([data-theme="light"]) input[type="number"]:focus,
+:root:not([data-theme="light"]) input[type="number"]:focus-visible,
+:root:not([data-theme="light"]) input[type="date"]:focus,
+:root:not([data-theme="light"]) input[type="date"]:focus-visible,
+:root:not([data-theme="light"]) textarea:focus,
+:root:not([data-theme="light"]) textarea:focus-visible,
+:root:not([data-theme="light"]) .json-textarea:focus,
+:root:not([data-theme="light"]) .json-textarea:focus-visible,
+:root:not([data-theme="light"]) .allowlist-input-row input:focus,
+:root:not([data-theme="light"]) .allowlist-input-row input:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  border-color: #ff7733 !important;
+  box-shadow: 0 0 0 2.5px rgba(255, 119, 51, 0.28) !important;
 }
 
 /* Modals focus trap layer */
@@ -8382,8 +8845,8 @@ textarea:focus-visible,
 }
 
 .detail-contrib-banner-icon svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   fill: currentColor;
 }
 
@@ -8424,56 +8887,81 @@ textarea:focus-visible,
 
 .detail-contrib-banner-actions {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .btn-detail-contrib-github {
-  height: 32px;
+  height: 34px;
   background: var(--accent);
   color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  padding: 0 10px;
-  font-size: 0.70rem;
-  font-weight: 700;
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  padding: 0 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   font-family: inherit;
-  transition: background 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.btn-detail-contrib-github svg,
+.btn-detail-contrib-github-icon {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  fill: currentColor !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
 }
 
 .btn-detail-contrib-github:hover {
   background: var(--accent-hover);
+  border-color: var(--accent-hover);
   transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(242, 101, 34, 0.25);
+}
+
+.btn-detail-contrib-github:active {
+  transform: translateY(0);
 }
 
 .btn-detail-contrib-done {
-  height: 32px;
-  background: var(--surface2);
+  height: 34px;
+  background: var(--surface);
   color: var(--text-main);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 0 10px;
-  font-size: 0.70rem;
+  border-radius: 7px;
+  padding: 0 8px;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   font-family: inherit;
-  transition: all 0.15s ease;
   white-space: nowrap;
+  transition: all 0.15s ease;
 }
 
 .btn-detail-contrib-done:hover {
-  background: var(--surface);
+  background: var(--surface2);
   border-color: var(--accent);
   color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.btn-detail-contrib-done:active {
+  transform: translateY(0);
 }
 
 /* ── Contextual Report Card Styles ──────────────────────────────────── */
@@ -8511,9 +8999,16 @@ textarea:focus-visible,
 
 [data-theme="dark"] .btn-detail-contrib-done,
 :root:not([data-theme="light"]) .btn-detail-contrib-done {
-  background: #162032;
-  border-color: #243048;
-  color: #f9fafb;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .btn-detail-contrib-done:hover,
+:root:not([data-theme="light"]) .btn-detail-contrib-done:hover {
+  background: var(--surface);
+  border-color: #fb923c;
+  color: #fb923c;
 }
 
 [data-theme="dark"] .report-card.is-user-added,

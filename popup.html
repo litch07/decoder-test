@@ -152,32 +152,23 @@
           </div>
           <h2 id="contributionModalTitle">Community &amp; Contributing</h2>
         </div>
-        <div class="contrib-modal-header-actions">
-          <button type="button" class="preview-modal-close-btn" id="contribModalSettingsBtn" aria-label="Open extension settings" title="Extension Settings &amp; Preferences">
-            <svg viewBox="0 0 24 24">
-              <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-            </svg>
-          </button>
-          <button type="button" class="preview-modal-close-btn" id="contribModalCloseBtn" aria-label="Close contribution dialog" title="Close dialog">
-            <svg viewBox="0 0 24 24">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-            </svg>
-          </button>
-        </div>
+        <button type="button" class="preview-modal-close-btn" id="contribModalCloseBtn" aria-label="Close contribution dialog" title="Close dialog">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
       </div>
       <p class="contrib-modal-desc">
         UIU Course Code Decoder is an open-source tool maintained by and for UIU students. Help keep course data, credits, and exam schedules complete for all departments!
       </p>
       <div class="contrib-cards-list">
-        <button type="button" class="contrib-action-card" id="contribOpenSettingsBtn">
-          <div class="contrib-action-icon settings">
-            <svg viewBox="0 0 24 24">
-              <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-            </svg>
+        <button type="button" class="contrib-action-card" id="contribShowWelcomeBtn">
+          <div class="contrib-action-icon" style="background: rgba(242, 101, 34, 0.12);">
+            <svg viewBox="0 0 24 24" style="fill: var(--accent);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
           </div>
           <div class="contrib-action-text">
-            <strong>Extension Settings &amp; Preferences</strong>
-            <span>Change theme, decoding mode, allowed sites &amp; cloud sync.</span>
+            <strong>Welcome Guide &amp; Quick Tips</strong>
+            <span>Re-open the onboarding guide and quick tips.</span>
           </div>
           <span class="contrib-action-arrow">&rarr;</span>
         </button>
@@ -221,6 +212,86 @@
   <!-- Slide container: holds both views side by side; CSS translateX switches between them -->
   <div class="view-wrapper" id="viewWrapper">
 
+    <!-- View 0: Dedicated Welcome & Onboarding Screen -->
+    <div class="view welcome-view" id="welcomeCard" role="region" aria-label="Welcome and Onboarding Guide">
+      <div class="welcome-screen-inner">
+
+        <!-- Top Bar with Pill Tag and Dismiss Button -->
+        <div class="welcome-topbar">
+          <div class="welcome-tag-pill">
+            <span class="welcome-tag-dot"></span>
+            <span>ACADEMIC COMPANION</span>
+          </div>
+          <button type="button" class="welcome-skip-btn" id="welcomeDismissBtn" aria-label="Skip onboarding and enter home" title="Skip to Home">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
+
+        <!-- Hero Branding -->
+        <div class="welcome-hero-section">
+          <div class="welcome-brand-badge">
+            <img src="icons/icon.png" alt="UIU Course Decoder Logo" class="welcome-brand-img" />
+          </div>
+          <h1 class="welcome-title">Welcome to UIU Course Decoder!</h1>
+          <p class="welcome-subtitle">Your offline academic assistant &amp; routine planner</p>
+          <p class="welcome-intro-desc">
+            Instantly decode course codes, check exam routines, and inspect prerequisites on any UIU webpage (UCAM, LMS &amp; Sheets).
+          </p>
+        </div>
+
+        <!-- 3 Feature Highlight Cards -->
+        <div class="welcome-feature-list">
+
+          <div class="welcome-feature-card">
+            <div class="welcome-feature-icon-box icon-offline">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+              </svg>
+            </div>
+            <div class="welcome-feature-text">
+              <div class="welcome-feature-heading">100% Offline &amp; Private</div>
+              <div class="welcome-feature-detail">All catalog queries, routine notes, and custom additions stay securely on your device.</div>
+            </div>
+          </div>
+
+          <div class="welcome-feature-card">
+            <div class="welcome-feature-icon-box icon-routine">
+              <svg viewBox="0 0 24 24">
+                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5v-5z"/>
+              </svg>
+            </div>
+            <div class="welcome-feature-text">
+              <div class="welcome-feature-heading">Exam Routine &amp; Clash Alerts</div>
+              <div class="welcome-feature-detail">Add subjects to <em>My Courses</em> to automatically detect same-day exam schedule conflicts.</div>
+            </div>
+          </div>
+
+          <div class="welcome-feature-card">
+            <div class="welcome-feature-icon-box icon-hover">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+              </svg>
+            </div>
+            <div class="welcome-feature-text">
+              <div class="welcome-feature-heading">Instant Hover Live Decoding</div>
+              <div class="welcome-feature-detail">Hover over any course code (e.g. <code>CSE 3421</code>) anywhere on UIU portals to preview it live.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Action CTA -->
+        <div class="welcome-bottom-action">
+          <button type="button" class="btn-welcome-dismiss" id="welcomeActionBtn" title="Enter Home Dashboard">
+            <span>Got it, let's go!</span>
+            <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+          </button>
+          <div class="welcome-footer-hint">Open-source tool maintained by &amp; for UIU students</div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- View 1: Main settings panel -->
     <div class="view main-view" role="region" aria-label="Home Dashboard">
 
@@ -230,7 +301,7 @@
         </div>
         <div class="header-text" style="flex: 1;">
           <h1>UIU Course Code Decoder</h1>
-          <p>Never guess a course code again</p>
+          <p>Academic Assistant &amp; Routine Decoder</p>
         </div>
         <button class="header-btn" id="openSettingsBtn" title="Settings &amp; Preferences">
           <svg style="width:17px;height:17px;fill:white;" viewBox="0 0 24 24">
@@ -410,8 +481,8 @@
           </svg>
         </button>
         <div class="header-text" style="flex:1;">
-          <h1 id="coursesPanelTitle">Course Database</h1>
-          <p id="coursesPanelCount">— courses loaded</p>
+          <h1 id="coursesPanelTitle">Course Catalog</h1>
+          <p id="coursesPanelCount">Browse &amp; search all courses</p>
         </div>
         <div class="header-actions">
           <button type="button" id="openContribModalBtn" class="header-export-btn" title="Contributing &amp; Community Guide" aria-label="Community &amp; Contributing Guide">
@@ -432,6 +503,11 @@
             <div id="trashBadge"
               style="position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; border-radius: 50%; font-size: 0.55rem; width: 15px; height: 15px; display: none; align-items: center; justify-content: center; font-weight: bold; border: 1.5px solid var(--accent); line-height: 1;">
             </div>
+          </button>
+          <button type="button" class="header-btn" id="coursesSettingsBtn" title="Settings &amp; Preferences" aria-label="Settings &amp; Preferences">
+            <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
+              <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -521,15 +597,24 @@
           </svg>
         </button>
         <div class="header-text" style="flex:1;">
-          <h1>Course Details</h1>
-          <p id="detailsCourseCode">—</p>
+          <div class="details-header-title-row">
+            <h1 id="detailsCourseCode">Course Details</h1>
+            <span class="origin-badge official" id="detailsOriginBadge">Official</span>
+          </div>
+          <p id="detailsCourseSubtitle">Course Details &amp; Routine</p>
         </div>
-        <span class="origin-badge official" id="detailsOriginBadge">Official</span>
-        <button type="button" class="header-export-btn" id="detailsInfoBtn" title="How to contribute or report wrong data" aria-label="Contributing &amp; Community Guide">
-          <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-          </svg>
-        </button>
+        <div class="header-actions">
+          <button type="button" class="header-export-btn" id="detailsInfoBtn" title="How to contribute or report wrong data" aria-label="Contributing &amp; Community Guide">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+          </button>
+          <button type="button" class="header-btn" id="detailsSettingsBtn" title="Settings &amp; Preferences" aria-label="Settings &amp; Preferences">
+            <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
+              <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="body">
@@ -560,23 +645,23 @@
           <div class="detail-contrib-banner-header">
             <div class="detail-contrib-banner-icon">
               <svg viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
             </div>
             <div class="detail-contrib-banner-text">
-              <div class="detail-contrib-banner-title">Changes Saved Locally! &bull; Propose to Catalog?</div>
-              <div class="detail-contrib-banner-desc">Help keep UIU course information accurate by sharing your updates with the open-source repository.</div>
+              <div class="detail-contrib-banner-title">Changes Saved Locally!</div>
+              <div class="detail-contrib-banner-desc">Help keep UIU course information complete by proposing your update to the official catalog.</div>
             </div>
             <button type="button" class="detail-contrib-banner-close" id="detailSaveContribClose" aria-label="Dismiss banner" title="Dismiss">&times;</button>
           </div>
           <div class="detail-contrib-banner-actions">
-            <button type="button" class="btn-detail-contrib-github" id="detailSaveContribGithubBtn">
-              <svg viewBox="0 0 24 24">
-                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+            <button type="button" class="btn-detail-contrib-github" id="detailSaveContribGithubBtn" title="Propose this update to the official catalog on GitHub">
+              <svg class="btn-detail-contrib-github-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
               </svg>
-              <span>🚀 Submit Update to GitHub (1-Click)</span>
+              <span>Submit to GitHub</span>
             </button>
-            <button type="button" class="btn-detail-contrib-done" id="detailSaveContribDoneBtn">
+            <button type="button" class="btn-detail-contrib-done" id="detailSaveContribDoneBtn" title="Return to Course Catalog">
               <span>Back to Catalog &rarr;</span>
             </button>
           </div>
@@ -735,13 +820,18 @@
           </svg>
         </button>
         <div class="header-text" style="flex:1;">
-          <h1>Add / Import Courses</h1>
+          <h1>Add &amp; Import Courses</h1>
           <p id="importViewSubtitle">Add single course or bulk JSON</p>
         </div>
         <div class="header-actions">
           <button type="button" class="header-export-btn" id="importInfoBtn" title="Community Contributing Guide" aria-label="Community Contributing Guide">
             <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+          </button>
+          <button type="button" class="header-btn" id="importSettingsBtn" title="Settings &amp; Preferences" aria-label="Settings &amp; Preferences">
+            <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
+              <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
             </svg>
           </button>
         </div>
@@ -1031,7 +1121,7 @@
     <!-- View: My Courses & Exam Routine (Dedicated Student Planner) -->
     <div class="view mycourses-view" role="region" aria-label="My Courses and Exam Routine">
       <div class="header">
-        <button class="header-back" id="myCoursesBackBtn" title="Go back to Home" aria-label="Back to home">
+        <button class="header-back" id="myCoursesBackBtn" title="Go back" aria-label="Back to home">
           <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
           </svg>
@@ -1123,14 +1213,14 @@
     <!-- View 5: Settings & Preferences panel -->
     <div class="view settings-view" role="region" aria-label="Settings and Preferences">
       <div class="header">
-        <button class="header-back" id="settingsBackBtn" title="Go back to Home">
+        <button class="header-back" id="settingsBackBtn" title="Go back">
           <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
           </svg>
         </button>
         <div class="header-text" style="flex:1;">
           <h1>Settings &amp; Preferences</h1>
-          <p>Theme, domains, sync &amp; resets</p>
+          <p>Theme, site permissions &amp; sync</p>
         </div>
       </div>
 
@@ -1176,7 +1266,7 @@
                 <path
                   d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
               </svg>
-              Allowed Domains (Supports *)
+              Allowed Domains <span class="card-title-hint">(Supports *)</span>
             </span>
             <span class="domains-count-badge" id="domainsCountBadge">0 domains</span>
           </div>

@@ -33,6 +33,9 @@
     showPrerequisitesToggle: document.getElementById("showPrerequisitesToggle"),
     viewWrapper: document.getElementById("viewWrapper"),
     openSettingsBtn: document.getElementById("openSettingsBtn"),
+    coursesSettingsBtn: document.getElementById("coursesSettingsBtn"),
+    importSettingsBtn: document.getElementById("importSettingsBtn"),
+    detailsSettingsBtn: document.getElementById("detailsSettingsBtn"),
     settingsBackBtn: document.getElementById("settingsBackBtn"),
     backBtn: document.getElementById("backBtn"),
     coursesPanelTitle: document.getElementById("coursesPanelTitle"),
@@ -55,8 +58,10 @@
     previewConfirmBtn: document.getElementById("previewConfirmBtn"),
     contributionModal: document.getElementById("contributionModal"),
     contribModalCloseBtn: document.getElementById("contribModalCloseBtn"),
-    contribModalSettingsBtn: document.getElementById("contribModalSettingsBtn"),
-    contribOpenSettingsBtn: document.getElementById("contribOpenSettingsBtn"),
+    contribShowWelcomeBtn: document.getElementById("contribShowWelcomeBtn"),
+    welcomeCard: document.getElementById("welcomeCard"),
+    welcomeDismissBtn: document.getElementById("welcomeDismissBtn"),
+    welcomeActionBtn: document.getElementById("welcomeActionBtn"),
     contribModalDoneBtn: document.getElementById("contribModalDoneBtn"),
     openContribModalBtn: document.getElementById("openContribModalBtn"),
     detailsInfoBtn: document.getElementById("detailsInfoBtn"),
@@ -124,6 +129,7 @@
     importBackBtn: document.getElementById("importBackBtn"),
     detailsBackBtn: document.getElementById("detailsBackBtn"),
     detailsCourseCode: document.getElementById("detailsCourseCode"),
+    detailsCourseSubtitle: document.getElementById("detailsCourseSubtitle"),
     detailName: document.getElementById("detailName"),
     detailPrereq: document.getElementById("detailPrereq"),
     detailPrereqNote: document.getElementById("detailPrereqNote"),
@@ -372,7 +378,14 @@
   }
 
   async function loadStorageData() {
-    const stored = await chrome.storage.local.get(["courses", "userCourses", "softDeletedCourses", "mode", "allowedSites", "showExamInfo", "showPrerequisites", "lastSyncedAt", "remoteCourses", "hardDeletedCourses", "lastSyncResult", "themePreference", "enrolledCourses"]);
+    const stored = await chrome.storage.local.get(["courses", "userCourses", "softDeletedCourses", "mode", "allowedSites", "showExamInfo", "showPrerequisites", "lastSyncedAt", "remoteCourses", "hardDeletedCourses", "lastSyncResult", "themePreference", "enrolledCourses", "welcomeDismissed"]);
+    if (els.viewWrapper) {
+      if (stored.welcomeDismissed) {
+        els.viewWrapper.classList.remove("show-welcome");
+      } else {
+        els.viewWrapper.classList.add("show-welcome");
+      }
+    }
     courses = stored.courses || {};
     userCourses = stored.userCourses || {};
     softDeletedCourses = stored.softDeletedCourses || [];
@@ -3344,6 +3357,11 @@
     els.detailsCourseCode.textContent = code;
     courseData = courseData || courses[code];
 
+    const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
+    if (els.detailsCourseSubtitle) {
+      els.detailsCourseSubtitle.textContent = name || "Course Details & Routine";
+    }
+
     const origin = getCourseOrigin(code);
     const badgeEl = document.getElementById("detailsOriginBadge");
     if (badgeEl) {
@@ -3351,7 +3369,6 @@
       badgeEl.textContent = origin.label;
     }
 
-    const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
     const examDay = typeof courseData === "object" && courseData !== null ? (courseData.examDay || "") : "";
     const examSlot = typeof courseData === "object" && courseData !== null ? (courseData.examSlot || "") : "";
     const prerequisites = typeof courseData === "object" && courseData !== null && courseData.prerequisites ? courseData.prerequisites.join(", ") : "";
@@ -3509,6 +3526,9 @@
       if (badgeEl) {
         badgeEl.className = `origin-badge ${origin.class}`;
         badgeEl.textContent = origin.label;
+      }
+      if (els.detailsCourseSubtitle) {
+        els.detailsCourseSubtitle.textContent = newVal.name || "Course Details & Routine";
       }
       updateDetailReportCard(code, newVal);
 
@@ -4013,12 +4033,21 @@
     els.contribModalCloseBtn?.addEventListener("click", closeContributionModal);
     els.contribModalDoneBtn?.addEventListener("click", closeContributionModal);
 
-    const handleOpenSettingsFromModal = () => {
-      closeContributionModal();
-      openSettings();
+    const dismissWelcomeCard = () => {
+      if (els.viewWrapper) {
+        els.viewWrapper.classList.remove("show-welcome");
+      }
+      chrome.storage.local.set({ welcomeDismissed: true });
     };
-    els.contribOpenSettingsBtn?.addEventListener("click", handleOpenSettingsFromModal);
-    els.contribModalSettingsBtn?.addEventListener("click", handleOpenSettingsFromModal);
+
+    els.welcomeDismissBtn?.addEventListener("click", dismissWelcomeCard);
+    els.welcomeActionBtn?.addEventListener("click", dismissWelcomeCard);
+
+    els.contribShowWelcomeBtn?.addEventListener("click", () => {
+      closeContributionModal();
+      els.viewWrapper.classList.remove("show-courses", "show-details", "show-import", "show-settings", "show-mycourses");
+      els.viewWrapper.classList.add("show-welcome");
+    });
     els.contribExportCustomBtn?.addEventListener("click", () => {
       closeContributionModal();
       exportCoursesContextual("custom");
@@ -4322,7 +4351,7 @@
     // Panel sliding animations
     els.openCoursesBtn?.addEventListener("click", () => {
       isTrashMode = false;
-      els.coursesPanelTitle.textContent = "Course Database";
+      els.coursesPanelTitle.textContent = "Course Catalog";
       updateCourseCount();
       updateEnrolledUI();
       updateSearchClearBtn();
@@ -4533,6 +4562,9 @@
       els.viewWrapper.classList.add("show-settings");
     }
     els.openSettingsBtn?.addEventListener("click", () => openSettings("home"));
+    els.coursesSettingsBtn?.addEventListener("click", () => openSettings("courses"));
+    els.importSettingsBtn?.addEventListener("click", () => openSettings("import"));
+    els.detailsSettingsBtn?.addEventListener("click", () => openSettings("details"));
     document.getElementById("homeSyncAlert")?.addEventListener("click", () => openSettings("home"));
 
     els.settingsBackBtn?.addEventListener("click", () => {
@@ -4621,7 +4653,7 @@
         els.openImportBtn.style.display = "none";
         renderTrashList(searchQuery);
       } else {
-        els.coursesPanelTitle.textContent = "Course Database";
+        els.coursesPanelTitle.textContent = "Course Catalog";
         updateCourseCount();
         if (els.exportCoursesBtn) els.exportCoursesBtn.style.display = "grid";
         els.viewTrashBtn.style.display = "grid";
@@ -4635,7 +4667,7 @@
     els.backBtn?.addEventListener("click", () => {
       if (isTrashMode) {
         isTrashMode = false;
-        els.coursesPanelTitle.textContent = "Course Database";
+        els.coursesPanelTitle.textContent = "Course Catalog";
         updateCourseCount();
         if (els.exportCoursesBtn) els.exportCoursesBtn.style.display = "grid";
         els.viewTrashBtn.style.display = "grid";
@@ -4675,12 +4707,16 @@
       if (els.reportIssueBtn) {
         els.reportIssueBtn.click();
       }
-      if (els.detailSaveContribGithubBtn) {
-        els.detailSaveContribGithubBtn.textContent = "✓ Opening GitHub in New Tab...";
+      const labelSpan = els.detailSaveContribGithubBtn.querySelector("span");
+      if (labelSpan) {
+        labelSpan.textContent = "Opening GitHub...";
         setTimeout(() => {
-          if (els.detailSaveContribGithubBtn) {
-            els.detailSaveContribGithubBtn.textContent = "🚀 Reopen GitHub Issue";
-          }
+          if (labelSpan) labelSpan.textContent = "Submit to GitHub";
+        }, 3000);
+      } else {
+        els.detailSaveContribGithubBtn.textContent = "Opening GitHub...";
+        setTimeout(() => {
+          els.detailSaveContribGithubBtn.textContent = "Submit to GitHub";
         }, 3000);
       }
     });
