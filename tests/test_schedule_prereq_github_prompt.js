@@ -6,7 +6,8 @@
  * 2. Community 1-Click GitHub issue contribution prompt in popup.html & popup.js
  * 3. Content script buildExtendedData discrimination between In-Class, Scheduled, and TBA
  * 4. Content script buildExtendedData discrimination between None and Not Specified prerequisites
- * 5. Zero innerHTML usage in new logic
+ * 5. Course Details dynamic contribution card & post-edit save banner (User Added vs Edited vs Official)
+ * 6. Zero innerHTML usage in new logic
  */
 
 const assert = require("assert");
@@ -29,6 +30,10 @@ assert.ok(HTML.includes('id="contribSubmitGithubBtn"'), "HTML has #contribSubmit
 assert.ok(HTML.includes('id="contribDismissBtn"'), "HTML has #contribDismissBtn button");
 assert.ok(HTML.includes('id="detailInClass"'), "HTML has #detailInClass in Details View");
 assert.ok(HTML.includes('id="detailNoPrereq"'), "HTML has #detailNoPrereq in Details View");
+assert.ok(HTML.includes('id="detailSaveContribPrompt"'), "HTML has #detailSaveContribPrompt in Details View");
+assert.ok(HTML.includes('id="detailSaveContribGithubBtn"'), "HTML has #detailSaveContribGithubBtn");
+assert.ok(HTML.includes('id="detailSaveContribDoneBtn"'), "HTML has #detailSaveContribDoneBtn");
+assert.ok(HTML.includes('id="detailReportCard"'), "HTML has #detailReportCard");
 
 // ── 2. CSS Styling Existence ─────────────────────────────────────────────────
 assert.ok(CSS.includes(".form-checkbox-row"), "CSS has .form-checkbox-row");
@@ -36,6 +41,8 @@ assert.ok(CSS.includes(".form-checkbox-label"), "CSS has .form-checkbox-label");
 assert.ok(CSS.includes(".contrib-prompt-card"), "CSS has .contrib-prompt-card");
 assert.ok(CSS.includes(".btn-contrib-submit"), "CSS has .btn-contrib-submit");
 assert.ok(CSS.includes(".routine-slot-badge.pending-slot"), "CSS has .routine-slot-badge.pending-slot");
+assert.ok(CSS.includes(".detail-contrib-banner"), "CSS has .detail-contrib-banner");
+assert.ok(CSS.includes(".report-card.is-user-added"), "CSS has .report-card.is-user-added");
 
 // ── 3. Content Script Extended Data Behavior ─────────────────────────────────
 // Extract buildExtendedData function from content.js for isolated unit testing
@@ -79,6 +86,11 @@ assert.strictEqual(resEmptyPrereq.prereq, "Not Specified", "Empty prerequisites 
 assert.ok(JS.includes("els.singleCourseInClass"), "popup.js references els.singleCourseInClass");
 assert.ok(JS.includes("els.singleCourseNoPrereq"), "popup.js references els.singleCourseNoPrereq");
 assert.ok(JS.includes("els.contribSubmitGithubBtn"), "popup.js references els.contribSubmitGithubBtn");
+assert.ok(JS.includes("updateDetailReportCard("), "popup.js implements updateDetailReportCard");
+assert.ok(JS.includes("Upload to Official Repository"), "popup.js contains Upload to Official Repository for user-added courses");
+assert.ok(JS.includes("Propose Changes to Official Catalog"), "popup.js contains Propose Changes to Official Catalog for edited courses");
+assert.ok(JS.includes("Notice an error with this course?"), "popup.js contains Notice an error for official courses");
+assert.ok(JS.includes("els.detailSaveContribGithubBtn"), "popup.js references els.detailSaveContribGithubBtn");
 assert.ok(JS.includes("https://github.com/litch07/uiu-course-decoder/issues/new"), "popup.js generates GitHub issue URL");
 
 // Ensure no innerHTML was introduced in new handlers
@@ -88,5 +100,13 @@ assert.ok(contribBlockIdx !== -1 && contribBlockEnd !== -1, "Found GitHub contri
 const contribSnippet = JS.substring(contribBlockIdx, contribBlockEnd + 100);
 assert.ok(!contribSnippet.includes(".innerHTML"), "Zero innerHTML in GitHub contribution handlers");
 
-console.log("All Schedule, Prerequisite & GitHub Prompt Tests Passed! 🎉");
+// ── 5. Contribution / Info Modal Settings Navigation Check ────────────────────
+assert.ok(HTML.includes('id="contribModalSettingsBtn"'), "HTML has #contribModalSettingsBtn in modal header");
+assert.ok(HTML.includes('id="contribOpenSettingsBtn"'), "HTML has #contribOpenSettingsBtn in modal list");
+assert.ok(JS.includes("contribOpenSettingsBtn: document.getElementById(\"contribOpenSettingsBtn\")"), "popup.js references #contribOpenSettingsBtn");
+assert.ok(JS.includes("contribModalSettingsBtn: document.getElementById(\"contribModalSettingsBtn\")"), "popup.js references #contribModalSettingsBtn");
+assert.ok(JS.includes("settingsOriginView"), "popup.js tracks settingsOriginView for smart back-navigation");
+assert.ok(CSS.includes(".contrib-modal-header-actions"), "CSS defines .contrib-modal-header-actions");
+assert.ok(CSS.includes(".contrib-action-icon.settings"), "CSS defines .contrib-action-icon.settings");
 
+console.log("All Schedule, Prerequisite & GitHub Prompt Tests Passed! 🎉");

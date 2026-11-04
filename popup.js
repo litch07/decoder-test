@@ -55,6 +55,8 @@
     previewConfirmBtn: document.getElementById("previewConfirmBtn"),
     contributionModal: document.getElementById("contributionModal"),
     contribModalCloseBtn: document.getElementById("contribModalCloseBtn"),
+    contribModalSettingsBtn: document.getElementById("contribModalSettingsBtn"),
+    contribOpenSettingsBtn: document.getElementById("contribOpenSettingsBtn"),
     contribModalDoneBtn: document.getElementById("contribModalDoneBtn"),
     openContribModalBtn: document.getElementById("openContribModalBtn"),
     detailsInfoBtn: document.getElementById("detailsInfoBtn"),
@@ -176,6 +178,15 @@
     detailSaveBtn: document.getElementById("detailSaveBtn"),
     detailDelBtn: document.getElementById("detailDelBtn"),
     reportIssueBtn: document.getElementById("reportIssueBtn"),
+    detailReportCard: document.getElementById("detailReportCard"),
+    detailReportTitle: document.getElementById("detailReportTitle"),
+    detailReportBody: document.getElementById("detailReportBody"),
+    detailReportBtnText: document.getElementById("detailReportBtnText"),
+    detailReportFooterHint: document.getElementById("detailReportFooterHint"),
+    detailSaveContribPrompt: document.getElementById("detailSaveContribPrompt"),
+    detailSaveContribGithubBtn: document.getElementById("detailSaveContribGithubBtn"),
+    detailSaveContribDoneBtn: document.getElementById("detailSaveContribDoneBtn"),
+    detailSaveContribClose: document.getElementById("detailSaveContribClose"),
     prereqTreeSection: document.getElementById("prereqTreeSection"),
     prereqChainBody: document.getElementById("prereqChainBody"),
     prereqChainCount: document.getElementById("prereqChainCount"),
@@ -299,7 +310,7 @@
       if (currentThemePreference === "system") {
         els.themeStatusHint.textContent = `System theme active (currently ${isSystemDark ? "Dark" : "Light"}). Adapts automatically.`;
       } else if (currentThemePreference === "dark") {
-        els.themeStatusHint.textContent = "OLED dark theme active.";
+        els.themeStatusHint.textContent = "Dark theme active.";
       } else {
         els.themeStatusHint.textContent = "Light theme active.";
       }
@@ -3272,7 +3283,62 @@
     }
   })();
 
-    function openCourseDetails(code, courseData, originView = "courses") {
+      // Context-aware Course Details Contribution & Error Reporting Card
+  function updateDetailReportCard(code, courseData) {
+    if (!els.detailReportCard) return;
+    const origin = getCourseOrigin(code);
+    const isUserAdded = origin.class === "user-added" || origin.class === "user";
+    const isEdited = origin.class === "edited";
+
+    const titleEl = document.getElementById("detailReportTitle");
+    const subTitleEl = document.getElementById("detailReportSubtitle");
+    const bodyEl = document.getElementById("detailReportBody");
+    const btnTextEl = document.getElementById("detailReportBtnText");
+    const footerHintEl = document.getElementById("detailReportFooterHint");
+    const iconPath = document.getElementById("detailReportIconPath");
+    const btnIconPath = document.getElementById("detailReportBtnIconPath");
+    const reportBtn = els.reportIssueBtn;
+
+    const GITHUB_SVG = "M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z";
+    const SYNC_SVG = "M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z";
+    const ALERT_SVG = "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z";
+
+    if (isUserAdded) {
+      els.detailReportCard.classList.add("is-user-added");
+      els.detailReportCard.classList.remove("is-edited");
+      if (titleEl) titleEl.textContent = "Upload to Official Repository";
+      if (subTitleEl) subTitleEl.textContent = "Saved locally on this device";
+      if (bodyEl) bodyEl.textContent = "This course is stored only on your browser. Upload it to the community database so all UIU students can automatically decode it.";
+      if (btnTextEl) btnTextEl.textContent = "Submit Course to GitHub";
+      if (footerHintEl) footerHintEl.textContent = "Open-source community project";
+      if (reportBtn) reportBtn.title = "Submit this user-added course to the official repository via GitHub";
+      if (iconPath) iconPath.setAttribute("d", GITHUB_SVG);
+      if (btnIconPath) btnIconPath.setAttribute("d", GITHUB_SVG);
+    } else if (isEdited) {
+      els.detailReportCard.classList.add("is-edited");
+      els.detailReportCard.classList.remove("is-user-added");
+      if (titleEl) titleEl.textContent = "Propose Changes to Official Catalog";
+      if (subTitleEl) subTitleEl.textContent = "Modified locally on this device";
+      if (bodyEl) bodyEl.textContent = "You have customized this course's routine or prerequisites. Submit your updates so the central catalog stays accurate for everyone.";
+      if (btnTextEl) btnTextEl.textContent = "Propose Changes to GitHub";
+      if (footerHintEl) footerHintEl.textContent = "Verified via pull request";
+      if (reportBtn) reportBtn.title = "Propose your modifications to the official UIU catalog via GitHub";
+      if (iconPath) iconPath.setAttribute("d", SYNC_SVG);
+      if (btnIconPath) btnIconPath.setAttribute("d", SYNC_SVG);
+    } else {
+      els.detailReportCard.classList.remove("is-user-added", "is-edited");
+      if (titleEl) titleEl.textContent = "Notice an error with this course?";
+      if (subTitleEl) subTitleEl.textContent = "Official university catalog";
+      if (bodyEl) bodyEl.textContent = "If the course title, exam routine, credits, or prerequisites are outdated or missing, report it so we can update it for all UIU students.";
+      if (btnTextEl) btnTextEl.textContent = "Report Wrong Data on GitHub";
+      if (footerHintEl) footerHintEl.textContent = "Want to contribute missing courses?";
+      if (reportBtn) reportBtn.title = "Report incorrect course data via GitHub";
+      if (iconPath) iconPath.setAttribute("d", ALERT_SVG);
+      if (btnIconPath) btnIconPath.setAttribute("d", ALERT_SVG);
+    }
+  }
+
+  function openCourseDetails(code, courseData, originView = "courses") {
     detailsOriginView = originView;
     currentEditingCode = code;
     els.detailsCourseCode.textContent = code;
@@ -3393,6 +3459,9 @@
     els.viewWrapper.classList.add("show-details");
     els.viewWrapper.classList.remove("show-courses", "show-settings", "show-trash", "show-import");
 
+    if (els.detailSaveContribPrompt) els.detailSaveContribPrompt.style.display = "none";
+    updateDetailReportCard(code, courseData);
+
     // Task 2.4 — render prerequisite tree for this course
     renderPrereqTree(code);
 
@@ -3412,7 +3481,6 @@
   }
 
   function commitCourseSave(code, newVal) {
-    // This is the hook for the confirmation modal to call
     (async () => {
       const officialData = remoteCourses[code] || bundledCourses[code];
       if (officialData && areCourseDataEqual(newVal, officialData)) {
@@ -3435,7 +3503,22 @@
       if (isTrashMode) renderTrashList(searchQuery);
       else renderCourseList(searchQuery);
 
-      exitCourseDetails();
+      // Update Course Details view in place
+      const origin = getCourseOrigin(code);
+      const badgeEl = document.getElementById("detailsOriginBadge");
+      if (badgeEl) {
+        badgeEl.className = `origin-badge ${origin.class}`;
+        badgeEl.textContent = origin.label;
+      }
+      updateDetailReportCard(code, newVal);
+
+      // Show Post-Save Contribution Prompt Banner asking if they want to contribute to the official catalog
+      if (els.detailSaveContribPrompt) {
+        els.detailSaveContribPrompt.style.display = "flex";
+        els.detailSaveContribPrompt.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      showToast("Changes saved locally", "success");
     })();
   }
 
@@ -3929,6 +4012,13 @@
 
     els.contribModalCloseBtn?.addEventListener("click", closeContributionModal);
     els.contribModalDoneBtn?.addEventListener("click", closeContributionModal);
+
+    const handleOpenSettingsFromModal = () => {
+      closeContributionModal();
+      openSettings();
+    };
+    els.contribOpenSettingsBtn?.addEventListener("click", handleOpenSettingsFromModal);
+    els.contribModalSettingsBtn?.addEventListener("click", handleOpenSettingsFromModal);
     els.contribExportCustomBtn?.addEventListener("click", () => {
       closeContributionModal();
       exportCoursesContextual("custom");
@@ -4152,28 +4242,76 @@
         ? courseData.prerequisites.join(", ")
         : "";
       const note = typeof courseData === "object" && courseData !== null ? (courseData.prerequisiteNote || "") : "";
+      const credits = typeof courseData === "object" && courseData !== null && courseData.credits ? courseData.credits : "";
+      const origin = getCourseOrigin(currentEditingCode);
+      const isUserAdded = origin.class === "user-added" || origin.class === "user";
+      const isEdited = origin.class === "edited";
+      const lowerDay = (examDay || "").trim().toLowerCase();
 
-      const title = encodeURIComponent(`[Data Correction] ${currentEditingCode} - ${name || "Course Details"}`);
-      let courseDetailsMd = `### 📚 Course Information\n` +
-        `- **Course:** \`${currentEditingCode}\` — ${name || "Untitled"}\n` +
-        `- **Exam Routine:** Day ${examDay || "—"}, Slot ${examSlot || "—"}\n` +
-        `- **Prerequisites:** ${prereqs || "None"}\n`;
-      if (note) {
-        courseDetailsMd += `- **Prerequisite Note:** ${note}\n`;
+      let title = "";
+      let body = "";
+      let labels = "data-correction";
+
+      if (isUserAdded) {
+        title = encodeURIComponent(`[Course Addition] ${currentEditingCode} - ${name || "New Course"}`);
+        labels = "course-addition,community-contribution";
+        let routineDisplay = "Schedule Pending / TBA";
+        if (lowerDay === "in-class") routineDisplay = "In-Class Evaluation (No central routine exam)";
+        else if (examDay && examSlot) routineDisplay = `Day ${examDay}, Slot ${examSlot}`;
+        else if (examDay) routineDisplay = `Day ${examDay}`;
+
+        let md = `### 🚀 New Course Submission for Official Catalog\n` +
+          `The following course was created locally and is submitted for inclusion in the official UIU extension database:\n\n` +
+          `- **Course Code:** \`${currentEditingCode}\`\n` +
+          `- **Course Title:** ${name || "Untitled"}\n` +
+          `- **Credits:** ${credits ? credits + " Cr" : "3.0 Cr"}\n` +
+          `- **Exam Routine:** ${routineDisplay}\n` +
+          `- **Prerequisites:** ${prereqs || "None (Direct entry)"}\n`;
+        if (note) md += `- **Prerequisite Note:** ${note}\n`;
+        md += `\n---\n\n` +
+          `### 📋 Course Department / Source\n` +
+          `*(Please mention department, faculty syllabus, or UCAM portal notice)*\n\n\n` +
+          `*Submitted via UIU Course Code Decoder extension. Thank you for contributing to UIU's community catalog!*`;
+        body = encodeURIComponent(md);
+      } else if (isEdited) {
+        title = encodeURIComponent(`[Catalog Correction] ${currentEditingCode} - Proposed Updates`);
+        labels = "data-correction,community-update";
+        let routineDisplay = "Schedule Pending / TBA";
+        if (lowerDay === "in-class") routineDisplay = "In-Class Evaluation";
+        else if (examDay && examSlot) routineDisplay = `Day ${examDay}, Slot ${examSlot}`;
+        else if (examDay) routineDisplay = `Day ${examDay}`;
+
+        let md = `### 📝 Proposed Course Update for Official Catalog\n` +
+          `The following local corrections are proposed for \`${currentEditingCode}\`:\n\n` +
+          `- **Course Code:** \`${currentEditingCode}\`\n` +
+          `- **Updated Title:** ${name || "Untitled"}\n` +
+          `- **Updated Credits:** ${credits ? credits + " Cr" : "3.0 Cr"}\n` +
+          `- **Updated Routine:** ${routineDisplay}\n` +
+          `- **Updated Prerequisites:** ${prereqs || "None"}\n`;
+        if (note) md += `- **Prerequisite Note:** ${note}\n`;
+        md += `\n---\n\n` +
+          `### 🔄 Reason for Change / Verification\n` +
+          `*(Describe why this update is needed, e.g. routine updated for current trimester, prerequisite change, etc.)*\n\n\n` +
+          `*Thanks for helping keep the UIU course catalog accurate for everyone!*`;
+        body = encodeURIComponent(md);
+      } else {
+        title = encodeURIComponent(`[Data Correction] ${currentEditingCode} - ${name || "Course Details"}`);
+        labels = "data-correction";
+        let md = `### 📋 Course Information\n` +
+          `- **Course:** \`${currentEditingCode}\` - ${name || "Untitled"}\n` +
+          `- **Exam Routine:** Day ${examDay || "-"}, Slot ${examSlot || "-"}\n` +
+          `- **Prerequisites:** ${prereqs || "None"}\n`;
+        if (note) md += `- **Prerequisite Note:** ${note}\n`;
+        md += `\n---\n\n` +
+          `### ❓ What needs fixing?\n` +
+          `*(Describe what is incorrect, e.g. wrong course name, missing prerequisite, outdated exam slot)*\n\n\n\n` +
+          `### 💡 Correct Information (if known)\n` +
+          `*(Provide the updated course details or official source)*\n\n\n` +
+          `*Thanks for helping keep the UIU course catalog accurate for everyone!*`;
+        body = encodeURIComponent(md);
       }
 
-      const body = encodeURIComponent(
-        courseDetailsMd +
-        `\n---\n\n` +
-        `### ✏️ What needs fixing?\n` +
-        `*(Describe what is incorrect, e.g. wrong course name, missing prerequisite, outdated exam slot)*\n\n\n\n` +
-        `### 💡 Correct Information (if known)\n` +
-        `*(Provide the correct details from UCAM, official routine, or syllabus)*\n\n\n\n` +
-        `---\n` +
-        `*Thanks for helping keep the UIU course catalog accurate for everyone!*`
-      );
-
-      const issueUrl = `https://github.com/litch07/uiu-course-decoder/issues/new?title=${title}&body=${body}&labels=data-correction`;
+      const issueUrl = `https://github.com/litch07/uiu-course-decoder/issues/new?title=${title}&body=${body}&labels=${labels}`;
       try {
         chrome.tabs.create({ url: issueUrl });
       } catch (_) {
@@ -4375,15 +4513,40 @@
 
     setupMyCoursesQuickAdd();
 
-    const openSettings = () => {
-      els.viewWrapper.classList.remove("show-courses", "show-details", "show-import");
+    let settingsOriginView = "home";
+
+    function openSettings(fromView = null) {
+      if (fromView) {
+        settingsOriginView = fromView;
+      } else if (els.viewWrapper.classList.contains("show-details")) {
+        settingsOriginView = "details";
+      } else if (els.viewWrapper.classList.contains("show-courses")) {
+        settingsOriginView = "courses";
+      } else if (els.viewWrapper.classList.contains("show-import")) {
+        settingsOriginView = "import";
+      } else if (els.viewWrapper.classList.contains("show-mycourses")) {
+        settingsOriginView = "mycourses";
+      } else {
+        settingsOriginView = "home";
+      }
+      els.viewWrapper.classList.remove("show-courses", "show-details", "show-import", "show-mycourses");
       els.viewWrapper.classList.add("show-settings");
-    };
-    els.openSettingsBtn?.addEventListener("click", openSettings);
-    document.getElementById("homeSyncAlert")?.addEventListener("click", openSettings);
+    }
+    els.openSettingsBtn?.addEventListener("click", () => openSettings("home"));
+    document.getElementById("homeSyncAlert")?.addEventListener("click", () => openSettings("home"));
 
     els.settingsBackBtn?.addEventListener("click", () => {
       els.viewWrapper.classList.remove("show-settings");
+      if (settingsOriginView === "details") {
+        els.viewWrapper.classList.add("show-details");
+      } else if (settingsOriginView === "courses") {
+        els.viewWrapper.classList.add("show-courses");
+      } else if (settingsOriginView === "import") {
+        els.viewWrapper.classList.add("show-import");
+      } else if (settingsOriginView === "mycourses") {
+        els.viewWrapper.classList.add("show-mycourses");
+      }
+      settingsOriginView = "home";
     });
 
     // Theme preference option buttons (Task 3.4)
@@ -4503,6 +4666,32 @@
 
     els.detailsBackBtn?.addEventListener("click", () => {
       exitCourseDetails();
+    });
+
+    
+    // Post-Save Contribution Prompt Banner Event Listeners
+    els.detailSaveContribGithubBtn?.addEventListener("click", () => {
+      if (!currentEditingCode) return;
+      if (els.reportIssueBtn) {
+        els.reportIssueBtn.click();
+      }
+      if (els.detailSaveContribGithubBtn) {
+        els.detailSaveContribGithubBtn.textContent = "✓ Opening GitHub in New Tab...";
+        setTimeout(() => {
+          if (els.detailSaveContribGithubBtn) {
+            els.detailSaveContribGithubBtn.textContent = "🚀 Reopen GitHub Issue";
+          }
+        }, 3000);
+      }
+    });
+
+    els.detailSaveContribDoneBtn?.addEventListener("click", () => {
+      if (els.detailSaveContribPrompt) els.detailSaveContribPrompt.style.display = "none";
+      exitCourseDetails();
+    });
+
+    els.detailSaveContribClose?.addEventListener("click", () => {
+      if (els.detailSaveContribPrompt) els.detailSaveContribPrompt.style.display = "none";
     });
 
     els.detailSaveBtn?.addEventListener("click", () => {
@@ -5114,6 +5303,15 @@
       if (els.viewWrapper && !els.viewWrapper.classList.contains("show-courses")) {
         els.openCoursesBtn?.click();
       }
+
+      // Auto-activate the "User Added" category filter tab
+      const userFilterBtn = document.querySelector('#courseFilterRow .filter-btn[data-filter="user"]');
+      if (userFilterBtn && els.filterBtns) {
+        els.filterBtns.forEach(b => b.classList.remove("active"));
+        userFilterBtn.classList.add("active");
+        currentFilter = "user";
+      }
+
       if (codeToSearch && els.courseSearch) {
         els.courseSearch.value = codeToSearch;
         searchQuery = codeToSearch;
