@@ -162,6 +162,39 @@ body {
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
 }
 
+/* Dedicated Flow View (Prerequisite Tree & Unlocks) */
+.flow-view {
+  z-index: 25;
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.view-wrapper.show-flow .flow-view {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
+}
+
+.view-wrapper.show-flow .main-view,
+.view-wrapper.show-flow .courses-view,
+.view-wrapper.show-flow .details-view {
+  transform: translateX(-15%);
+  opacity: 0.85;
+  pointer-events: none;
+  visibility: visible;
+}
+
+.view-wrapper.show-settings .flow-view {
+  transform: translateX(-15%);
+  opacity: 0.85;
+  pointer-events: none;
+  visibility: visible;
+}
+
 /* Settings & Preferences View */
 .settings-view {
   z-index: 30;
@@ -2604,12 +2637,12 @@ body {
        COURSE DETAILS VIEW
     ════════════════════════════════════ */
 .details-view .body {
-  padding: 10px 14px 12px;
+  padding: 9px 13px 12px;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .details-view .body::-webkit-scrollbar {
@@ -2632,18 +2665,19 @@ body {
 .details-card {
   background: var(--surface);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 12px 14px;
+  border-radius: 10px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin: 0;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
 }
 
 .form-label-row {
@@ -2696,14 +2730,14 @@ body {
 
 .form-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .details-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 2px;
 }
 
 .btn-save-details {
@@ -4421,11 +4455,11 @@ body {
 
 /* ── REPORT ISSUE & COMMUNITY CARD (Executive Polish) ── */
 .report-card {
-  margin-top: 10px;
+  margin-top: 0;
   background: var(--surface);
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  padding: 13px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 9px;
@@ -4671,6 +4705,267 @@ body {
   }
 }
 
+
+/* ── Curriculum Roadmap Launcher Card (Course Details View) ───────────── */
+.prereq-launcher-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.prereq-launcher-card:hover {
+  border-color: rgba(242, 101, 34, 0.35);
+  box-shadow: 0 2px 8px rgba(242, 101, 34, 0.08);
+}
+
+.prereq-launcher-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prereq-launcher-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(242, 101, 34, 0.12);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.prereq-launcher-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+.prereq-launcher-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.prereq-launcher-title {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.prereq-launcher-desc {
+  display: block;
+  font-size: 0.67rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prereq-launcher-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.prereq-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.prereq-stat-chip.req {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+}
+
+.prereq-stat-chip.unlock {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+.prereq-stat-chip.direct {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.prereq-stat-chip.terminal {
+  background: rgba(107, 114, 128, 0.1);
+  color: #4b5563;
+  border: 1px solid rgba(107, 114, 128, 0.25);
+}
+
+.btn-open-prereq-flow {
+  width: 100%;
+  height: 34px;
+  background: var(--surface2);
+  color: var(--accent);
+  border: 1px solid rgba(242, 101, 34, 0.3);
+  border-radius: 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.btn-open-prereq-flow:hover {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(242, 101, 34, 0.25);
+}
+
+.btn-open-prereq-flow:active {
+  transform: translateY(0);
+}
+
+.btn-open-prereq-flow svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+  transition: transform 0.15s ease;
+}
+
+.btn-open-prereq-flow:hover svg {
+  transform: translateX(2px);
+}
+
+/* ── Dedicated Flow View Layout ────────────────────────────────────────── */
+.flow-body {
+  padding: 12px 14px;
+  overflow-y: auto;
+}
+
+.flow-hero-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 11px 13px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.flow-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.flow-hero-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  flex: 1;
+}
+
+.flow-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.flow-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+
+.flow-hero-pill svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+
+.flow-hero-pill.flow-hero-pill-req {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+}
+
+.flow-hero-pill.flow-hero-pill-unlock {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+.flow-note-card {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.69rem;
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+.flow-note-icon {
+  width: 15px;
+  height: 15px;
+  fill: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.flow-note-content strong {
+  font-weight: 700;
+  color: #1d4ed8;
+  margin-right: 4px;
+}
+
+.prereq-tree-title-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.prereq-tree-desc {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: normal;
+  margin-top: 1px;
+}
 
 /* ── Prerequisite Tree & Unlocks Explorer (Task 2.4) ───────────────────── */
 .prereq-tree-section {
@@ -5169,8 +5464,8 @@ body {
   background: var(--surface);
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  padding: 8px 11px;
-  margin-bottom: 8px;
+  padding: 7px 11px;
+  margin-bottom: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
@@ -5263,11 +5558,11 @@ body {
   background: #fef2f2;
   border: 1px solid #fca5a5;
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 7px 10px;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   font-size: 11.5px;
   font-weight: 600;
   color: #991b1b;
@@ -8817,11 +9112,11 @@ textarea:focus-visible,
   background: rgba(242, 101, 34, 0.08);
   border: 1px solid rgba(242, 101, 34, 0.35);
   border-radius: var(--radius);
-  padding: 10px 12px;
+  padding: 9px 11px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 7px;
+  margin-bottom: 0;
   animation: slideDown 0.2s ease-out;
 }
 
@@ -9067,4 +9362,72 @@ textarea:focus-visible,
 [data-theme="dark"] .report-card.is-user-added .report-card-title,
 :root:not([data-theme="light"]) .report-card.is-user-added .report-card-title {
   color: #fb923c;
+}
+
+
+/* ── Flow View & Launcher Card Dark OLED Overrides ─────────────────────── */
+[data-theme="dark"] .prereq-stat-chip.req,
+:root:not([data-theme="light"]) .prereq-stat-chip.req {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="dark"] .prereq-stat-chip.unlock,
+:root:not([data-theme="light"]) .prereq-stat-chip.unlock {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+[data-theme="dark"] .prereq-stat-chip.direct,
+:root:not([data-theme="light"]) .prereq-stat-chip.direct {
+  background: rgba(99, 102, 241, 0.18);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+[data-theme="dark"] .prereq-stat-chip.terminal,
+:root:not([data-theme="light"]) .prereq-stat-chip.terminal {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+[data-theme="dark"] .flow-hero-pill.flow-hero-pill-req,
+:root:not([data-theme="light"]) .flow-hero-pill.flow-hero-pill-req {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="dark"] .flow-hero-pill.flow-hero-pill-unlock,
+:root:not([data-theme="light"]) .flow-hero-pill.flow-hero-pill-unlock {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+[data-theme="dark"] .flow-note-card,
+:root:not([data-theme="light"]) .flow-note-card {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+[data-theme="dark"] .flow-note-content strong,
+:root:not([data-theme="light"]) .flow-note-content strong {
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .btn-open-prereq-flow,
+:root:not([data-theme="light"]) .btn-open-prereq-flow {
+  background: var(--surface2);
+  color: #fb923c;
+  border-color: rgba(242, 101, 34, 0.4);
+}
+
+[data-theme="dark"] .btn-open-prereq-flow:hover,
+:root:not([data-theme="light"]) .btn-open-prereq-flow:hover {
+  background: var(--accent);
+  color: #ffffff;
 }

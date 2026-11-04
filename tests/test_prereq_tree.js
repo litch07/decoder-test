@@ -235,6 +235,36 @@ assert('popup.js persists toggle preference via prereqShowNames',
   assert('Missing code: label is always the code', missing.label === 'BIO 9999');
 })();
 
+// ── 19–24: Dedicated Flow View & Launcher Card Tests ──────────────────────
+const CSS = fs.readFileSync(path.join(ROOT, 'popup.css'), 'utf8');
+
+assert('HTML has #detailPrereqLauncherCard on details-view',
+  HTML.includes('id="detailPrereqLauncherCard"'));
+assert('HTML has #btnOpenPrereqFlow on details-view',
+  HTML.includes('id="btnOpenPrereqFlow"'));
+assert('HTML has dedicated #prereqFlowView',
+  HTML.includes('id="prereqFlowView"') && HTML.includes('class="view flow-view"'));
+assert('HTML has flow view navigation controls (#flowBackBtn, #flowSettingsBtn)',
+  HTML.includes('id="flowBackBtn"') && HTML.includes('id="flowSettingsBtn"'));
+assert('HTML has flow hero and pill elements',
+  HTML.includes('id="flowHeroTitle"') && HTML.includes('id="flowHeroReqText"') && HTML.includes('id="flowHeroUnlockText"'));
+assert('HTML has flow prerequisite note card #flowPrereqNoteCard',
+  HTML.includes('id="flowPrereqNoteCard"') && HTML.includes('id="flowPrereqNoteText"'));
+
+assert('CSS defines .view-wrapper.show-flow .flow-view transition',
+  CSS.includes('.view-wrapper.show-flow .flow-view'));
+assert('CSS styles .prereq-launcher-card and .btn-open-prereq-flow',
+  CSS.includes('.prereq-launcher-card') && CSS.includes('.btn-open-prereq-flow'));
+assert('CSS styles .flow-hero-card and .flow-hero-pill',
+  CSS.includes('.flow-hero-card') && CSS.includes('.flow-hero-pill'));
+
+assert('popup.js has openPrereqFlowView and exitPrereqFlowView functions',
+  JS.includes('function openPrereqFlowView') && JS.includes('function exitPrereqFlowView'));
+assert('popup.js caches launcher card & flow view elements in els',
+  JS.includes('detailPrereqLauncherCard:') && JS.includes('btnOpenPrereqFlow:') && JS.includes('prereqFlowView:'));
+assert('popup.js handles flow origin in openSettings and exitCourseDetails',
+  JS.includes('settingsOriginView = "flow"') && JS.includes('detailsOriginView === "flow"'));
+
 // ── Summary ────────────────────────────────────────────────────────────────
 console.log(`\n  Results: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

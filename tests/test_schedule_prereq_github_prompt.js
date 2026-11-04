@@ -126,7 +126,6 @@ assert.ok(CSS.includes(".form-input:focus-visible") && CSS.includes("outline: no
 assert.ok(HTML.includes('id="welcomeCard"'), "HTML has #welcomeCard");
 assert.ok(HTML.includes('id="welcomeDismissBtn"'), "HTML has #welcomeDismissBtn");
 assert.ok(HTML.includes('id="welcomeActionBtn"'), "HTML has #welcomeActionBtn");
-assert.ok(HTML.includes('id="contribShowWelcomeBtn"'), "HTML has #contribShowWelcomeBtn in info modal");
 assert.ok(CSS.includes(".welcome-card"), "CSS has .welcome-card styles");
 assert.ok(CSS.includes(".btn-welcome-dismiss"), "CSS has .btn-welcome-dismiss styles");
 assert.ok(JS.includes("welcomeCard: document.getElementById(\"welcomeCard\")"), "popup.js references #welcomeCard");

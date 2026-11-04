@@ -58,7 +58,6 @@
     previewConfirmBtn: document.getElementById("previewConfirmBtn"),
     contributionModal: document.getElementById("contributionModal"),
     contribModalCloseBtn: document.getElementById("contribModalCloseBtn"),
-    contribShowWelcomeBtn: document.getElementById("contribShowWelcomeBtn"),
     welcomeCard: document.getElementById("welcomeCard"),
     welcomeDismissBtn: document.getElementById("welcomeDismissBtn"),
     welcomeActionBtn: document.getElementById("welcomeActionBtn"),
@@ -193,6 +192,24 @@
     detailSaveContribGithubBtn: document.getElementById("detailSaveContribGithubBtn"),
     detailSaveContribDoneBtn: document.getElementById("detailSaveContribDoneBtn"),
     detailSaveContribClose: document.getElementById("detailSaveContribClose"),
+    detailPrereqLauncherCard: document.getElementById("detailPrereqLauncherCard"),
+    detailPrereqReqChip: document.getElementById("detailPrereqReqChip"),
+    detailPrereqUnlockChip: document.getElementById("detailPrereqUnlockChip"),
+    detailPrereqLauncherDesc: document.getElementById("detailPrereqLauncherDesc"),
+    btnOpenPrereqFlow: document.getElementById("btnOpenPrereqFlow"),
+    btnOpenPrereqFlowText: document.getElementById("btnOpenPrereqFlowText"),
+    prereqFlowView: document.getElementById("prereqFlowView"),
+    flowBackBtn: document.getElementById("flowBackBtn"),
+    flowCourseCode: document.getElementById("flowCourseCode"),
+    flowOriginBadge: document.getElementById("flowOriginBadge"),
+    flowCourseSubtitle: document.getElementById("flowCourseSubtitle"),
+    flowSettingsBtn: document.getElementById("flowSettingsBtn"),
+    flowHeroTitle: document.getElementById("flowHeroTitle"),
+    flowHeroCredits: document.getElementById("flowHeroCredits"),
+    flowHeroReqText: document.getElementById("flowHeroReqText"),
+    flowHeroUnlockText: document.getElementById("flowHeroUnlockText"),
+    flowPrereqNoteCard: document.getElementById("flowPrereqNoteCard"),
+    flowPrereqNoteText: document.getElementById("flowPrereqNoteText"),
     prereqTreeSection: document.getElementById("prereqTreeSection"),
     prereqChainBody: document.getElementById("prereqChainBody"),
     prereqChainCount: document.getElementById("prereqChainCount"),
@@ -3183,6 +3200,78 @@
     if (chainCount) chainCount.textContent = hasChain ? String(totalChainCodes) : "0";
     if (unlocksCountEl) unlocksCountEl.textContent = String(unlocks.length);
 
+    // ── Update Launcher Card on details-view ───────────────────────────────
+    if (els.detailPrereqReqChip) {
+      if (hasChain) {
+        els.detailPrereqReqChip.className = "prereq-stat-chip req";
+        els.detailPrereqReqChip.textContent = totalChainCodes + (totalChainCodes === 1 ? " Prereq" : " Prereqs");
+      } else {
+        els.detailPrereqReqChip.className = "prereq-stat-chip direct";
+        els.detailPrereqReqChip.textContent = "Direct Entry";
+      }
+    }
+    if (els.detailPrereqUnlockChip) {
+      if (hasUnlocks) {
+        els.detailPrereqUnlockChip.className = "prereq-stat-chip unlock";
+        els.detailPrereqUnlockChip.textContent = unlocks.length + (unlocks.length === 1 ? " Unlock" : " Unlocks");
+      } else {
+        els.detailPrereqUnlockChip.className = "prereq-stat-chip terminal";
+        els.detailPrereqUnlockChip.textContent = "Terminal Course";
+      }
+    }
+    if (els.detailPrereqLauncherDesc) {
+      if (hasChain && hasUnlocks) {
+        els.detailPrereqLauncherDesc.textContent = "Requires " + totalChainCodes + (totalChainCodes === 1 ? " course" : " courses") + " • Unlocks " + unlocks.length + (unlocks.length === 1 ? " course" : " courses");
+      } else if (hasChain) {
+        els.detailPrereqLauncherDesc.textContent = "Requires " + totalChainCodes + (totalChainCodes === 1 ? " prerequisite course" : " prerequisite courses");
+      } else if (hasUnlocks) {
+        els.detailPrereqLauncherDesc.textContent = "Direct entry course • Unlocks " + unlocks.length + (unlocks.length === 1 ? " future course" : " future courses");
+      } else {
+        els.detailPrereqLauncherDesc.textContent = "Direct entry course • No prerequisite restrictions";
+      }
+    }
+    if (els.btnOpenPrereqFlowText) {
+      if (hasChain || hasUnlocks) {
+        els.btnOpenPrereqFlowText.textContent = "Explore Prerequisite Tree & Unlocks";
+      } else {
+        els.btnOpenPrereqFlowText.textContent = "View Course Roadmap & Tree";
+      }
+    }
+
+    // ── Populate Flow View Header & Hero Card ─────────────────────────────
+    if (els.flowCourseCode) els.flowCourseCode.textContent = code;
+    if (els.flowOriginBadge) {
+      var origin = getCourseOrigin(code);
+      els.flowOriginBadge.className = "origin-badge " + origin.class;
+      els.flowOriginBadge.textContent = origin.label;
+    }
+    var cData = normalizeCourseData(courses[code]);
+    if (els.flowCourseSubtitle) {
+      els.flowCourseSubtitle.textContent = cData.name || "Course Roadmap & Dependencies";
+    }
+    if (els.flowHeroTitle) {
+      els.flowHeroTitle.textContent = cData.name || code;
+    }
+    if (els.flowHeroCredits) {
+      var numCr = parseFloat(cData.credits);
+      els.flowHeroCredits.textContent = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Cr";
+    }
+    if (els.flowHeroReqText) {
+      els.flowHeroReqText.textContent = hasChain ? (totalChainCodes + (totalChainCodes === 1 ? " Required Prereq" : " Required Prereqs")) : "0 Required Prereqs (Direct)";
+    }
+    if (els.flowHeroUnlockText) {
+      els.flowHeroUnlockText.textContent = hasUnlocks ? (unlocks.length + (unlocks.length === 1 ? " Course Unlocked" : " Courses Unlocked")) : "0 Courses Unlocked (Terminal)";
+    }
+    if (els.flowPrereqNoteCard && els.flowPrereqNoteText) {
+      var note = (cData.prerequisiteNote || "").trim();
+      if (note) {
+        els.flowPrereqNoteText.textContent = note;
+        els.flowPrereqNoteCard.style.display = "flex";
+      } else {
+        els.flowPrereqNoteCard.style.display = "none";
+      }
+    }
+
     /**
      * Returns the label and tooltip for a badge.
      * In Code mode:  label = code,  tooltip = name (if available)
@@ -3206,7 +3295,7 @@
     if (!hasChain) {
       var emptySpan = document.createElement("span");
       emptySpan.className = "prereq-empty";
-      emptySpan.textContent = "No prerequisites";
+      emptySpan.textContent = "No prerequisites (Direct entry)";
       chainBody.appendChild(emptySpan);
     } else {
       chain.levels.forEach(function(level, idx) {
@@ -3241,7 +3330,7 @@
 
           if (inCatalog) {
             badge.addEventListener("click", (function(c) {
-              return function() { openCourseDetails(c, courses[c], "details"); };
+              return function() { openCourseDetails(c, courses[c], "flow"); };
             })(prereqCode));
           } else {
             badge.setAttribute("aria-disabled", "true");
@@ -3255,7 +3344,7 @@
     if (!hasUnlocks) {
       var emptyUnlocks = document.createElement("span");
       emptyUnlocks.className = "prereq-empty";
-      emptyUnlocks.textContent = "No courses unlocked";
+      emptyUnlocks.textContent = "No courses unlocked (Terminal course)";
       unlocksBody.appendChild(emptyUnlocks);
     } else {
       unlocks.forEach(function(unlockCode) {
@@ -3266,14 +3355,14 @@
         badge.textContent = content.label;
         badge.title = content.tooltip;
         badge.addEventListener("click", (function(c) {
-          return function() { openCourseDetails(c, courses[c], "details"); };
+          return function() { openCourseDetails(c, courses[c], "flow"); };
         })(unlockCode));
         unlocksBody.appendChild(badge);
       });
     }
 
-    // Show or hide the whole section
-    section.style.display = (hasChain || hasUnlocks) ? "flex" : "none";
+    // Keep section visible in flow view
+    section.style.display = "flex";
   }
 
   // ── End Task 2.4 helpers ─────────────────────────────────────────────────
@@ -3295,6 +3384,30 @@
       els.prereqToggleName.addEventListener("click", function() { activateToggle(true); });
     }
   })();
+
+  function openPrereqFlowView(code) {
+    if (!code) code = currentEditingCode;
+    if (!code) return;
+    renderPrereqTree(code);
+    els.viewWrapper.classList.add("show-flow");
+  }
+
+  function exitPrereqFlowView() {
+    els.viewWrapper.classList.remove("show-flow");
+  }
+
+  els.btnOpenPrereqFlow?.addEventListener("click", () => {
+    openPrereqFlowView(currentEditingCode);
+  });
+
+  els.flowBackBtn?.addEventListener("click", (e) => {
+    e?.preventDefault();
+    exitPrereqFlowView();
+  });
+
+  els.flowSettingsBtn?.addEventListener("click", () => {
+    openSettings("flow");
+  });
 
       // Context-aware Course Details Contribution & Error Reporting Card
   function updateDetailReportCard(code, courseData) {
@@ -3474,7 +3587,7 @@
     }
 
     els.viewWrapper.classList.add("show-details");
-    els.viewWrapper.classList.remove("show-courses", "show-settings", "show-trash", "show-import");
+    els.viewWrapper.classList.remove("show-courses", "show-settings", "show-trash", "show-import", "show-flow");
 
     if (els.detailSaveContribPrompt) els.detailSaveContribPrompt.style.display = "none";
     updateDetailReportCard(code, courseData);
@@ -3492,6 +3605,8 @@
       els.viewWrapper.classList.add("show-settings");
     } else if (detailsOriginView === "mycourses") {
       els.viewWrapper.classList.add("show-mycourses");
+    } else if (detailsOriginView === "flow") {
+      els.viewWrapper.classList.add("show-flow");
     } else {
       els.viewWrapper.classList.add("show-courses");
     }
@@ -4043,11 +4158,6 @@
     els.welcomeDismissBtn?.addEventListener("click", dismissWelcomeCard);
     els.welcomeActionBtn?.addEventListener("click", dismissWelcomeCard);
 
-    els.contribShowWelcomeBtn?.addEventListener("click", () => {
-      closeContributionModal();
-      els.viewWrapper.classList.remove("show-courses", "show-details", "show-import", "show-settings", "show-mycourses");
-      els.viewWrapper.classList.add("show-welcome");
-    });
     els.contribExportCustomBtn?.addEventListener("click", () => {
       closeContributionModal();
       exportCoursesContextual("custom");
@@ -4174,6 +4284,8 @@
           closeModalSafely(els.confirmModal);
           pendingAction = null;
           pendingSaveVal = null;
+        } else if (els.viewWrapper.classList.contains("show-flow")) {
+          els.flowBackBtn?.click();
         } else if (els.viewWrapper.classList.contains("show-details")) {
           els.detailsBackBtn?.click();
         } else if (els.viewWrapper.classList.contains("show-import")) {
@@ -4547,6 +4659,8 @@
     function openSettings(fromView = null) {
       if (fromView) {
         settingsOriginView = fromView;
+      } else if (els.viewWrapper.classList.contains("show-flow")) {
+        settingsOriginView = "flow";
       } else if (els.viewWrapper.classList.contains("show-details")) {
         settingsOriginView = "details";
       } else if (els.viewWrapper.classList.contains("show-courses")) {
@@ -4558,7 +4672,7 @@
       } else {
         settingsOriginView = "home";
       }
-      els.viewWrapper.classList.remove("show-courses", "show-details", "show-import", "show-mycourses");
+      els.viewWrapper.classList.remove("show-courses", "show-details", "show-import", "show-mycourses", "show-flow");
       els.viewWrapper.classList.add("show-settings");
     }
     els.openSettingsBtn?.addEventListener("click", () => openSettings("home"));
@@ -4569,7 +4683,9 @@
 
     els.settingsBackBtn?.addEventListener("click", () => {
       els.viewWrapper.classList.remove("show-settings");
-      if (settingsOriginView === "details") {
+      if (settingsOriginView === "flow") {
+        els.viewWrapper.classList.add("show-flow");
+      } else if (settingsOriginView === "details") {
         els.viewWrapper.classList.add("show-details");
       } else if (settingsOriginView === "courses") {
         els.viewWrapper.classList.add("show-courses");
