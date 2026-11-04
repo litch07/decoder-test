@@ -38,8 +38,9 @@ The `courses.json` file is a JSON object where each key is an uppercase course c
 | Field | Type | Required? | Rules & Guidelines |
 |---|---|:---:|---|
 | `name` | `string` | **Yes** | Official course name, properly capitalized (e.g., `"Database Management Systems"`). |
-| `examDay` | `string` | No | Exam routine day (e.g., `"Day A"`, `"Friday"`), or `""` if not scheduled. |
-| `examSlot` | `string` | No | Exam routine slot (e.g., `"Slot 1"`, `"Morning"`), or `""` if not scheduled. |
+| `credits` | `number` | No | Academic credit hours (e.g., `3`, `1.5`, `1`, `2`, `4`). Defaults to `3.0` if omitted. |
+| `examDay` | `string` | No | Exam routine day: strictly `"Day 1"` through `"Day 7"` (or `"In-Class"` for lab/viva), or `""` if not scheduled. |
+| `examSlot` | `string` | No | Exam routine slot: strictly `"T1"` (09:00 AM – 11:00 AM), `"T2"` (11:30 AM – 01:30 PM), or `"T3"` (02:00 PM – 03:00 PM), or `""` if not scheduled. |
 | `prerequisites` | `Array<string>` | No | **Course codes only** (e.g., `["CSE 2213"]`). Use an empty array `[]` if none. **Never include credit counts or text notes here.** |
 | `prerequisiteNote` | `string` | No | Non-course prerequisites or degree credit thresholds (e.g., `"MINIMUM 85 credits"`). Omit or set to `""` if none. |
 
@@ -53,11 +54,23 @@ The `courses.json` file is a JSON object where each key is an uppercase course c
 
 ### Schema Examples
 
-#### Standard Course with Prerequisites:
+#### Standard Lecture Course with Prerequisites:
 ```json
 "CSE 3421": {
   "name": "Database Management Systems",
-  "examDay": "",
+  "credits": 3,
+  "examDay": "Day 2",
+  "examSlot": "T1",
+  "prerequisites": ["CSE 2213"]
+}
+```
+
+#### Lab / Practical Course (In-Class Evaluation):
+```json
+"CSE 3422": {
+  "name": "Database Management Systems Laboratory",
+  "credits": 1,
+  "examDay": "In-Class",
   "examSlot": "",
   "prerequisites": ["CSE 2213"]
 }
@@ -67,8 +80,9 @@ The `courses.json` file is a JSON object where each key is an uppercase course c
 ```json
 "CSE 4000A": {
   "name": "Final Year Design Project - I",
-  "examDay": "",
-  "examSlot": "",
+  "credits": 3,
+  "examDay": "Day 4",
+  "examSlot": "T2",
   "prerequisites": [],
   "prerequisiteNote": "MINIMUM 85 credits"
 }
@@ -78,8 +92,9 @@ The `courses.json` file is a JSON object where each key is an uppercase course c
 ```json
 "EEE 1011": {
   "name": "Electrical Circuits I",
-  "examDay": "Sunday",
-  "examSlot": "Morning",
+  "credits": 3,
+  "examDay": "Day 1",
+  "examSlot": "T1",
   "prerequisites": []
 }
 ```
@@ -119,7 +134,7 @@ For larger contributions, such as an entire degree curriculum:
 3. **Edit `courses.json`**: Add your courses in alphabetical order.
 4. **Run the Local Verification Suite**:
    ```bash
-   node tests/test_release1.js
+   node tests/run_all.js
    ```
 5. **Commit and Push**:
    ```bash

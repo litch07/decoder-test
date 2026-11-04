@@ -1,6 +1,6 @@
 # UIU Course Code Decoder
 
-> Instant, offline decoding of cryptic academic course codes into readable course titles, exam routines, and prerequisite chains across United International University (UIU) portals.
+> Instant, offline decoding of cryptic academic course codes into readable course titles, official exam schedules with exact slot times, and interactive prerequisite chains across United International University (UIU) portals.
 
 <div align="center">
 
@@ -29,9 +29,10 @@ During advising, registration, and final examinations, university portals freque
 **UIU Course Code Decoder** solves this by scanning web pages in real time and augmenting course codes with official academic details directly inside your browser:
 
 - **Full Course Titles**: e.g., `CSE 3421` &rarr; **Database Management Systems**
-- **Exam Routine Slots**: e.g., **Day A**, **Slot 1** (or custom departmental formats)
+- **Exam Routine Slots & Real Times**: e.g., **Day 4, Slot T2 (11:30 AM – 01:30 PM)**
+- **Course Credits**: Official degree credits (`3.0`, `1.5`, `1.0`, `2.0` Cr) displayed on hover cards, catalog tables, and enrolled lists
 - **Direct Prerequisites**: e.g., **CSE 2213**
-- **Special Credit Requirements**: e.g., **MINIMUM 85 credits** for capstone courses
+- **Special Degree & Credit Requirements**: e.g., **MINIMUM 85 credits** for capstone courses
 
 ### Supported Portals & Systems
 
@@ -73,15 +74,23 @@ Choose how decoded course details appear on your screen:
 - **Zero-`innerHTML` Security**: Programmed strictly with safe DOM APIs (`createElement`, `createTextNode`, `textContent`). Completely eliminates DOM-based Cross-Site Scripting (XSS) vectors.
 - **Granular Per-Site Permissions**: Follows the principle of least privilege. The extension only executes on web domains you explicitly approve. Approved sites persist across page reloads via dynamic script registration (`chrome.scripting.registerContentScripts`).
 - **Separation of Prerequisites & Degree Rules**: Course dependency chains (e.g., `CSE 2213`) are cleanly decoupled from institutional credit thresholds (e.g., `MINIMUM 85 credits`), ensuring accurate prerequisite matching.
+- **Dedicated "My Courses" Academic Planner**: A personalized trimester planner screen (`#homeEnrolledCard`) featuring quick search with autocomplete (`+ Add`), live total credit tallies, and clean drop controls.
+- **Real-Time Exam Slot Timings**: Official UIU exam slot time windows displayed directly on enrolled course cards and warning banners:
+  - **T1**: `09:00 AM – 11:00 AM`
+  - **T2**: `11:30 AM – 01:30 PM`
+  - **T3**: `02:00 PM – 03:00 PM`
+- **Dual-Level Exam Routine Conflict Detector**:
+  - **Direct Slot Clashes**: Automatically identifies overlapping Day & Slot exams (e.g., `Day 4, Slot T2`), highlighting rows in bold red (`.is-clashing`) and surfacing actionable alerts.
+  - **Same-Day Multiple Exams Warning**: Alerts students when two or more exams fall on the same day across different slots, preventing high-stress advising schedules.
+- **Course Routine & Markdown (.md) Export**: One-click export of enrolled courses, credit summaries, official exam slot times, prerequisites, and conflict analysis into clean GitHub-Flavored Markdown for Obsidian, Notion, Discord, or printing.
+- **Interactive Prerequisite Tree & Unlocks Roadmap**: BFS ancestry tree mapping direct (L1) and transitive (L2+) dependencies alongside reverse unlocks discovery in a clean 2-column card layout with click-to-inspect navigation.
+- **Modern Course Details Card**: A cohesive, professional card container encapsulating course properties, prerequisites, credits, and schedule controls without visual clutter.
 - **Differential GitHub Sync**: Pull updates from the community-maintained catalog on GitHub with 1-click diff inspection (`+X new`, `~X updated`, `-X removed`) before committing changes locally.
 - **Layered Data Architecture**: Add unlisted courses, override exam slots, or import batch JSON catalogs (with an enforced 2 MB safety limit). Custom modifications survive official catalog updates.
 - **Safe Trash & Recovery**: Soft-delete courses to a dedicated Trash panel where they can be restored at any time or permanently purged.
-- **One-Click Issue Reporting**: Spot outdated information? Click **Report Wrong Data** in the Course Details view to open an automated, pre-formatted GitHub issue for maintainers.
-- **Course Credits & Cumulative Degree Tracking**: Official UIU credit counts (`3.0`, `1.5`, `1.0`, `2.0` Cr) integrated across all catalog views and webpage hover cards.
-- **"My Courses" & Exam Clash Detector**: Pin active trimester courses with 1-click star toggles, track total enrolled credits, and automatically detect conflicting final exam slots in real time.
-- **Exam Week Calendar Export (.ics)**: Export scheduled final exam routines directly into standard iCalendar (`.ics`) files for Google Calendar, Apple Calendar, and Microsoft Outlook.
+- **One-Click Issue Reporting & Post-Save Community Prompts**: Spot outdated information? Click **Report Wrong Data** in Course Details to open an automated, pre-formatted GitHub issue for maintainers, or propose local edits directly to GitHub.
 - **System-Adaptive OLED Dark Mode Palette**: Ultra-low-power OLED deep dark theme (`#090d16`) supporting System Default, Light, and Dark modes with zero flash of white.
-- **Keyboard Navigation & ARIA Accessibility**: Full WCAG-compliant keyboard navigation across panels, modal focus-trapping, hierarchical Escape retreat, and high-contrast visible focus indicators.
+- **Keyboard Navigation & ARIA Accessibility**: Full WCAG-compliant keyboard navigation across all 7 sliding views, modal focus-trapping, hierarchical Escape retreat, and high-contrast visible focus indicators.
 
 ---
 
@@ -108,7 +117,8 @@ To ensure privacy and avoid unnecessary background execution, the extension uses
 
 The extension includes a complete built-in management interface accessible directly from the popup:
 - **Search & Filter**: Search by course code or title, and filter by origin (Official, User Added, or Edited).
-- **Course Details View**: Inspect code, title, exam routine, prerequisites, and degree requirements.
+- **Course Details View**: Inspect code, title, exam routine, prerequisites, credits, and degree requirements inside a clean card layout.
+- **My Courses & Routine**: Enroll in courses to compute total credits, preview exact exam times, and detect routine clashes.
 - **Batch Upload**: Import course lists in JSON format with live syntax validation and sample copying.
 - **Safe Trash Panel**: Accidental deletions can be restored anytime or permanently purged.
 - **Differential Sync**: Inspect remote updates before merging.
@@ -159,17 +169,25 @@ The extension includes a complete built-in management interface accessible direc
 ├── manifest.json              # Manifest V3 configuration & optional host permissions
 ├── content.js                 # DOM scanning, SVG/Highcharts handler, zero-innerHTML renderer
 ├── background.js              # Service worker: dynamic script registration, catalog merge, GitHub sync
-├── popup.html                 # 5-view sliding stack UI (Home, Courses, Details, Import, Settings)
-├── popup.js                   # UI state controller, search engine, dynamic permissions, issue prefill
-├── popup.css                  # Stylesheet, transitions, dark tokens, reduced-motion queries
+├── popup.html                 # 7-view sliding stack UI (Home, Courses, Details, Add/Import, My Courses, Prereq Flow, Settings)
+├── popup.js                   # UI state controller, search engine, routine clash detector, markdown exporter
+├── popup.css                  # Modern stylesheet, card components, dark OLED tokens, accessibility queries
 ├── courses.json               # Baseline university catalog (~315 courses)
+├── docs/                      # Standalone GitHub Pages web course & prerequisite explorer
+│   ├── index.html             # Public interactive explorer
+│   ├── styles.css             # Theme & component styling
+│   ├── app.js                 # Client-side dependency graph & search engine
+│   └── courses.json           # Synchronized baseline catalog
 ├── assets/                    # Screenshots, previews, and documentation graphics
-├── tests/                     # Automated unit and integration test suite
-│   ├── test_release1.js       # Release 1 verification suite (Security, permissions, schema)
-│   ├── test_merge.js          # Layered catalog merge tests
-│   ├── test_sync_diff.js      # Differential sync diff tests
-│   └── ...                    # Additional unit and regression tests
-├── .github/workflows/         # CI: automated catalog validation & test runner
+├── tests/                     # Automated unit and integration test suite (24 test suites)
+│   ├── test_routine_markdown_export.js  # Enrolled routine & Markdown export suite
+│   ├── test_my_courses_clash_detector.js# Routine collision & same-day exam detector suite
+│   ├── test_course_credits.js           # Course credits schema & UI suite
+│   ├── test_prereq_tree.js              # Prerequisite ancestry & unlocks tree suite
+│   ├── test_keyboard_accessibility.js   # ARIA landmarks & keyboard navigation suite
+│   ├── test_dark_mode_palette.js        # System-adaptive OLED theme suite
+│   └── run_all.js                       # Comprehensive test runner (all 24 suites)
+├── .github/workflows/         # CI: automated catalog validation & GitHub Pages deployment
 ├── SECURITY.md                # Vulnerability disclosure policy & security model
 ├── PRIVACY.md                 # Complete transparent privacy documentation
 └── CONTRIBUTING.md            # Contribution guide and course schema specification
@@ -179,10 +197,10 @@ The extension includes a complete built-in management interface accessible direc
 
 ## Verification & Testing
 
-The repository contains an automated test suite verifying data integrity, security constraints, and storage operations:
+The repository contains an automated regression suite verifying data integrity, security constraints, and storage operations:
 
 ```bash
-# Run the entire test suite (all 22 test files)
+# Run the entire test suite (all 24 test suites)
 node tests/run_all.js
 ```
 

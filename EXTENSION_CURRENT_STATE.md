@@ -130,11 +130,16 @@
    - Contextual Empty-Search Guidance: When course searches return 0 matches, displays a prompt inviting students to contribute missing courses to the official catalog.
    - Batch Upload Contribution Tip: Surfaces a gentle prompt in View 4 encouraging students with custom department curricula to share them repository-wide.
 
-4. **Exam Week Calendar Export (.ics / RFC 5545) (Task 3.3)**:
-   - iCalendar Serialization Engine: Formats scheduled course exams into standard `.ics` events compatible with Google Calendar, Apple Calendar, and Microsoft Outlook.
-   - Intelligent Slot Mapping: Automatically maps exam slots (`T1` &rarr; 09:00–11:00, `T2` &rarr; 11:30–13:30, `T3` &rarr; 14:30–16:30) and calculates calendar dates based on user-chosen exam week start dates.
-   - Interactive Export Modal (`#examExportModal`): Accessible via `#openIcsExportBtn` in the My Courses summary bar; includes live scheduled exam preview, date picker, and dual `VALARM` reminder configuration (24 hours and 2 hours prior to exams).
-   - Zero-`innerHTML` Security: Fully safe programmatic DOM creation with comprehensive coverage in `tests/test_exam_calendar_export.js` (25/25 passing).
+4. **Course Routine & Markdown (.md) Export with Real-Time Slot Timings (Task 3.3)**:
+   - **Academic Routine Markdown Generator (`generateRoutineMarkdown`)**: Generates an elegant, fully structured `.md` document containing enrolled courses, credit load, complete exam routines, UIU standard time windows, in-class evaluations, and comprehensive conflict analysis.
+   - **Exact UIU Slot Timing Engine (`getExamSlotTiming`)**: Standardizes official university exam time slots:
+     * **Slot T1**: `09:00 AM – 11:00 AM`
+     * **Slot T2**: `11:30 AM – 01:30 PM`
+     * **Slot T3**: `02:00 PM – 03:00 PM`
+   - **Inline Slot Timings on Enrolled Cards**: Directly presents the full time window in `.enrolled-course-card` (e.g., `Exam: Day 4 • T2 (11:30 AM – 01:30 PM)`), in same-day exam warning banners, and in collision alerts.
+   - **1-Click Header Export Action (`#exportRoutineMdBtn`)**: Accessible via the header of `.mycourses-view`, downloading a clean Markdown routine file with automatic filename timestamp (`uiu-enrolled-routine-YYYY-MM-DD.md`) and tactile button animation.
+   - **Obsolete ICS Calendar Purge**: Permanently purged unreliable continuous-day `.ics` assumptions that failed to account for Bangladesh off-days, Friday prayers, national events, and mid/final distinction.
+   - **Comprehensive Automated Test Suite**: `tests/test_routine_markdown_export.js` (27/27 passing assertions) along with `tests/test_exam_calendar_export.js` delegation shim.
 
 5. **System-Adaptive OLED Dark Mode Palette (Task 3.4)**:
    - Deep OLED Dark Theme: Custom-engineered OLED palette with pure blacks (`--bg: #090d16`), dark surfaces (`--surface: #111827`, `--surface2: #162032`), high-contrast text (`--text-main: #f9fafb`, `--text-muted: #94a3b8`), and refined borders (`--border-color: #243048`).
@@ -177,11 +182,10 @@
 
 ---
 
-### C. View 3 (Course Details) Visual Harmonization
-- Aligned `.contribution-card` to match `.details-card`: pure white surface, subtle neutral border, standard 12px radius, and dark GitHub mark.
-- Clean layout spacing with Code, Name, Exam Routine, Prerequisites, and Prerequisite Note fields.
-
----
+### C. View 3 (Course Details) Redesign & View 6 (Prerequisite Tree & Curriculum Flow)
+- **Directly Accessible Form Card (`.details-card`)**: Form inputs (`Course Name *`, `Prerequisites`, `Prerequisite Note`, `Exam Day`, `Exam Slot`, `Credits`, and `In-Class` evaluation checkbox) are neatly encapsulated inside a clean card with an 11px border radius, `--surface` background, subtle elevation, and direct inline editing with immediate `Save Changes` (`#detailSaveBtn`) and `Delete Course` (`#detailDelBtn`).
+- **Dedicated Curriculum Roadmap & Flow Screen (View 6: `.flow-view`)**: Shifted the interactive prerequisite chain and reverse unlocks trees into a dedicated, focused screen (`.flow-view`), opened via the prominent launcher card (`#detailPrereqLauncherCard` / `#btnOpenPrereqFlow`) in Course Details.
+- **Unified 2-Column Prerequisite & Unlock Cards**: Displays required prerequisite courses and unlocked forward paths as clean 2-column cards featuring course code, credits pill (`X.X Cr`), and full course title.
 
 ### D. Modal & Confirmation Message Consistency
 - Standardized **Empty Trash / Permanent Delete All** and single course permanent delete dialogs with confirmation modals and backdrop blur (`backdrop-filter: blur(2px)`).
@@ -218,7 +222,8 @@
 {
   "CSE 4000A": {
     "name": "Final Year Design Project - I",
-    "examDay": "D4",
+    "credits": 3,
+    "examDay": "Day 4",
     "examSlot": "T2",
     "prerequisites": [],
     "prerequisiteNote": "MINIMUM 85 credits"
@@ -251,7 +256,7 @@
 ## 4. Key Files & Structure
 
 - `manifest.json` — Manifest V3, optional host permissions (`*://*/*`), `tabs`, `scripting`, `storage`.
-- `popup.html` — 5-view sliding stack UI (Home, Courses, Details, Import, Settings) with zero `innerHTML`.
+- `popup.html` — 7-view sliding stack UI (Home Dashboard, Course Database, Course Details & Editor, Add/Import Courses, My Courses & Routine, Prerequisite Flow View, Settings & Preferences) with zero `innerHTML`.
 - `popup.css` — Dedicated stylesheet containing all design tokens, card styles, transitions, animations, and component layouts.
 - `popup.js` — Client-side UI logic, view router, form validation, real-time JSON editor badge, message helpers, dynamic permission requests, and GitHub issue generator.
 - `background.js` — Service worker. Handles catalog merging, storage migration, remote synchronization, dynamic content script registration, and tab update listeners.
@@ -283,10 +288,11 @@
   - `tests/test_github_pages_docs.js`
   - `tests/test_course_credits.js`
   - `tests/test_my_courses_clash_detector.js`
-  - `tests/test_exam_calendar_export.js`
+  - `tests/test_routine_markdown_export.js` *(also delegating shim `tests/test_exam_calendar_export.js`)*
   - `tests/test_dark_mode_palette.js`
   - `tests/test_keyboard_accessibility.js`
   - `tests/test_google_sheets_pubhtml.js`
+  - `tests/test_schedule_prereq_github_prompt.js`
 
 ---
 

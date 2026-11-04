@@ -28,7 +28,7 @@ flowchart TD
     subgraph R3["Release 3: Daily Academic Value (Completed 🎉)"]
         R3_1["3.1 Credits Field in Schema ✅"]
         R3_2["3.2 My Courses & Exam Clash Detector ✅"]
-        R3_3["3.3 Exam Week .ics Calendar Export ✅"]
+        R3_3["3.3 Course Routine & Markdown Export ✅"]
         R3_4["3.4 Dark Mode Palette ✅"]
         R3_5["3.5 Keyboard Accessibility & ARIA ✅"]
     end
@@ -153,7 +153,7 @@ flowchart TD
 
 ---
 
-## Milestone 3: Release 3 — Daily Academic Value (Status: In Progress ⏳)
+## Milestone 3: Release 3 — Daily Academic Value (Status: Completed 🎉)
 *Primary Goal: Elevate the extension from a passive decoder to an active academic assistant.*
 
 ### [x] 3.1 Course Credits Field in Schema
@@ -179,18 +179,28 @@ flowchart TD
   - **Rich Enrolled Course Cards**: Includes quick "Inspect" and "Drop" actions with zero-`innerHTML` DOM creation.
   - **Automated Regression Suite**: `tests/test_my_courses_clash_detector.js` &mdash; 31 assertions, 31 passing.
 
-### [x] 3.3 Exam Week Calendar Export (.ics)
+### [x] 3.3 Course Routine & Markdown (.md) Export
 - **Delivered**:
-  - **iCalendar (.ics / RFC 5545) Generator**: Serializes enrolled course final exam schedules into standard `.ics` format compatible with Google Calendar, Apple Calendar, and Outlook.
-  - **Exam Routine Slot Mapping**: Maps UIU exam slots (`T1` &rarr; 09:00 - 11:00, `T2` &rarr; 11:30 - 13:30, `T3` &rarr; 14:30 - 16:30) and day offsets (`Day 1`..`Day 8`) from a selectable exam week start date.
-  - **Calendar Export Dialog** (`#examExportModal`): Accessible directly from the Enrolled Courses summary toolbar via `#openIcsExportBtn`. Includes interactive date picker (`#icsStartDateInput`), live scheduled exam counter (`#icsEventCount`), and preview list (`#icsPreviewList`).
-  - **Customizable Reminders**: Includes dual `VALARM` notifications (24 hours and 2 hours prior to each final exam) with toggle control (`#icsRemindersToggle`).
-  - **Smart Filtering**: Automatically filters out unscheduled courses, lab finals, and in-class evaluations to prevent calendar clutter.
-  - **Zero-`innerHTML` Security**: Programmatic node generation across all modal views and preview cards.
-  - **Automated Regression Suite**: `tests/test_exam_calendar_export.js` — 25 assertions, 25 passing.
+  - **Course Routine Markdown Generator (`generateRoutineMarkdown`)**: Serializes enrolled course codes, titles, credits, exam day/slot, UIU time windows, and conflict analysis into an academic Markdown document.
+  - **UIU Exam Slot Timing Engine (`getExamSlotTiming`)**: Standardizes and formats exact UIU exam slot timings (`T1: 09:00 AM – 11:00 AM`, `T2: 11:30 AM – 01:30 PM`, `T3: 02:00 PM – 03:00 PM`).
+  - **Real-Time Inline Slot Display**: Enrolled course cards directly render formatted exam times (e.g. `Exam: Day 4 • T2 (11:30 AM – 01:30 PM)`), in-class indicators, and collision banners.
+  - **1-Click Header Routine Export Button (`#exportRoutineMdBtn`)**: Located in `.mycourses-view` header, downloading timestamped `.md` file with tactile download confirmation.
+  - **Purged Unreliable ICS Calendar**: Eliminated continuous-day `.ics` assumptions that failed to handle Bangladesh off-days, Friday schedules, and mid/final variations.
+  - **Automated Regression Suite**: `tests/test_routine_markdown_export.js` (27/27 passing assertions) along with `tests/test_exam_calendar_export.js` delegation shim.
 
-### 3.4 System-Adaptive Dark Mode Palette
-- Enhanced OLED dark theme aligning with browser and OS color scheme preferences.
+### [x] 3.4 System-Adaptive OLED Dark Mode Palette
+- **Delivered**:
+  - **OLED Dark Theme**: Deep black background (`#090d16`), dark surfaces (`#111827`, `#162032`), and high-contrast typography (`#f9fafb`, `#94a3b8`).
+  - **3-State Preference Radiogroup (`#themeOptionsGroup`)**: Segmented control in Settings supporting System Default (`#themeSystem`), Light (`#themeLight`), and Dark OLED (`#themeDark`).
+  - **Zero-Flash Pure CSS Fallbacks**: Uses `@media (prefers-color-scheme: dark)` and `:root:not([data-theme="light"])` to eliminate white flashes on startup.
+  - **Dynamic OS Listener**: Instantly synchronizes theme when operating system appearance toggles while set to System mode.
+  - **Automated Regression Suite**: `tests/test_dark_mode_palette.js` — 45 assertions, 45 passing.
 
-### 3.5 Keyboard Navigation & ARIA Accessibility
-- Complete ARIA landmarks, focus-trapping inside modals, and full keyboard navigation across the 5 sliding panels.
+### [x] 3.5 Keyboard Navigation & ARIA Accessibility
+- **Delivered**:
+  - **Complete ARIA Landmarks**: Added `role="region"` and `aria-label` across all 7 sliding views; `role="dialog"` and `aria-modal="true"` on modals.
+  - **Tabs & Controls Semantics**: Implemented `role="tablist"" / `role="tab"` on import tabs, and `role="radiogroup"" / `role="radio"` on theme options.
+  - **Modal Focus-Trapping**: Lightweight engine trapping focus within active dialogs on `Tab` / `Shift+Tab`, restoring focus upon close.
+  - **Hierarchical Escape Retreat**: `Escape` key dismisses top modals first, then retreats through navigation history (Details &rarr; Flow &rarr; Catalog &rarr; Home).
+  - **High-Contrast Visible Focus Rings**: Fully compliant `:focus-visible` outlines across both light and OLED palettes.
+  - **Automated Regression Suite**: `tests/test_keyboard_accessibility.js` — 32 assertions, 32 passing.
