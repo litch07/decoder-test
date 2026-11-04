@@ -124,7 +124,9 @@ jobs:
           node tests/test_github_pages_docs.js
           node tests/test_course_credits.js
           node tests/test_my_courses_clash_detector.js
-          node tests/test_exam_calendar_export.js
+          node tests/test_routine_markdown_export.js
           node tests/test_dark_mode_palette.js
           node tests/test_keyboard_accessibility.js
-          echo "All 22 tests passed successfully."
+          node tests/test_google_sheets_pubhtml.js
+          node tests/test_schedule_prereq_github_prompt.js
+          echo "All 24 tests passed successfully."
