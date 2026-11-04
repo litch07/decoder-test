@@ -161,7 +161,7 @@ flowchart TD
   - Official UIU undergraduate course credit counts (e.g. `3.0`, `1.5`, `1.0`, `2.0`) integrated directly into `courses.json` and `docs/courses.json` from departmental offerings.
   - Schema validation updated in CI to verify all credit definitions are positive numeric values.
   - View 1 (Course List Table): Displays course credit chips (`.course-credit-chip`, e.g. `3.0 Cr`) on course rows.
-  - View 3 (Course Details): Added `#detailCredits` input in `.form-row` and `#detailsCreditsBadge` in panel header. Persists custom credits across saves.
+  - View 3 (Course Details): Added `#detailCredits` input in `.details-card`, allowing students to inspect and customize credits cleanly.
   - View 4 (Add / Import Courses): Added `#singleCourseCredits` input in single course addition form (`.form-row-3col`).
   - Pre-Commit Diff Engine: `computeImportDiff` detects, compares, and displays credit modifications (`oldVal` vs `newVal`) before committing bulk imports.
   - Content Script Overlay (`content.js`): `buildTooltipDom` renders a dedicated `Credits: X Cr` detail row inside the hover card.

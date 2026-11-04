@@ -99,7 +99,7 @@
 1. **Course Credits Integration Across Schema & UI (Task 3.1)**:
    - Official undergraduate course credit counts (e.g. `3.0`, `1.5`, `1.0`, `2.0`) integrated directly into `courses.json` and `docs/courses.json` from departmental offerings.
    - View 1 (Course List Table): Displays course credit chips (`.course-credit-chip`, e.g. `3.0 Cr`) next to origin tags.
-   - View 3 (Course Details): Added `#detailCredits` input and `#detailsCreditsBadge` in header, allowing students to inspect and customize credits.
+   - View 3 (Course Details): Added `#detailCredits` input in `.details-card`, allowing students to inspect and customize credits (with zero redundant header clutter).
    - View 4 (Add / Import Courses): Added `#singleCourseCredits` in `.form-row-3col`.
    - Pre-Commit Diff Engine: `computeImportDiff` detects, compares, and displays credit modifications (`oldVal` vs `newVal`).
    - Content Script Overlay (`content.js`): `buildTooltipDom` renders a dedicated `Credits: X Cr` detail row inside the hover card.

@@ -246,8 +246,8 @@ assert('HTML has dedicated #prereqFlowView',
   HTML.includes('id="prereqFlowView"') && HTML.includes('class="view flow-view"'));
 assert('HTML has flow view navigation controls (#flowBackBtn, #flowSettingsBtn)',
   HTML.includes('id="flowBackBtn"') && HTML.includes('id="flowSettingsBtn"'));
-assert('HTML has flow hero and pill elements',
-  HTML.includes('id="flowHeroTitle"') && HTML.includes('id="flowHeroReqText"') && HTML.includes('id="flowHeroUnlockText"'));
+assert('HTML has a compact selected course with code, title and credits',
+  HTML.includes('id="flowHeroTitle"') && HTML.includes('id="flowAnchorCode"') && HTML.includes('id="flowHeroCredits"'));
 assert('HTML has flow prerequisite note card #flowPrereqNoteCard',
   HTML.includes('id="flowPrereqNoteCard"') && HTML.includes('id="flowPrereqNoteText"'));
 
@@ -264,6 +264,153 @@ assert('popup.js caches launcher card & flow view elements in els',
   JS.includes('detailPrereqLauncherCard:') && JS.includes('btnOpenPrereqFlow:') && JS.includes('prereqFlowView:'));
 assert('popup.js handles flow origin in openSettings and exitCourseDetails',
   JS.includes('settingsOriginView = "flow"') && JS.includes('detailsOriginView === "flow"'));
+
+// Exercise the production traversal and renderer, rather than a copied algorithm.
+const runtime = new Function('normalizeCourseData', 'document', 'els', 'courses',
+  'showPrereqNames', 'openCourseDetails',
+  JS.slice(JS.indexOf('  function buildPrereqChain('), JS.indexOf('  // ── End Task 2.4 helpers')) +
+  '\nreturn { buildPrereqChain, buildPrereqStages, renderPrereqTree };');
+class TreeNode {
+  constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.style = {}; this.classList = { toggle() {} }; }
+  appendChild(node) { this.children.push(node); }
+  setAttribute(key, value) { this.attributes[key] = value; }
+  addEventListener(event, handler) { this[event] = handler; }
+  set textContent(value) { this.text = value; this.children = []; }
+  get textContent() { return this.text || ''; }
+}
+const treeEls = Object.fromEntries(['prereqTreeSection', 'prereqChainBody', 'prereqChainCount',
+  'unlocksBody', 'unlocksCount', 'flowHeroCredits'].map(key => [key, new TreeNode('div')]));
+const targetCode = new TreeNode('span');
+const treeDocument = { createElement: tag => new TreeNode(tag), getElementById: () => targetCode };
+const sharedCatalog = {
+  TARGET: { prerequisites: ['ADVANCED', 'BASE', 'ADVANCED'] },
+  ADVANCED: { name: 'A long course title with <literal> markup', prerequisites: ['BASE'], credits: 1.5 },
+  BASE: { prerequisites: ['None'] },
+  NEXT: { prerequisites: ['TARGET', 'OTHER'] }
+};
+let navigated;
+const production = runtime(normalizeCourseData, treeDocument, treeEls, sharedCatalog, false,
+  code => { navigated = code; });
+const stages = production.buildPrereqStages('TARGET', sharedCatalog);
+assert('Production stages put shared foundation before its dependents',
+  JSON.stringify(stages.map(stage => stage.codes)) === JSON.stringify([['BASE'], ['ADVANCED']]));
+assert('Production traversal deduplicates direct prerequisites and excludes None',
+  production.buildPrereqChain('TARGET', sharedCatalog).levels.flatMap(level => level.codes).length === 2);
+const cyclicStages = production.buildPrereqStages('A', {
+  A: { prerequisites: ['B'] }, B: { prerequisites: ['C'] }, C: { prerequisites: ['B'] }
+});
+assert('Production stages flag cycles instead of suggesting an enrollment order',
+  cyclicStages.length === 1 && cyclicStages[0].unresolved && cyclicStages[0].codes.length === 2);
+assert('Production stages flag a self prerequisite',
+  production.buildPrereqStages('SELF', { SELF: { prerequisites: ['SELF'] } })[0].unresolved);
+assert('Production stages preserve missing catalog references',
+  production.buildPrereqStages('A', { A: { prerequisites: ['UNKNOWN'] } })[0].codes[0] === 'UNKNOWN');
+production.renderPrereqTree('TARGET');
+assert('Renderer creates separate ordered stages', treeEls.prereqChainBody.children.length === 2);
+const advancedCard = treeEls.prereqChainBody.children[1].children[1];
+assert('Renderer displays exact requirements and direct relationship',
+  advancedCard.children[2].textContent.includes('Requires: BASE') &&
+  advancedCard.children[2].textContent.includes('Required for TARGET'));
+assert('Course titles remain literal text',
+  advancedCard.children[1].textContent === sharedCatalog.ADVANCED.name);
+advancedCard.click();
+assert('Prerequisite cards retain course navigation', navigated === 'ADVANCED');
+assert('Renderer shows additional requirements on future courses',
+  treeEls.unlocksBody.children[0].children[2].textContent === 'Requires: TARGET + OTHER');
+assert('Renderer updates target code and avoids fabricated credits',
+  targetCode.textContent === 'TARGET' && treeEls.flowHeroCredits.textContent === 'Credits unlisted');
+assert('HTML reading order is prerequisites, requirements, target, future courses',
+  HTML.indexOf('id="prereqChainCard"') < HTML.indexOf('id="flowPrereqNoteCard"') &&
+  HTML.indexOf('id="flowPrereqNoteCard"') < HTML.indexOf('id="flowAnchorCard"') &&
+  HTML.indexOf('id="flowAnchorCard"') < HTML.indexOf('id="unlocksCard"'));
+
+// Keep disclosures at section level, without nested stage controls.
+const firstStage = treeEls.prereqChainBody.children[0];
+assert('Stages use plain headings instead of nested collapse controls',
+  firstStage.tag === 'section' && firstStage.children[0].tag === 'h3');
+assert('Roadmap has only the prerequisite and future-course disclosures',
+  (HTML.slice(HTML.indexOf('id="prereqFlowView"'), HTML.indexOf('<!-- View 4:')).match(/<details\b/g) || []).length === 2);
+assert('Roadmap removes the bulk collapse toolbar',
+  !HTML.includes('id="roadmapExpandAll"') && !HTML.includes('id="roadmapCollapseAll"'));
+assert('Course editor and roadmap entry have no unnecessary collapse',
+  /<div[^>]*id="detailsFormContainer"/.test(HTML) && /<div[^>]*id="detailPrereqLauncherCard"/.test(HTML));
+assert('Details omit the redundant overview and target explanations',
+  !HTML.includes('detailOverviewName') && !HTML.includes('Prerequisites lead to this course') && !HTML.includes('flowHeroReqText') && !HTML.includes('flowHeroUnlockText'));
+
+// Run the actual navigation functions against a small DOM surface.
+const navNodes = {};
+function navNode(key) {
+  if (!navNodes[key]) navNodes[key] = new TreeNode('div');
+  return navNodes[key];
+}
+const classes = new Set();
+const navEls = new Proxy({}, { get: (_, key) => navNode(key) });
+navEls.viewWrapper.classList = {
+  add: (...names) => names.forEach(name => classes.add(name)),
+  remove: (...names) => names.forEach(name => classes.delete(name))
+};
+const flowBody = navNode('flowBody');
+const detailsBody = navNode('detailsBody');
+navEls.prereqFlowView.querySelector = () => flowBody;
+let focusedCourse;
+navEls.prereqTreeSection.querySelectorAll = () => ['A', 'B', 'C'].map(code => ({
+  getAttribute: () => code,
+  focus: () => { focusedCourse = code; }
+}));
+const navDocument = { getElementById: navNode, querySelector: () => detailsBody };
+const navCatalog = { A: { name: 'Course A' }, B: { name: 'Course B' }, C: { name: 'Course C' } };
+let renderedCourse;
+const createNavigation = new Function('els', 'document', 'courses', 'normalizeCourseData',
+  'getCourseOrigin', 'updateDetailReportCard', 'updateEnrolledUI', 'renderPrereqTree',
+  'let currentEditingCode = null; let detailsOriginView = "courses"; const roadmapNavigationStack = [];\n' +
+  JS.slice(JS.indexOf('  function openPrereqFlowView('), JS.indexOf('  els.btnOpenPrereqFlow?.addEventListener')) +
+  JS.slice(JS.indexOf('  function openCourseDetails('), JS.indexOf('  function commitCourseSave(')) +
+  '\nreturn { openCourseDetails, exitCourseDetails, openPrereqFlowView, exitPrereqFlowView, state: () => ({ code: currentEditingCode, origin: detailsOriginView, depth: roadmapNavigationStack.length }) };');
+const navigation = createNavigation(navEls, navDocument, navCatalog,
+  value => Object.assign({ name: '', credits: null, prerequisites: [] }, value),
+  () => ({ class: 'official', label: 'Official' }), () => {}, () => {}, code => { renderedCourse = code; });
+navigation.openCourseDetails('A', navCatalog.A, 'mycourses');
+navigation.openPrereqFlowView('A');
+flowBody.scrollTop = 223;
+detailsBody.scrollTop = 112;
+navNode('prereqChainCard').open = true;
+navNode('unlocksCard').open = false;
+navigation.openCourseDetails('B', navCatalog.B, 'flow');
+assert('Child details back button identifies the source roadmap', navEls.detailsBackBtn.title === 'Back to A roadmap');
+navNode('prereqChainCard').open = false;
+navNode('unlocksCard').open = true;
+flowBody.scrollTop = 0;
+navigation.exitCourseDetails();
+assert('Back restores the original course and its roadmap',
+  navigation.state().code === 'A' && renderedCourse === 'A' && classes.has('show-flow') && navEls.detailName.value === 'Course A');
+assert('Back restores scroll positions, section state and source-card focus',
+  flowBody.scrollTop === 223 && detailsBody.scrollTop === 112 &&
+  navNode('prereqChainCard').open && !navNode('unlocksCard').open && focusedCourse === 'B');
+navigation.exitPrereqFlowView();
+navigation.exitCourseDetails();
+assert('Leaving the restored course preserves its My Courses origin', classes.has('show-mycourses'));
+navigation.openCourseDetails('A', navCatalog.A);
+navigation.openPrereqFlowView('A');
+navigation.openCourseDetails('B', navCatalog.B, 'flow');
+navigation.openPrereqFlowView('B');
+navigation.openCourseDetails('C', navCatalog.C, 'flow');
+navigation.exitCourseDetails();
+assert('Nested exploration returns from C to the B roadmap',
+  navigation.state().code === 'B' && navigation.state().depth === 1 && classes.has('show-flow'));
+navigation.exitPrereqFlowView();
+navigation.exitCourseDetails();
+assert('Nested exploration then returns from B to the A roadmap',
+  navigation.state().code === 'A' && navigation.state().depth === 0 && classes.has('show-flow'));
+navigation.exitPrereqFlowView();
+navigation.exitCourseDetails();
+assert('Leaving the root course returns to the catalog', classes.has('show-courses'));
+navigation.openCourseDetails('A', navCatalog.A);
+navigation.openPrereqFlowView('A');
+navigation.openCourseDetails('B', navCatalog.B, 'flow');
+delete navCatalog.A;
+navigation.exitCourseDetails();
+assert('A removed source course falls back safely to the catalog',
+  classes.has('show-courses') && navigation.state().depth === 0);
 
 // ── Summary ────────────────────────────────────────────────────────────────
 console.log(`\n  Results: ${passed} passed, ${failed} failed`);

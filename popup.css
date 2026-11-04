@@ -2227,7 +2227,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 210px;
+  max-width: 100%;
 }
 
 .details-view .header .origin-badge {
@@ -9942,3 +9942,363 @@ textarea:focus-visible,
   color: var(--text-muted);
   font-weight: 500;
 }
+/* Course roadmap: a single readable column within the 360px popup. */
+.flow-view .header-text,
+.flow-view .prereq-tree-title-group,
+.flow-view .flow-note-content {
+  min-width: 0;
+}
+
+.flow-view .flow-body {
+  min-height: 0;
+  overflow-x: hidden;
+}
+
+.flow-view .prereq-tree-section {
+  margin: 0;
+  gap: 12px;
+}
+
+.flow-view .prereq-tree-section > * {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.flow-view .prereq-tree-header {
+  align-items: flex-start;
+  background: var(--surface2);
+  border-color: var(--border-color);
+}
+
+.flow-view .prereq-tree-label {
+  color: var(--text-main);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.flow-view .prereq-tree-desc {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.flow-view .roadmap-stages,
+.flow-view .roadmap-next {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px;
+}
+
+.roadmap-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 0 16px 14px;
+  border-left: 2px solid var(--border-color);
+}
+
+.roadmap-stage::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.roadmap-stage:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: -4px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: rotate(45deg);
+}
+
+.roadmap-stage:last-child { padding-bottom: 0; }
+
+.roadmap-stage-title {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.flow-view .unlock-course-card {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  gap: 6px;
+  font-family: inherit;
+  white-space: normal;
+  border: 1px solid var(--border-color);
+  background: var(--surface2);
+  color: var(--text-main);
+  box-shadow: none;
+}
+
+.flow-view .unlock-card-top {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.flow-view .unlock-card-code { font-size: 12px; }
+
+.flow-view .unlock-card-name,
+.flow-view .roadmap-requirements,
+.flow-view .flow-anchor-title,
+.flow-view .flow-anchor-code,
+.flow-view .flow-note-content {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.flow-view .unlock-card-name {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+
+.roadmap-requirements {
+  margin: 0;
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.flow-view .unlock-course-card.is-missing { border-style: dashed; }
+.flow-view .unlock-course-card[aria-disabled="true"] { cursor: default; }
+
+.flow-view .unlock-course-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.flow-view .flow-anchor-card { margin: 0; padding: 12px; }
+.flow-view .flow-anchor-inner { gap: 8px; }
+.flow-view .flow-anchor-meta { flex-wrap: wrap; row-gap: 6px; }
+.flow-view .flow-anchor-badge-row { flex-wrap: wrap; }
+.flow-view .flow-arrow-label { font-size: 10px; letter-spacing: 0; text-transform: none; }
+.flow-view .flow-anchor-connector-top { padding-bottom: 10px; }
+.flow-view .flow-anchor-connector-bottom { padding-top: 10px; }
+.flow-view .flow-note-icon { fill: none; flex-shrink: 0; }
+
+.flow-direction-icon { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; }
+/* Native disclosures keep course information manageable in the compact popup. */
+.details-view .body { gap: 12px; padding: 12px 13px 16px; }
+.details-view .body > * { flex-shrink: 0; min-width: 0; }
+.details-view .header-text { min-width: 0; }
+.details-view .details-header-title-row { flex-wrap: wrap; }
+
+.details-view details,
+.flow-view details { min-width: 0; }
+.details-view summary,
+.flow-view summary {
+  list-style: none;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.details-view summary::-webkit-details-marker,
+.flow-view summary::-webkit-details-marker { display: none; }
+.details-view summary::after,
+.flow-view summary::after {
+  content: '';
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin: 2px 3px 5px 4px;
+  flex: 0 0 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  color: var(--text-muted);
+}
+.details-view details[open] > summary::after,
+.flow-view details[open] > summary::after { transform: rotate(225deg); margin-top: 6px; }
+.details-view summary:focus-visible,
+.flow-view summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+  border-radius: 6px;
+}
+.details-view details:not([open]) > :not(summary),
+.flow-view details:not([open]) > :not(summary) { display: none; }
+
+.details-view .detail-form-container {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+.details-view .details-card {
+  border: 0;
+  border-radius: 12px;
+  box-shadow: none;
+  gap: 12px;
+  padding: 12px;
+}
+.details-view .form-label-row { flex-wrap: wrap; gap: 6px; }
+.details-view .form-input { min-width: 0; width: 100%; }
+.details-view .form-group { min-width: 0; }
+.details-view .form-checkbox-label { align-items: flex-start; line-height: 1.5; }
+.details-view .form-checkbox { flex-shrink: 0; }
+.details-view .details-actions { flex-wrap: wrap; gap: 8px; }
+.details-view .details-actions button { min-height: 36px; }
+.details-view .detail-enroll-card { gap: 10px; }
+.details-view .detail-enroll-status-col { min-width: 0; }
+.details-view .prereq-launcher-desc { white-space: normal; overflow-wrap: anywhere; }
+.details-view .prereq-launcher-card { border-radius: 12px; padding: 12px; }
+.details-view .prereq-launcher-header { min-height: 36px; }
+.details-view .prereq-launcher-stats { margin-top: 12px; margin-bottom: 10px; }
+.details-view .btn-open-prereq-flow { min-height: 38px; font-size: 11px; }
+.details-view .report-card { margin: 0; border-radius: 12px; }
+.details-view .report-card-header { gap: 8px; }
+.details-view .report-card-header-text { flex: 1; min-width: 0; }
+.details-view .report-card-title { font-size: 12px; line-height: 1.4; }
+
+.flow-view .prereq-tree-card { border-color: var(--border-color); }
+.flow-view .prereq-tree-card:hover { border-color: var(--border-color); }
+.flow-view details:not([open]) > .prereq-tree-header { border-bottom: 0; }
+.flow-view .roadmap-stage { display: block; }
+.flow-view .roadmap-stage-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 2px 0;
+  font-size: 11px;
+}
+.roadmap-stage-count { margin-left: auto; color: var(--text-muted); font-size: 10px; font-weight: 400; }
+.flow-view .roadmap-stage > .unlock-course-card,
+.flow-view .roadmap-stage > .roadmap-requirements { margin-top: 8px; }
+.flow-view .prereq-tree-count { flex-shrink: 0; }
+
+.details-view .prereq-launcher-icon svg { fill: none; }
+[data-theme="dark"] .details-view .header .origin-badge,
+:root:not([data-theme="light"]) .details-view .header .origin-badge { color: var(--text-main); }
+
+/* Keep the course identity and roadmap entry compact. */
+.details-view .prereq-launcher-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.details-view .btn-open-prereq-flow {
+  width: 100%;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  margin: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-main);
+  text-align: left;
+  font-size: 12px;
+  box-shadow: none;
+}
+.details-view .btn-open-prereq-flow:hover { border-color: var(--accent); background: var(--surface2); }
+.details-view .btn-open-prereq-flow svg { fill: none; width: 16px; height: 16px; }
+.details-view .prereq-launcher-desc { font-size: 11px; font-weight: 400; margin-top: 3px; }
+.flow-view #flowAnchorCard {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--accent);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: none;
+}
+.flow-view .flow-anchor-inner { text-align: left; padding: 0; gap: 5px; }
+.flow-view .flow-anchor-meta { justify-content: space-between; gap: 8px; font-size: 11px; font-weight: 400; }
+.flow-view .flow-anchor-code { font-size: 12px; font-weight: 700; }
+.flow-view .flow-anchor-title { font-size: 12px; font-weight: 400; line-height: 1.45; margin: 0; }
+
+/* Exam notices remain readable when course names wrap across lines. */
+.detail-clash-warning,
+.enrolled-card-clash-banner,
+.enrolled-card-sameday-banner { align-items: flex-start; line-height: 1.5; font-weight: 500; }
+#detailClashText,
+.enrolled-card-clash-banner > span,
+.enrolled-card-sameday-banner > span,
+.clash-item-text { min-width: 0; overflow-wrap: anywhere; }
+.detail-clash-warning > svg,
+.enrolled-card-clash-banner > svg,
+.enrolled-card-sameday-banner > svg { flex-shrink: 0; margin-top: 2px; }
+
+/* Course navigation: one action per row and consistently sized header controls. */
+.details-view #btnOpenPrereqFlow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: auto;
+  min-height: 44px;
+  padding: 11px 12px;
+  gap: 10px;
+  background: var(--surface);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  box-shadow: none;
+  transform: none;
+  transition: background .15s ease, border-color .15s ease;
+}
+.details-view #btnOpenPrereqFlow:hover { background: var(--surface2); border-color: var(--accent); }
+.details-view #btnOpenPrereqFlow:active { background: var(--surface2); transform: none; }
+.details-view #btnOpenPrereqFlow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.details-view #btnOpenPrereqFlow svg { width: 16px; height: 16px; flex-shrink: 0; fill: none; transform: none; }
+.details-view #btnOpenPrereqFlow .roadmap-button-icon { color: var(--accent); }
+.details-view #btnOpenPrereqFlow .roadmap-button-chevron { margin-left: auto; color: var(--text-muted); }
+.roadmap-button-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.roadmap-button-counts { color: var(--text-muted); font-size: 11px; font-weight: 400; line-height: 1.5; overflow-wrap: anywhere; }
+
+.details-view > .header,
+.flow-view > .header { align-items: center; gap: 10px; padding: 12px; }
+.details-view > .header .header-text,
+.flow-view > .header .header-text { flex: 1; min-width: 0; }
+.details-view > .header .header-actions,
+.flow-view > .header .header-actions { gap: 4px; }
+.details-view > .header button,
+.flow-view > .header button { width: 32px; height: 32px; flex-shrink: 0; }
+.details-view > .header .course-header-outline,
+.flow-view > .header .course-header-outline { width: 16px; height: 16px; fill: none; }
+.details-view > .header .header-text p,
+.flow-view > .header .header-text p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.details-view > .header #detailsCourseSubtitle {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.4;
+}
+[data-theme="dark"] #detailsOriginBadge,
+:root:not([data-theme="light"]) #detailsOriginBadge { color: var(--text-main); }

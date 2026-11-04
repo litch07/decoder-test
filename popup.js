@@ -170,7 +170,6 @@
     themeLight: document.getElementById("themeLight"),
     themeDark: document.getElementById("themeDark"),
     themeStatusHint: document.getElementById("themeStatusHint"),
-    detailsCreditsBadge: document.getElementById("detailsCreditsBadge"),
     singleCourseCredits: document.getElementById("singleCourseCredits"),
     detailSaveBtn: document.getElementById("detailSaveBtn"),
     detailDelBtn: document.getElementById("detailDelBtn"),
@@ -185,11 +184,9 @@
     detailSaveContribDoneBtn: document.getElementById("detailSaveContribDoneBtn"),
     detailSaveContribClose: document.getElementById("detailSaveContribClose"),
     detailPrereqLauncherCard: document.getElementById("detailPrereqLauncherCard"),
-    detailPrereqReqChip: document.getElementById("detailPrereqReqChip"),
-    detailPrereqUnlockChip: document.getElementById("detailPrereqUnlockChip"),
-    detailPrereqLauncherDesc: document.getElementById("detailPrereqLauncherDesc"),
     btnOpenPrereqFlow: document.getElementById("btnOpenPrereqFlow"),
     btnOpenPrereqFlowText: document.getElementById("btnOpenPrereqFlowText"),
+    roadmapButtonCounts: document.getElementById("roadmapButtonCounts"),
     prereqFlowView: document.getElementById("prereqFlowView"),
     flowBackBtn: document.getElementById("flowBackBtn"),
     flowCourseCode: document.getElementById("flowCourseCode"),
@@ -198,8 +195,6 @@
     flowSettingsBtn: document.getElementById("flowSettingsBtn"),
     flowHeroTitle: document.getElementById("flowHeroTitle"),
     flowHeroCredits: document.getElementById("flowHeroCredits"),
-    flowHeroReqText: document.getElementById("flowHeroReqText"),
-    flowHeroUnlockText: document.getElementById("flowHeroUnlockText"),
     flowPrereqNoteCard: document.getElementById("flowPrereqNoteCard"),
     flowPrereqNoteText: document.getElementById("flowPrereqNoteText"),
     prereqTreeSection: document.getElementById("prereqTreeSection"),
@@ -2230,6 +2225,7 @@
   }
 
   let detailsOriginView = "courses";
+  const roadmapNavigationStack = [];
   let showPrereqNames = false; // Task 2.4 Enhancement: Code/Name toggle preference
 
   // ── Task 3.3: Course Routine & Markdown (.md) Export Helpers ──────────────
@@ -2295,11 +2291,11 @@
     var clashes = detectExamClashes(enrolledList, catalog);
     var sameDayExams = detectSameDayExams(enrolledList, catalog);
 
-    var clashStatus = "✅ Clear (No direct exam clashes detected)";
+    var clashStatus = "No time conflicts found in the available routine";
     if (clashes.length > 0) {
-      clashStatus = "⚠️ " + clashes.length + " Direct Exam Clash" + (clashes.length > 1 ? "es" : "") + " Detected";
+      clashStatus = clashes.length + " exam time conflict" + (clashes.length > 1 ? "s" : "") + " detected";
     } else if (sameDayExams.length > 0) {
-      clashStatus = "ℹ️ Notice (" + sameDayExams.length + " Same-Day Exam Period" + (sameDayExams.length > 1 ? "s" : "") + ")";
+      clashStatus = sameDayExams.length + " day" + (sameDayExams.length > 1 ? "s" : "") + " with multiple exams";
     }
 
     var lines = [];
@@ -2366,14 +2362,14 @@
       lines.push("- **Direct Clashes:** None detected.");
       lines.push("- **Same-Day Exams:** None detected.");
       lines.push("");
-      lines.push("Your exam schedule is completely clear of collisions!");
+      lines.push("No conflicts were found in the available exam routine. Exams with missing times or in-class evaluations are not checked for time conflicts.");
     } else {
       if (clashes.length > 0) {
         lines.push("### ❌ Direct Exam Clashes (Same Day & Same Slot)");
         clashes.forEach(function(c) {
           var timing = getExamSlotTiming(c.slot);
           var timeStr = timing && timing.time ? " (" + timing.time + ")" : "";
-          lines.push("- **" + c.day + ", Slot " + c.slot + timeStr + ":** " + c.courses.join(" vs "));
+          lines.push("- **" + c.day + ", Slot " + c.slot + timeStr + ":** " + c.courses.map(function(code) { return examCourseLabel(code, catalog); }).join("; "));
         });
         lines.push("");
         lines.push("> **Action Required:** Please contact your department coordinator or advisor to resolve routine clashes.");
@@ -2381,12 +2377,12 @@
       }
 
       if (sameDayExams.length > 0) {
-        lines.push("### ⚠️ Same-Day Exams (Different Slots)");
+        lines.push("### ⚠️ Multiple Exams on the Same Day");
         sameDayExams.forEach(function(sde) {
           var courseListStr = sde.courses.map(function(c) {
             var timing = getExamSlotTiming(c.slot);
             var t = timing && timing.time ? " (" + c.slot + ": " + timing.time + ")" : (c.slot ? " (" + c.slot + ")" : "");
-            return "**" + c.code + "**" + t;
+            return "**" + examCourseLabel(c.code, catalog) + "**" + t;
           }).join(", ");
           lines.push("- **" + sde.day + ":** " + sde.count + " exams scheduled (" + courseListStr + ")");
         });
@@ -2545,6 +2541,47 @@
    * Synchronizes all "My Courses" UI elements across View 0 (Home),
    * View 1 (Course List), and View 3 (Course Details).
    */
+  function examCourseLabel(code, catalog) {
+    var name = normalizeCourseData(catalog[code]).name;
+    return name ? name + " (" + code + ")" : code;
+  }
+
+  function examSlotLabel(slot) {
+    var value = (slot || "").trim();
+    if (!value || /^(n\/a|none|tba)$/i.test(value)) return "time not listed";
+    var timing = getExamSlotTiming(value);
+    return value + (timing && timing.start && timing.time ? " (" + timing.time + ")" : "");
+  }
+
+  // Shared wording for course details and enrolled-course cards. A course
+  // being inspected is a proposed addition until it is in My Courses.
+  function buildCourseExamNotice(code, enrolledList, catalog) {
+    var data = normalizeCourseData(catalog[code]);
+    var day = (data.examDay || "").trim();
+    if (!day || /^(n\/a|none|in-class)$/i.test(day)) return null;
+    var slot = (data.examSlot || "").trim();
+    var others = Array.from(new Set(enrolledList)).filter(function(other) {
+      return other !== code && (normalizeCourseData(catalog[other]).examDay || "").trim().toLowerCase() === day.toLowerCase();
+    });
+    if (!others.length) return null;
+    var conflicts = others.filter(function(other) {
+      return slot && !/^(n\/a|none|tba)$/i.test(slot) &&
+        (normalizeCourseData(catalog[other]).examSlot || "").trim().toLowerCase() === slot.toLowerCase();
+    });
+    if (conflicts.length) {
+      return { kind: "danger", text: "Exam time conflict on " + day + ", " + examSlotLabel(slot) +
+        ". This exam is scheduled at the same time as " + conflicts.map(function(other) {
+          return examCourseLabel(other, catalog);
+        }).join("; ") + ". Contact your department or advisor to resolve the conflict." };
+    }
+    var enrolled = enrolledList.indexOf(code) !== -1;
+    return { kind: "warning", text: (enrolled ? "You have " : "Adding this course would give you ") +
+      (others.length + 1) + " exams on " + day + ". " + (others.length === 1 ? "Other exam: " : "Other exams: ") +
+      others.map(function(other) {
+        return examCourseLabel(other, catalog) + " — " + examSlotLabel(normalizeCourseData(catalog[other]).examSlot);
+      }).join("; ") + ". " + (enrolled ? "Plan your preparation for this day." : "Review the exam times before adding this course.") };
+  }
+
   function updateEnrolledUI() {
     var totalEnrolled = enrolledCourses.length;
     var totalCredits = computeEnrolledCredits(enrolledCourses, courses);
@@ -2571,12 +2608,12 @@
         } else if (hasClashes) {
           els.homeClashBadge.style.display = "flex";
           els.homeClashBadge.className = "clash-badge danger";
-          els.homeClashBadge.textContent = "\u26A0\uFE0F " + clashes.length + " Exam Clash" + (clashes.length > 1 ? "es" : "") + " (Same slot)";
+          els.homeClashBadge.textContent = clashes.length + " exam time conflict" + (clashes.length > 1 ? "s" : "");
         } else if (hasSameDay) {
           els.homeClashBadge.style.display = "flex";
           els.homeClashBadge.className = "clash-badge warning";
           var daysCount = sameDayExams.length;
-          els.homeClashBadge.textContent = "\u26A0\uFE0F " + (daysCount === 1 ? (sameDayExams[0].count + " Exams on Same Day (Check routine)") : (daysCount + " Days with Multiple Exams"));
+          els.homeClashBadge.textContent = daysCount === 1 ? sameDayExams[0].count + " exams on " + sameDayExams[0].day : daysCount + " days with multiple exams";
         } else {
           els.homeClashBadge.style.display = "none";
           els.homeClashBadge.className = "clash-badge ok";
@@ -2616,12 +2653,12 @@
         if (hasClashes) {
           els.clashAlertBox.className = "clash-alert-box has-clash";
           if (els.clashAlertTitle) {
-            els.clashAlertTitle.textContent = hasSameDay ? "Exam Routine Conflicts & Same-Day Warnings" : "Exam Schedule Conflict Detected";
+            els.clashAlertTitle.textContent = "Exam time conflicts";
           }
         } else {
           els.clashAlertBox.className = "clash-alert-box is-warning";
           if (els.clashAlertTitle) {
-            els.clashAlertTitle.textContent = "Same-Day Final Exams Scheduled";
+            els.clashAlertTitle.textContent = "Multiple exams on the same day";
           }
         }
 
@@ -2645,11 +2682,11 @@
             itemText.className = "clash-item-text";
 
             var dayLabel = document.createElement("strong");
-            dayLabel.textContent = c.day + " (Slot " + c.slot + "): ";
+            dayLabel.textContent = c.day + " · " + examSlotLabel(c.slot) + ". ";
             itemText.appendChild(dayLabel);
 
             var coursesSpan = document.createElement("span");
-            coursesSpan.textContent = c.courses.join(" & ") + " — Direct Slot Clash";
+            coursesSpan.textContent = c.courses.map(function(code) { return examCourseLabel(code, courses); }).join("; ") + ". These exams are scheduled at the same time. Contact your department or advisor.";
             itemText.appendChild(coursesSpan);
 
             item.appendChild(bullet);
@@ -2672,7 +2709,7 @@
 
             if (hasDistinctSlots || clashes.length === 0) {
               var courseSummaries = sd.courses.map(function(c) {
-                return c.code + " (" + (c.slot || "TBA") + ")";
+                return examCourseLabel(c.code, courses) + " — " + examSlotLabel(c.slot);
               });
               var item = document.createElement("div");
               item.className = "clash-item warning";
@@ -2685,11 +2722,11 @@
               itemText.className = "clash-item-text";
 
               var dayLabel = document.createElement("strong");
-              dayLabel.textContent = sd.day + " (" + sd.count + " exams): ";
+              dayLabel.textContent = sd.count + " exams on " + sd.day + ". ";
               itemText.appendChild(dayLabel);
 
               var coursesSpan = document.createElement("span");
-              coursesSpan.textContent = courseSummaries.join(" & ");
+              coursesSpan.textContent = courseSummaries.join("; ") + ". Review the exam times and plan your preparation.";
               itemText.appendChild(coursesSpan);
 
               item.appendChild(bullet);
@@ -2725,39 +2762,11 @@
           var examDay = typeof cData === "object" && cData !== null && cData.examDay ? cData.examDay : "";
           var examSlot = typeof cData === "object" && cData !== null && cData.examSlot ? cData.examSlot : "";
 
-          // Check for direct slot clash
-          var isCourseClashing = false;
-          var clashDetailsText = "";
-          for (var ci = 0; ci < clashes.length; ci++) {
-            if (clashes[ci].courses.indexOf(code) !== -1) {
-              isCourseClashing = true;
-              var others = clashes[ci].courses.filter(function(c) { return c !== code; });
-              var cTiming = getExamSlotTiming(clashes[ci].slot);
-              var cTimeStr = cTiming && cTiming.time ? " [" + cTiming.time + "]" : "";
-              clashDetailsText = clashes[ci].day + " " + clashes[ci].slot + cTimeStr + " with " + others.join(", ");
-              break;
-            }
-          }
-
-          // Check for same-day exam with another course
-          var isCourseSameDay = false;
-          var sameDayDetailsText = "";
-          for (var sdi = 0; sdi < sameDayExams.length; sdi++) {
-            var sde = sameDayExams[sdi];
-            var match = sde.courses.find(function(c) { return c.code === code; });
-            if (match) {
-              var otherSameDayCourses = sde.courses.filter(function(c) { return c.code !== code; });
-              if (otherSameDayCourses.length > 0) {
-                isCourseSameDay = true;
-                sameDayDetailsText = sde.day + " with " + otherSameDayCourses.map(function(o) {
-                  var oTiming = getExamSlotTiming(o.slot);
-                  var tStr = oTiming && oTiming.time ? " (" + o.slot + ": " + oTiming.time + ")" : (o.slot ? " (" + o.slot + ")" : "");
-                  return o.code + tStr;
-                }).join(", ");
-                break;
-              }
-            }
-          }
+          var notice = buildCourseExamNotice(code, enrolledCourses, courses);
+          var isCourseClashing = !!notice && notice.kind === "danger";
+          var isCourseSameDay = !!notice && notice.kind === "warning";
+          var clashDetailsText = notice ? notice.text : "";
+          var sameDayDetailsText = clashDetailsText;
 
           var card = document.createElement("div");
           var cardClass = "enrolled-course-card";
@@ -2868,7 +2877,7 @@
             warnPath.setAttribute("d", "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z");
             warnIcon.appendChild(warnPath);
             var clashMsg = document.createElement("span");
-            clashMsg.textContent = "Direct Clash: " + clashDetailsText;
+            clashMsg.textContent = clashDetailsText;
             clashPill.appendChild(warnIcon);
             clashPill.appendChild(clashMsg);
             routineRow.appendChild(clashPill);
@@ -2882,7 +2891,7 @@
             sameDayPath.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z");
             sameDayIcon.appendChild(sameDayPath);
             var sameDayMsg = document.createElement("span");
-            sameDayMsg.textContent = "Same-Day Exam: " + sameDayDetailsText;
+            sameDayMsg.textContent = sameDayDetailsText;
             sameDayPill.appendChild(sameDayIcon);
             sameDayPill.appendChild(sameDayMsg);
             routineRow.appendChild(sameDayPill);
@@ -2945,65 +2954,12 @@
       }
 
       if (els.detailClashWarning) {
-        var isInspectedClashing = false;
-        var inspectedClashText = "";
-        var isInspectedSameDay = false;
-        var inspectedSameDayText = "";
-
-        var curData = normalizeCourseData(courses[currentEditingCode]);
-        var curDay = (curData.examDay || "").trim();
-        var curSlot = (curData.examSlot || "").trim();
-        var curDayLower = curDay.toLowerCase();
-        var curSlotLower = curSlot.toLowerCase();
-        var hasValidExam = curDay && curSlot && curDayLower !== "n/a" && curDayLower !== "none" && curDayLower !== "in-class" && curSlotLower !== "n/a" && curSlotLower !== "none";
-
-        // Check direct clash against other enrolled courses
-        for (var ci2 = 0; ci2 < enrolledCourses.length; ci2++) {
-          var oCode = enrolledCourses[ci2];
-          if (oCode === currentEditingCode) continue;
-          var oData = normalizeCourseData(courses[oCode]);
-          var oDay = (oData.examDay || "").trim();
-          var oSlot = (oData.examSlot || "").trim();
-          if (hasValidExam && oDay.toLowerCase() === curDayLower && oSlot.toLowerCase() === curSlotLower) {
-            isInspectedClashing = true;
-            inspectedClashText = curDay + " " + curSlot + " with " + oCode;
-            break;
-          }
-        }
-
-        // Check same-day exam against other enrolled courses (if no direct clash)
-        if (!isInspectedClashing && curDay && curDayLower !== "n/a" && curDayLower !== "none" && curDayLower !== "in-class") {
-          var sameDayMatches = [];
-          for (var si = 0; si < enrolledCourses.length; si++) {
-            var sCode = enrolledCourses[si];
-            if (sCode === currentEditingCode) continue;
-            var sData = normalizeCourseData(courses[sCode]);
-            var sDay = (sData.examDay || "").trim();
-            if (sDay && sDay.toLowerCase() === curDayLower) {
-              var sSlot = (sData.examSlot || "").trim();
-              sameDayMatches.push(sCode + (sSlot ? " (" + sSlot + ")" : ""));
-            }
-          }
-          if (sameDayMatches.length > 0) {
-            isInspectedSameDay = true;
-            inspectedSameDayText = curDay + " with enrolled " + sameDayMatches.join(", ") + " (" + (sameDayMatches.length + 1) + " exams on this day)";
-          }
-        }
-
-        if (isInspectedClashing) {
-          els.detailClashWarning.className = "detail-clash-warning danger";
-          els.detailClashWarning.style.display = "flex";
-          if (els.detailClashText) {
-            els.detailClashText.textContent = "Exam Routine Clash: " + inspectedClashText;
-          }
-        } else if (isInspectedSameDay) {
-          els.detailClashWarning.className = "detail-clash-warning is-warning";
-          els.detailClashWarning.style.display = "flex";
-          if (els.detailClashText) {
-            els.detailClashText.textContent = "⚠️ Same-Day Exam: " + inspectedSameDayText;
-          }
-        } else {
-          els.detailClashWarning.style.display = "none";
+        var inspectedNotice = buildCourseExamNotice(currentEditingCode, enrolledCourses, courses);
+        els.detailClashWarning.style.display = inspectedNotice ? "flex" : "none";
+        if (inspectedNotice) {
+          els.detailClashWarning.className = "detail-clash-warning " +
+            (inspectedNotice.kind === "danger" ? "danger" : "is-warning");
+          if (els.detailClashText) els.detailClashText.textContent = inspectedNotice.text;
         }
       }
     }
@@ -3050,8 +3006,11 @@
     });
     directCodes = rootPrereqs.slice();
 
-    var currentLevel = rootPrereqs.filter(function(c) { return !visited.has(c); });
-    currentLevel.forEach(function(c) { visited.add(c); });
+    var currentLevel = rootPrereqs.filter(function(c) {
+      if (visited.has(c)) return false;
+      visited.add(c);
+      return true;
+    });
 
     var depth = 1;
     while (currentLevel.length > 0) {
@@ -3064,7 +3023,7 @@
         var cPrereqs = Array.isArray(cData.prerequisites) ? cData.prerequisites : [];
         for (var j = 0; j < cPrereqs.length; j++) {
           var p = cPrereqs[j];
-          if (!visited.has(p)) {
+          if (p && p.toUpperCase() !== "NONE" && !visited.has(p)) {
             visited.add(p);
             nextLevel.push(p);
           }
@@ -3073,6 +3032,33 @@
       currentLevel = nextLevel;
     }
     return { directCodes: directCodes, levels: levels };
+  }
+
+  // Topological stages preserve shared dependencies even when a foundation is
+  // also a direct prerequisite. Reversing BFS levels cannot guarantee this.
+  function buildPrereqStages(rootCode, catalog) {
+    var chain = buildPrereqChain(rootCode, catalog);
+    var pending = new Set(chain.levels.flatMap(function(level) { return level.codes; }));
+    var completed = new Set();
+    var stages = [];
+    if (!pending.size && chain.directCodes.includes(rootCode)) {
+      return [{ codes: [], unresolved: true }];
+    }
+    while (pending.size) {
+      var ready = Array.from(pending).filter(function(code) {
+        var data = normalizeCourseData(catalog[code]);
+        return (data.prerequisites || []).every(function(p) {
+          return !p || p.toUpperCase() === "NONE" || completed.has(p);
+        });
+      }).sort();
+      if (!ready.length) {
+        stages.push({ codes: Array.from(pending).sort(), unresolved: true });
+        break;
+      }
+      stages.push({ codes: ready, unresolved: false });
+      ready.forEach(function(code) { pending.delete(code); completed.add(code); });
+    }
+    return stages;
   }
 
   /**
@@ -3139,45 +3125,17 @@
     if (unlocksCountEl) unlocksCountEl.textContent = String(unlocks.length);
 
     // ── Update Launcher Card on details-view ───────────────────────────────
-    if (els.detailPrereqReqChip) {
-      if (hasChain) {
-        els.detailPrereqReqChip.className = "prereq-stat-chip req";
-        els.detailPrereqReqChip.textContent = totalChainCodes + (totalChainCodes === 1 ? " Prereq" : " Prereqs");
-      } else {
-        els.detailPrereqReqChip.className = "prereq-stat-chip direct";
-        els.detailPrereqReqChip.textContent = "Direct Entry";
-      }
+    var roadmapSummary = totalChainCodes + (totalChainCodes === 1 ? " prerequisite" : " prerequisites") +
+      " · Opens " + unlocks.length + (unlocks.length === 1 ? " course" : " courses");
+    if (els.roadmapButtonCounts) els.roadmapButtonCounts.textContent = roadmapSummary;
+    if (els.btnOpenPrereqFlow) {
+      els.btnOpenPrereqFlow.setAttribute("aria-label", "View course roadmap: " + roadmapSummary);
+      els.btnOpenPrereqFlow.title = "View prerequisites and courses that require this course";
     }
-    if (els.detailPrereqUnlockChip) {
-      if (hasUnlocks) {
-        els.detailPrereqUnlockChip.className = "prereq-stat-chip unlock";
-        els.detailPrereqUnlockChip.textContent = unlocks.length + (unlocks.length === 1 ? " Unlock" : " Unlocks");
-      } else {
-        els.detailPrereqUnlockChip.className = "prereq-stat-chip terminal";
-        els.detailPrereqUnlockChip.textContent = "Terminal Course";
-      }
-    }
-    if (els.detailPrereqLauncherDesc) {
-      if (hasChain && hasUnlocks) {
-        els.detailPrereqLauncherDesc.textContent = "Requires " + totalChainCodes + (totalChainCodes === 1 ? " course" : " courses") + " • Unlocks " + unlocks.length + (unlocks.length === 1 ? " course" : " courses");
-      } else if (hasChain) {
-        els.detailPrereqLauncherDesc.textContent = "Requires " + totalChainCodes + (totalChainCodes === 1 ? " prerequisite course" : " prerequisite courses");
-      } else if (hasUnlocks) {
-        els.detailPrereqLauncherDesc.textContent = "Direct entry course • Unlocks " + unlocks.length + (unlocks.length === 1 ? " future course" : " future courses");
-      } else {
-        els.detailPrereqLauncherDesc.textContent = "Direct entry course • No prerequisite restrictions";
-      }
-    }
-    if (els.btnOpenPrereqFlowText) {
-      if (hasChain || hasUnlocks) {
-        els.btnOpenPrereqFlowText.textContent = "Explore Prerequisite Tree & Unlocks";
-      } else {
-        els.btnOpenPrereqFlowText.textContent = "View Course Roadmap & Tree";
-      }
-    }
-
     // ── Populate Flow View Header & Hero Card ─────────────────────────────
     if (els.flowCourseCode) els.flowCourseCode.textContent = code;
+    var anchorCode = document.getElementById("flowAnchorCode");
+    if (anchorCode) anchorCode.textContent = code;
     if (els.flowOriginBadge) {
       var origin = getCourseOrigin(code);
       els.flowOriginBadge.className = "origin-badge " + origin.class;
@@ -3185,20 +3143,14 @@
     }
     var cData = normalizeCourseData(courses[code]);
     if (els.flowCourseSubtitle) {
-      els.flowCourseSubtitle.textContent = cData.name || "Course Roadmap & Dependencies";
+      els.flowCourseSubtitle.textContent = "Prerequisite roadmap";
     }
     if (els.flowHeroTitle) {
       els.flowHeroTitle.textContent = cData.name || code;
     }
     if (els.flowHeroCredits) {
       var numCr = parseFloat(cData.credits);
-      els.flowHeroCredits.textContent = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Cr";
-    }
-    if (els.flowHeroReqText) {
-      els.flowHeroReqText.textContent = hasChain ? (totalChainCodes + (totalChainCodes === 1 ? " Required Prereq" : " Required Prereqs")) : "0 Required Prereqs (Direct)";
-    }
-    if (els.flowHeroUnlockText) {
-      els.flowHeroUnlockText.textContent = hasUnlocks ? (unlocks.length + (unlocks.length === 1 ? " Course Unlocked" : " Courses Unlocked")) : "0 Courses Unlocked (Terminal)";
+      els.flowHeroCredits.textContent = !isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) + " Cr" : "Credits unlisted";
     }
     if (els.flowPrereqNoteCard && els.flowPrereqNoteText) {
       var note = (cData.prerequisiteNote || "").trim();
@@ -3238,68 +3190,85 @@
       emptyIcon.textContent = "✓";
       emptyState.appendChild(emptyIcon);
       var emptyTitle = document.createElement("strong");
-      emptyTitle.textContent = "Direct Entry Course";
+      emptyTitle.textContent = "No listed prerequisite courses";
       emptyState.appendChild(emptyTitle);
       var emptyDesc = document.createElement("span");
-      emptyDesc.textContent = "No prior coursework or prerequisites required. You can enroll directly.";
+      emptyDesc.textContent = "Check any additional enrollment requirements below.";
       emptyState.appendChild(emptyDesc);
       chainBody.appendChild(emptyState);
     } else {
-      // Collect all prerequisite codes in order from deepest foundation to direct
-      var allPrereqCodes = [];
-      var seenCodes = new Set();
-      // Reverse levels so base foundation comes first, direct prereqs lead into target
-      for (var lIdx = chain.levels.length - 1; lIdx >= 0; lIdx--) {
-        var lvl = chain.levels[lIdx];
-        for (var cIdx = 0; cIdx < lvl.codes.length; cIdx++) {
-          var pCode = lvl.codes[cIdx];
-          if (!seenCodes.has(pCode)) {
-            seenCodes.add(pCode);
-            allPrereqCodes.push(pCode);
+      buildPrereqStages(code, courses).forEach(function(stage, stageIndex) {
+        var tier = document.createElement("section");
+        tier.className = "roadmap-stage";
+        var heading = document.createElement("h3");
+        heading.className = "roadmap-stage-title";
+        heading.textContent = stage.unresolved ? "Review dependency cycle" :
+          "Stage " + (stageIndex + 1) + (stageIndex === 0 ? " · Foundation" : " · Next requirements");
+        var stageCount = document.createElement("span");
+        stageCount.className = "roadmap-stage-count";
+        stageCount.textContent = stage.codes.length + (stage.codes.length === 1 ? " course" : " courses");
+        heading.appendChild(stageCount);
+        tier.appendChild(heading);
+        if (stage.unresolved) {
+          var warning = document.createElement("p");
+          warning.className = "roadmap-requirements";
+          warning.textContent = "A circular requirement prevents ordering these courses. Review their requirements before planning.";
+          tier.appendChild(warning);
+        }
+        stage.codes.forEach(function(prereqCode) {
+          var inCatalog = !!courses[prereqCode];
+          var pData = inCatalog ? normalizeCourseData(courses[prereqCode]) : null;
+          var pName = pData ? (pData.name || "") : "";
+          var numCr = pData && pData.credits ? parseFloat(pData.credits) : NaN;
+          var pCr = !isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) + " Cr" : "Credits unlisted";
+
+          var card = document.createElement("button");
+          card.type = "button";
+          card.setAttribute("data-course-code", prereqCode);
+          card.className = "unlock-course-card prereq-course-card" + (inCatalog ? "" : " is-missing");
+          card.title = inCatalog ? (prereqCode + " — " + (pName || "Course details")) : (prereqCode + " — not in catalog");
+
+          var cardTop = document.createElement("div");
+          cardTop.className = "unlock-card-top";
+
+          var codeSpan = document.createElement("strong");
+          codeSpan.className = "unlock-card-code";
+          codeSpan.textContent = prereqCode;
+          cardTop.appendChild(codeSpan);
+
+          var crSpan = document.createElement("span");
+          crSpan.className = "unlock-card-cr";
+          crSpan.textContent = pCr;
+          cardTop.appendChild(crSpan);
+
+          card.appendChild(cardTop);
+
+          var nameSpan = document.createElement("span");
+          nameSpan.className = "unlock-card-name";
+          nameSpan.textContent = pName || prereqCode;
+          card.appendChild(nameSpan);
+
+          var requirements = document.createElement("span");
+          requirements.className = "roadmap-requirements";
+          var requiredCodes = pData ? (pData.prerequisites || []).filter(function(p) {
+            return p && p.toUpperCase() !== "NONE";
+          }) : [];
+          requirements.textContent = !inCatalog ? "Not in catalog · requirements unknown" :
+            (requiredCodes.length ? "Requires: " + requiredCodes.join(" + ") : "No listed prerequisite courses");
+          if (chain.directCodes.includes(prereqCode)) requirements.textContent += " · Required for " + code;
+          if (pData && pData.prerequisiteNote) requirements.textContent += " · " + pData.prerequisiteNote;
+          card.appendChild(requirements);
+
+          if (inCatalog) {
+            card.addEventListener("click", (function(c) {
+              return function() { openCourseDetails(c, courses[c], "flow"); };
+            })(prereqCode));
+          } else {
+            card.setAttribute("aria-disabled", "true");
           }
-        }
-      }
-
-      allPrereqCodes.forEach(function(prereqCode) {
-        var inCatalog = !!courses[prereqCode];
-        var pData = inCatalog ? normalizeCourseData(courses[prereqCode]) : null;
-        var pName = pData ? (pData.name || "") : "";
-        var numCr = pData && pData.credits ? parseFloat(pData.credits) : NaN;
-        var pCr = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Cr";
-
-        var card = document.createElement("button");
-        card.type = "button";
-        card.className = "unlock-course-card prereq-course-card prereq-badge is-direct";
-        card.title = inCatalog ? (prereqCode + " — " + (pName || "Course details")) : (prereqCode + " — not in catalog");
-
-        var cardTop = document.createElement("div");
-        cardTop.className = "unlock-card-top";
-
-        var codeSpan = document.createElement("strong");
-        codeSpan.className = "unlock-card-code";
-        codeSpan.textContent = prereqCode;
-        cardTop.appendChild(codeSpan);
-
-        var crSpan = document.createElement("span");
-        crSpan.className = "unlock-card-cr";
-        crSpan.textContent = pCr;
-        cardTop.appendChild(crSpan);
-
-        card.appendChild(cardTop);
-
-        var nameSpan = document.createElement("span");
-        nameSpan.className = "unlock-card-name";
-        nameSpan.textContent = pName || prereqCode;
-        card.appendChild(nameSpan);
-
-        if (inCatalog) {
-          card.addEventListener("click", (function(c) {
-            return function() { openCourseDetails(c, courses[c], "flow"); };
-          })(prereqCode));
-        } else {
-          card.setAttribute("aria-disabled", "true");
-        }
-        chainBody.appendChild(card);
+          tier.appendChild(card);
+        });
+        chainBody.appendChild(tier);
       });
     }
 
@@ -3324,11 +3293,12 @@
         var uData = inCatalog ? normalizeCourseData(courses[unlockCode]) : null;
         var uName = uData ? (uData.name || "") : "";
         var numCr = uData && uData.credits ? parseFloat(uData.credits) : NaN;
-        var uCr = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Cr";
+        var uCr = !isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) + " Cr" : "Credits unlisted";
 
         var card = document.createElement("button");
         card.type = "button";
-        card.className = "unlock-course-card prereq-badge is-direct";
+        card.setAttribute("data-course-code", unlockCode);
+        card.className = "unlock-course-card";
         card.title = inCatalog ? (unlockCode + " — " + (uName || "Course details")) : (unlockCode + " — not in catalog");
 
         var cardTop = document.createElement("div");
@@ -3350,6 +3320,14 @@
         nameSpan.className = "unlock-card-name";
         nameSpan.textContent = uName || unlockCode;
         card.appendChild(nameSpan);
+
+        var unlockRequirements = document.createElement("span");
+        unlockRequirements.className = "roadmap-requirements";
+        unlockRequirements.textContent = "Requires: " + (uData.prerequisites || []).filter(function(p) {
+          return p && p.toUpperCase() !== "NONE";
+        }).join(" + ");
+        if (uData.prerequisiteNote) unlockRequirements.textContent += " · " + uData.prerequisiteNote;
+        card.appendChild(unlockRequirements);
 
         if (inCatalog) {
           card.addEventListener("click", (function(c) {
@@ -3391,6 +3369,8 @@
     if (!code) return;
     renderPrereqTree(code);
     els.viewWrapper.classList.add("show-flow");
+    var flowBody = els.prereqFlowView.querySelector(".flow-body");
+    if (flowBody) flowBody.scrollTop = 0;
   }
 
   function exitPrereqFlowView() {
@@ -3465,9 +3445,31 @@
     }
   }
 
-  function openCourseDetails(code, courseData, originView = "courses") {
+  function openCourseDetails(code, courseData, originView = "courses", restoringRoadmap = false) {
+    if (originView === "flow" && currentEditingCode && !restoringRoadmap) {
+      const flowBody = els.prereqFlowView?.querySelector(".flow-body");
+      const detailsBody = document.querySelector(".details-view .body");
+      roadmapNavigationStack.push({
+        code: currentEditingCode,
+        origin: detailsOriginView,
+        scrollTop: flowBody?.scrollTop || 0,
+        detailsScrollTop: detailsBody?.scrollTop || 0,
+        prerequisitesOpen: document.getElementById("prereqChainCard")?.open,
+        unlocksOpen: document.getElementById("unlocksCard")?.open,
+        focusCode: code
+      });
+    } else if (!restoringRoadmap && originView !== "flow") {
+      roadmapNavigationStack.length = 0;
+    }
     detailsOriginView = originView;
     currentEditingCode = code;
+    if (els.detailsBackBtn) {
+      const parent = roadmapNavigationStack[roadmapNavigationStack.length - 1];
+      const label = originView === "flow" && parent ? "Back to " + parent.code + " roadmap" :
+        (originView === "mycourses" ? "Back to My Courses" : originView === "settings" ? "Back to Settings" : "Back to Courses");
+      els.detailsBackBtn.title = label;
+      els.detailsBackBtn.setAttribute("aria-label", label);
+    }
     els.detailsCourseCode.textContent = code;
     courseData = courseData || courses[code];
 
@@ -3506,76 +3508,11 @@
     if (els.detailPrereqNote) els.detailPrereqNote.value = (typeof courseData === "object" && courseData !== null) ? (courseData.prerequisiteNote || "") : "";
     const creditsVal = (typeof courseData === "object" && courseData !== null && courseData.credits !== undefined && courseData.credits !== null) ? courseData.credits : "";
     if (els.detailCredits) els.detailCredits.value = creditsVal;
-    if (els.detailsCreditsBadge) {
-      var numCr = parseFloat(creditsVal);
-      if (!isNaN(numCr) && numCr > 0) {
-        els.detailsCreditsBadge.textContent = numCr.toFixed(1) + " Cr";
-      } else {
-        els.detailsCreditsBadge.textContent = "3.0 Cr";
-      }
-      els.detailsCreditsBadge.style.display = "inline-flex";
-    }
 
     els.detailName.style.borderColor = "";
 
     els.detailDelBtn.disabled = false;
     els.detailDelBtn.title = "";
-
-    // Populate Course Details Hero Card
-    if (els.detailCourseTitle) {
-      els.detailCourseTitle.textContent = name || "Untitled Course";
-    }
-    if (els.detailHeroCredits) {
-      var numCr = parseFloat(creditsVal);
-      els.detailHeroCredits.textContent = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Credits";
-    }
-    if (els.detailHeroRoutine) {
-      var lowerDay = (examDay || "").trim().toLowerCase();
-      if (lowerDay === "in-class") {
-        els.detailHeroRoutine.textContent = "📝 In-Class Evaluation (No central routine)";
-        els.detailHeroRoutine.style.display = "inline-flex";
-      } else if (examDay && examSlot && lowerDay !== "n/a" && lowerDay !== "none") {
-        var slotTimes = { "T1": "09:00–11:00", "T2": "11:30–13:30", "T3": "14:30–16:30" };
-        var timeLabel = slotTimes[examSlot] ? (" (" + slotTimes[examSlot] + ")") : "";
-        els.detailHeroRoutine.textContent = examDay + " • Slot " + examSlot + timeLabel;
-        els.detailHeroRoutine.style.display = "inline-flex";
-      } else {
-        els.detailHeroRoutine.textContent = "🕒 Routine Pending / TBA";
-        els.detailHeroRoutine.style.display = "inline-flex";
-      }
-    }
-    if (els.detailHeroDept) {
-      var prefix = code.split(" ")[0] || code.substring(0, 3);
-      var deptMap = {
-        "CSE": "Computer Science & Eng.",
-        "DS": "Data Science",
-        "SE": "Software Engineering",
-        "EEE": "Electrical & Electronic",
-        "CE": "Civil Engineering",
-        "BBA": "Business Administration",
-        "ACT": "Accounting",
-        "FIN": "Finance",
-        "MKT": "Marketing",
-        "HRM": "Human Resource Mgt.",
-        "ECO": "Economics",
-        "ENG": "English / Humanities",
-        "MATH": "Mathematics",
-        "PHY": "Physics",
-        "CHEM": "Chemistry",
-        "BIO": "Biology / Life Sciences",
-        "URP": "Urban & Regional Planning"
-      };
-      els.detailHeroDept.textContent = deptMap[prefix] || prefix;
-    }
-    if (els.detailHeroPrereqNote) {
-      var noteVal = (typeof courseData === "object" && courseData !== null) ? (courseData.prerequisiteNote || "").trim() : "";
-      if (noteVal) {
-        els.detailHeroPrereqNote.textContent = "📌 Prerequisite Note: " + noteVal;
-        els.detailHeroPrereqNote.style.display = "flex";
-      } else {
-        els.detailHeroPrereqNote.style.display = "none";
-      }
-    }
 
     // Form is directly open and editable
     if (els.detailsFormContainer) {
@@ -3602,7 +3539,26 @@
     } else if (detailsOriginView === "mycourses") {
       els.viewWrapper.classList.add("show-mycourses");
     } else if (detailsOriginView === "flow") {
-      els.viewWrapper.classList.add("show-flow");
+      const previous = roadmapNavigationStack.pop();
+      if (previous && courses[previous.code]) {
+        openCourseDetails(previous.code, courses[previous.code], previous.origin, true);
+        els.viewWrapper.classList.add("show-flow");
+        const prerequisites = document.getElementById("prereqChainCard");
+        const unlocks = document.getElementById("unlocksCard");
+        if (prerequisites) prerequisites.open = previous.prerequisitesOpen;
+        if (unlocks) unlocks.open = previous.unlocksOpen;
+        const flowBody = els.prereqFlowView?.querySelector(".flow-body");
+        const detailsBody = document.querySelector(".details-view .body");
+        if (flowBody) flowBody.scrollTop = previous.scrollTop;
+        if (detailsBody) detailsBody.scrollTop = previous.detailsScrollTop;
+        const sourceCard = Array.from(els.prereqTreeSection.querySelectorAll("[data-course-code]")).find(function(card) {
+          return card.getAttribute("data-course-code") === previous.focusCode;
+        });
+        sourceCard?.focus({ preventScroll: true });
+      } else {
+        roadmapNavigationStack.length = 0;
+        els.viewWrapper.classList.add("show-courses");
+      }
     } else {
       els.viewWrapper.classList.add("show-courses");
     }
@@ -3639,30 +3595,7 @@
         badgeEl.textContent = origin.label;
       }
       if (els.detailsCourseSubtitle) {
-        els.detailsCourseSubtitle.textContent = newVal.name || "Course Details & Routine";
-      }
-      if (els.detailCourseTitle) els.detailCourseTitle.textContent = newVal.name || code;
-      var numCr = parseFloat(newVal.credits);
-      var crStr = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Cr";
-      if (els.detailHeroCreditsBadge) els.detailHeroCreditsBadge.textContent = crStr;
-      if (els.detailMetricCreditsVal) els.detailMetricCreditsVal.textContent = crStr;
-
-      var lowerD = (newVal.examDay || "").trim().toLowerCase();
-      var slotTimes = { "T1": "09:00–11:00", "T2": "11:30–13:30", "T3": "14:30–16:30" };
-      if (lowerD === "in-class") {
-        if (els.detailMetricRoutineVal) els.detailMetricRoutineVal.textContent = "In-Class";
-        if (els.detailMetricRoutineTime) els.detailMetricRoutineTime.textContent = "Lab / Viva";
-      } else if (newVal.examDay && newVal.examSlot && lowerD !== "n/a" && lowerD !== "none") {
-        if (els.detailMetricRoutineVal) els.detailMetricRoutineVal.textContent = newVal.examDay + " • " + newVal.examSlot;
-        if (els.detailMetricRoutineTime) els.detailMetricRoutineTime.textContent = slotTimes[newVal.examSlot] || "Routine Slot";
-      } else {
-        if (els.detailMetricRoutineVal) els.detailMetricRoutineVal.textContent = "TBA";
-        if (els.detailMetricRoutineTime) els.detailMetricRoutineTime.textContent = "Routine TBA";
-      }
-
-      var pList = Array.isArray(newVal.prerequisites) ? newVal.prerequisites.filter(function(p) { return p && p.toUpperCase() !== "NONE"; }) : [];
-      if (els.detailMetricPrereqsVal) {
-        els.detailMetricPrereqsVal.textContent = pList.length > 0 ? (pList.length + (pList.length === 1 ? " Prereq" : " Prereqs")) : "Direct Entry";
+        els.detailsCourseSubtitle.textContent = newVal.name || "Course Information & Routine";
       }
 
       // Re-render prereq tree for updated course data

@@ -5,12 +5,12 @@
  * Verifies:
  *   1. courses.json schema contains valid numeric credits
  *   2. docs/courses.json is strictly in sync with courses.json
- *   3. popup.html contains #detailCredits, #detailsCreditsBadge, and #singleCourseCredits
+ *   3. popup.html contains #detailCredits, #flowHeroCredits, and #singleCourseCredits (zero redundant header badge)
  *   4. popup.css contains .form-row-3col and .course-credit-chip styles
  *   5. popup.js normalizeCourseData handles numeric, string, and null credits
  *   6. popup.js areCourseDataEqual detects credit differences
  *   7. popup.js computeImportDiff tracks Course Credits changes
- *   8. popup.js els mapping contains detailCredits, detailsCreditsBadge, singleCourseCredits
+ *   8. popup.js els mapping contains detailCredits, singleCourseCredits
  *   9. content.js extracts credits and renders Credits in buildTooltipDom
  *  10. docs/index.html & docs/app.js support credits display with zero innerHTML
  */
@@ -66,7 +66,8 @@ assert('CSE 2215 has 3 credits', catalog['CSE 2215'] && catalog['CSE 2215'].cred
 // ── 2. popup.html elements ─────────────────────────────────────────────────
 const popupHtml = fs.readFileSync(path.join(ROOT, 'popup.html'), 'utf8');
 assert('popup.html has #detailCredits input', popupHtml.includes('id="detailCredits"'));
-assert('popup.html has #detailsCreditsBadge in header', popupHtml.includes('id="detailsCreditsBadge"'));
+assert('popup.html has #flowHeroCredits in flow view', popupHtml.includes('id="flowHeroCredits"'));
+assert('popup.html has removed redundant #detailsCreditsBadge from header', !popupHtml.includes('id="detailsCreditsBadge"'));
 assert('popup.html has #singleCourseCredits input', popupHtml.includes('id="singleCourseCredits"'));
 
 // ── 3. popup.css classes ───────────────────────────────────────────────────
@@ -78,7 +79,7 @@ assert('popup.css has .origin-badge.credits', popupCss.includes('.origin-badge.c
 // ── 4. popup.js logic & DOM mapping ────────────────────────────────────────
 const popupJs = fs.readFileSync(path.join(ROOT, 'popup.js'), 'utf8');
 assert('popup.js els has detailCredits', popupJs.includes('detailCredits: document.getElementById("detailCredits")'));
-assert('popup.js els has detailsCreditsBadge', popupJs.includes('detailsCreditsBadge: document.getElementById("detailsCreditsBadge")'));
+assert('popup.js els does not contain redundant detailsCreditsBadge', !popupJs.includes('detailsCreditsBadge: document.getElementById("detailsCreditsBadge")'));
 assert('popup.js els has singleCourseCredits', popupJs.includes('singleCourseCredits: document.getElementById("singleCourseCredits")'));
 
 // Functional tests for normalizeCourseData logic

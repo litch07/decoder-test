@@ -535,23 +535,18 @@
     <div class="view details-view" role="region" aria-label="Course Details">
       <div class="header">
         <button class="header-back" id="detailsBackBtn" title="Back to Courses">
-          <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-          </svg>
+          <svg class="course-header-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
         </button>
         <div class="header-text" style="flex:1;">
           <div class="details-header-title-row">
             <h1 id="detailsCourseCode">Course Details</h1>
             <span class="origin-badge official" id="detailsOriginBadge">Official</span>
-            <span class="origin-badge credits" id="detailsCreditsBadge">3.0 Cr</span>
           </div>
-          <p id="detailsCourseSubtitle">Course Details &amp; Routine</p>
+          <p id="detailsCourseSubtitle">Course Information &amp; Routine</p>
         </div>
         <div class="header-actions">
           <button type="button" class="header-export-btn" id="detailsInfoBtn" title="How to contribute or report wrong data" aria-label="Contributing &amp; Community Guide">
-            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-            </svg>
+            <svg class="course-header-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8h.01M12 11v5M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"/></svg>
           </button>
           <button type="button" class="header-btn" id="detailsSettingsBtn" title="Settings &amp; Preferences" aria-label="Settings &amp; Preferences">
             <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
@@ -608,6 +603,17 @@
               <span>Back to Catalog &rarr;</span>
             </button>
           </div>
+        </div>
+
+        <div class="prereq-launcher-card" id="detailPrereqLauncherCard">
+          <button type="button" class="btn-open-prereq-flow" id="btnOpenPrereqFlow" aria-controls="prereqFlowView">
+            <svg class="roadmap-button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v12a3 3 0 0 0 3 3h9m-4-4 4 4-4 4M6 7h8a3 3 0 0 1 3 3v1"/></svg>
+            <span class="roadmap-button-copy">
+              <span id="btnOpenPrereqFlowText">Course roadmap</span>
+              <span class="roadmap-button-counts" id="roadmapButtonCounts">0 prerequisites · Opens 0 courses</span>
+            </span>
+            <svg class="roadmap-button-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+          </button>
         </div>
 
         <!-- Directly Editable Course Customization Card (Open & Immediately Accessible) -->
@@ -675,41 +681,18 @@
           </div>
         </div>
 
-        <!-- Curriculum Roadmap & Prerequisite Launcher Card -->
-        <div class="prereq-launcher-card" id="detailPrereqLauncherCard">
-          <div class="prereq-launcher-header">
-            <div class="prereq-launcher-icon">
-              <svg viewBox="0 0 24 24">
-                <path d="M14 4l2.29 2.29-2.88 2.88 1.42 1.42 2.88-2.88L20 10V4h-6zm-4 0H4v6l2.29-2.29 4.71 4.7V20h2v-8.41l-5.29-5.3L10 4z"/>
-              </svg>
-            </div>
-            <div class="prereq-launcher-info">
-              <span class="prereq-launcher-title">Curriculum Roadmap &amp; Tree</span>
-              <span class="prereq-launcher-desc" id="detailPrereqLauncherDesc">Prerequisites chain &amp; unlocking paths</span>
-            </div>
-          </div>
-          <div class="prereq-launcher-stats" id="detailPrereqStats">
-            <span class="prereq-stat-chip req" id="detailPrereqReqChip">0 Prereqs</span>
-            <span class="prereq-stat-chip unlock" id="detailPrereqUnlockChip">0 Unlocks</span>
-          </div>
-          <button type="button" class="btn-open-prereq-flow" id="btnOpenPrereqFlow" title="View interactive prerequisite tree and unlocking roadmap">
-            <span id="btnOpenPrereqFlowText">Explore Prerequisite Tree &amp; Unlocks</span>
-            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
-          </button>
-        </div>
-
-        <div class="report-card" id="detailReportCard">
-          <div class="report-card-header">
-            <div class="report-card-icon-badge" id="detailReportIconBadge">
+        <details class="report-card" id="detailReportCard">
+          <summary class="report-card-header">
+            <span class="report-card-icon-badge" id="detailReportIconBadge">
               <svg viewBox="0 0 24 24" id="detailReportIcon">
                 <path id="detailReportIconPath" fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
               </svg>
-            </div>
-            <div class="report-card-header-text">
+            </span>
+            <span class="report-card-header-text">
               <span class="report-card-title" id="detailReportTitle">Upload to Official Repository</span>
               <span class="report-card-subtitle" id="detailReportSubtitle">Saved locally on this device</span>
-            </div>
-          </div>
+            </span>
+          </summary>
           <div class="report-card-body" id="detailReportBody">
             This course is currently stored on your browser. Upload it to the community catalog so all UIU students can automatically decode it!
           </div>
@@ -728,7 +711,7 @@
             <a href="https://github.com/litch07/uiu-course-decoder/blob/main/CONTRIBUTING.md" target="_blank"
               rel="noopener noreferrer" class="report-contribute-link">Contributing Guide &rarr;</a>
           </div>
-        </div>
+        </details>
       </div>
     </div>
 
@@ -736,16 +719,14 @@
     <div class="view flow-view" id="prereqFlowView" role="region" aria-label="Course Roadmap and Prerequisite Tree">
       <div class="header">
         <button class="header-back" id="flowBackBtn" title="Back to Course Details" aria-label="Back to Course Details">
-          <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-          </svg>
+          <svg class="course-header-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
         </button>
         <div class="header-text" style="flex:1;">
           <div class="details-header-title-row">
             <h1 id="flowCourseCode">Course Code</h1>
             <span class="origin-badge official" id="flowOriginBadge">Official</span>
           </div>
-          <p id="flowCourseSubtitle">Curriculum Roadmap &amp; Pathway</p>
+          <p id="flowCourseSubtitle">Prerequisite roadmap</p>
         </div>
         <div class="header-actions">
           <!-- Code / Name switch in header toolbar -->
@@ -770,64 +751,43 @@
       <div class="body flow-body">
         <div class="prereq-tree-section" id="prereqTreeSection">
 
-          <!-- Step 3: Unlocked Opportunities Pathway (Upper Tier) -->
-          <div class="prereq-tree-card" id="unlocksCard">
-            <div class="prereq-tree-header">
-              <div class="prereq-tree-title-group">
-                <span class="prereq-tree-label">Unlocked Courses</span>
-                <span class="prereq-tree-desc">Advanced courses accessible after completing this subject</span>
-              </div>
-              <span class="prereq-tree-count" id="unlocksCount">0</span>
-            </div>
-            <div class="prereq-tree-body unlocks-grid-body" id="unlocksBody"></div>
-          </div>
+          <details class="prereq-tree-card" id="prereqChainCard" open>
+            <summary class="prereq-tree-header">
+              <span class="prereq-tree-title-group">
+                <span class="prereq-tree-label">Prerequisite path</span>
+              </span>
+              <span class="prereq-tree-count" id="prereqChainCount">0</span>
+            </summary>
+            <div class="prereq-tree-body roadmap-stages" id="prereqChainBody"></div>
+          </details>
 
-          <!-- Step 2: Visual Centerpiece Anchor for Current Subject (Middle Tier) -->
-          <div class="flow-anchor-card" id="flowAnchorCard">
-            <div class="flow-anchor-connector-top">
-              <span class="flow-arrow-up">↑</span>
-              <span class="flow-arrow-label">Passing this course unlocks</span>
-            </div>
-            <div class="flow-anchor-inner">
-              <div class="flow-anchor-badge-row">
-                <span class="flow-anchor-pill">TARGET COURSE</span>
-                <span class="origin-badge credits" id="flowHeroCredits">3.0 Cr</span>
-              </div>
-              <h2 class="flow-anchor-title" id="flowHeroTitle">Course Title</h2>
-              <div class="flow-anchor-meta">
-                <span class="flow-anchor-code" id="flowAnchorCode">CODE</span>
-                <span class="flow-anchor-dot">•</span>
-                <span class="flow-anchor-stats" id="flowHeroReqText">0 Required Prereqs</span>
-                <span class="flow-anchor-dot">•</span>
-                <span class="flow-anchor-stats" id="flowHeroUnlockText">0 Courses Unlocked</span>
-              </div>
-            </div>
-            <div class="flow-anchor-connector-bottom">
-              <span class="flow-arrow-label">Requires foundation below</span>
-              <span class="flow-arrow-up">↑</span>
-            </div>
-          </div>
-
-          <!-- Special Prerequisite Note callout banner (if any) -->
           <div class="flow-note-card" id="flowPrereqNoteCard" style="display: none;">
-            <svg class="flow-note-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <svg class="flow-note-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8h.01M12 11v5M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"/></svg>
             <div class="flow-note-content">
-              <strong>Prerequisite Requirement:</strong>
+              <strong>Requirement</strong>
               <span id="flowPrereqNoteText"></span>
             </div>
           </div>
 
-          <!-- Step 1: Prerequisite Requirements Pathway (Foundational Base Tier) -->
-          <div class="prereq-tree-card" id="prereqChainCard">
-            <div class="prereq-tree-header">
-              <div class="prereq-tree-title-group">
-                <span class="prereq-tree-label">Required Foundation (Prerequisites)</span>
-                <span class="prereq-tree-desc">Foundational coursework needed before enrolling</span>
+          <div class="flow-anchor-card" id="flowAnchorCard" role="group" aria-label="Selected course">
+            <div class="flow-anchor-inner">
+              <div class="flow-anchor-meta">
+                <strong class="flow-anchor-code" id="flowAnchorCode">CODE</strong>
+                <span id="flowHeroCredits">Credits unlisted</span>
               </div>
-              <span class="prereq-tree-count" id="prereqChainCount">0</span>
+              <h2 class="flow-anchor-title" id="flowHeroTitle">Course Title</h2>
             </div>
-            <div class="prereq-tree-body prereq-grid-body unlocks-grid-body" id="prereqChainBody"></div>
           </div>
+
+          <details class="prereq-tree-card" id="unlocksCard" open>
+            <summary class="prereq-tree-header">
+              <span class="prereq-tree-title-group">
+                <span class="prereq-tree-label">What comes next</span>
+              </span>
+              <span class="prereq-tree-count" id="unlocksCount">0</span>
+            </summary>
+            <div class="prereq-tree-body roadmap-next" id="unlocksBody"></div>
+          </details>
 
         </div>
       </div>

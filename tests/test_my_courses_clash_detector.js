@@ -310,6 +310,43 @@ assert('Newly added courses appear at the top (newest first)',
   mockEnrolled[0] === 'ENG 1011' && mockEnrolled[1] === 'MATH 1151' && mockEnrolled[2] === 'CSE 1111');
 assert('popup.js prepends new additions via unshift', popupJs.includes('enrolledCourses.unshift(code)'));
 
+// Exercise production copy generation, including proposed enrollment.
+const noticeRuntime = new Function('normalizeCourseData',
+  popupJs.slice(popupJs.indexOf('  function getExamSlotTiming('), popupJs.indexOf('  function downloadMarkdownFile(')) +
+  popupJs.slice(popupJs.indexOf('  function detectSameDayExams('), popupJs.indexOf('  function updateEnrolledUI(')) +
+  '\nreturn { buildCourseExamNotice, examSlotLabel, generateRoutineMarkdown };')(normalizeCourseData);
+const noticeCatalog = {
+  CURRENT: { name: 'Computer Networks', examDay: 'Day 5', examSlot: 'T2' },
+  OTHER: { name: 'Software Engineering', examDay: 'Day 5', examSlot: 'T1' },
+  THIRD: { name: 'Database Management Systems', examDay: 'Day 5', examSlot: 'T2' },
+  LAB: { name: 'Networks Lab', examDay: 'In-Class', examSlot: '' },
+  UNKNOWN: { name: '', examDay: 'Day 5', examSlot: 'TBA' }
+};
+const proposed = noticeRuntime.buildCourseExamNotice('CURRENT', ['OTHER'], noticeCatalog);
+assert('Proposed enrollment explains the consequence without claiming enrollment',
+  proposed.kind === 'warning' && proposed.text.startsWith('Adding this course would give you 2 exams on Day 5.'));
+assert('Same-day notice includes course name, code, slot and time',
+  proposed.text.includes('Software Engineering (OTHER)') && proposed.text.includes('T1 (09:00 AM – 11:00 AM)'));
+const enrolledNotice = noticeRuntime.buildCourseExamNotice('CURRENT', ['CURRENT', 'OTHER'], noticeCatalog);
+assert('Enrolled course notice explains the existing schedule',
+  enrolledNotice.text.startsWith('You have 2 exams on Day 5.') && !enrolledNotice.text.includes('Adding this course'));
+const conflict = noticeRuntime.buildCourseExamNotice('CURRENT', ['THIRD', 'OTHER'], noticeCatalog);
+assert('Time-conflict warning distinguishes overlapping exams and gives an action',
+  conflict.kind === 'danger' && conflict.text.includes('Database Management Systems (THIRD)') &&
+  !conflict.text.includes('Software Engineering') && conflict.text.includes('at the same time') && conflict.text.includes('advisor'));
+assert('Missing exam times are stated without claiming a time conflict',
+  noticeRuntime.buildCourseExamNotice('CURRENT', ['UNKNOWN'], noticeCatalog).text.includes('UNKNOWN — time not listed'));
+assert('In-class assessments do not generate exam warnings',
+  noticeRuntime.buildCourseExamNotice('LAB', ['OTHER'], noticeCatalog) === null);
+assert('No warning appears when no other enrolled exam shares the day',
+  noticeRuntime.buildCourseExamNotice('CURRENT', ['CURRENT'], noticeCatalog) === null);
+assert('Unknown custom slots are not repeated as their own timing',
+  noticeRuntime.examSlotLabel('Custom') === 'Custom');
+const productionMd = noticeRuntime.generateRoutineMarkdown(['CURRENT', 'THIRD', 'OTHER'], noticeCatalog);
+assert('Production routine export identifies conflicting courses by name and code',
+  productionMd.includes('Computer Networks (CURRENT)') && productionMd.includes('Database Management Systems (THIRD)') &&
+  productionMd.includes('Software Engineering (OTHER)'));
+
 // ── Summary ────────────────────────────────────────────────────────────────
 console.log(`\n  Results: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
