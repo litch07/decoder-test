@@ -206,14 +206,46 @@ async function syncCourses() {
   }
 }
 
+const DEFAULT_ALLOWED_SITES = [
+  "ucam.uiu.ac.bd",
+  "elms.uiu.ac.bd",
+  "docs.google.com"
+];
+
+// Helper to check domain against allowed patterns with wildcard and subdomain support
+function isDomainAllowed(host, allowedSites) {
+  if (!host) return false;
+  const h = host.toLowerCase().trim();
+  return (allowedSites || []).some((pattern) => {
+    if (!pattern) return false;
+    const p = pattern.toLowerCase().trim();
+    if (h === p) return true;
+    if (p.startsWith("*.")) {
+      const baseDomain = p.slice(2);
+      if (h === baseDomain || h.endsWith("." + baseDomain)) return true;
+    }
+    if (h.endsWith("." + p)) return true;
+    const re = "^" + p.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
+    try {
+      return new RegExp(re, "i").test(h);
+    } catch (_) {
+      return false;
+    }
+  });
+}
+
 chrome.runtime.onInstalled.addListener(async (details) => {
   await loadAndStoreCourses();
-  await syncRegisteredContentScripts();
 
   // Set default settings if it's their first time installing
   const existing = await chrome.storage.local.get(["mode", "allowedSites"]);
-  if (!existing.mode)         await chrome.storage.local.set({ mode: "highlight" });
-  if (!existing.allowedSites) await chrome.storage.local.set({ allowedSites: [] });
+  if (!existing.mode) await chrome.storage.local.set({ mode: "highlight" });
+  if (!existing.allowedSites || existing.allowedSites.length === 0) {
+    await chrome.storage.local.set({ allowedSites: DEFAULT_ALLOWED_SITES });
+    existing.allowedSites = DEFAULT_ALLOWED_SITES;
+  }
+
+  await syncRegisteredContentScripts();
 
   // Inject content script into any already-permitted tabs
   if (details && (details.reason === "update" || details.reason === "install")) {
@@ -226,11 +258,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
           try {
             const url = new URL(tab.url);
             if (!url.protocol.startsWith("http")) continue;
-            const matchesSite = allowedSites.some(pattern => {
-              const re = "^" + pattern.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
-              return new RegExp(re, "i").test(url.hostname);
-            });
-            if (matchesSite) {
+            if (isDomainAllowed(url.hostname, allowedSites)) {
               await chrome.scripting.executeScript({
                 target: { tabId: tab.id, allFrames: true },
                 files: ["content.js"]
@@ -243,8 +271,11 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   }
 });
 
-// Refresh the course list every time Chrome starts to ensure we're up to date
-chrome.runtime.onStartup.addListener(loadAndStoreCourses);
+// Refresh the course list and registered scripts every time Chrome starts
+chrome.runtime.onStartup.addListener(async () => {
+  await loadAndStoreCourses();
+  await syncRegisteredContentScripts();
+});
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "GET_COURSE_COUNT") {
@@ -377,14 +408,27 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   try {
     const url = new URL(tab.url);
     const { allowedSites = [] } = await chrome.storage.local.get("allowedSites");
-    const isAllowed = allowedSites.some(pattern => {
-      const re = "^" + pattern.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
-      return new RegExp(re, "i").test(url.hostname);
-    });
+    const isAllowed = isDomainAllowed(url.hostname, allowedSites);
 
     if (isAllowed) {
-      const origin = `*://${url.hostname}/*`;
-      const hasPerm = await chrome.permissions.contains({ origins: [origin] });
+      let hasPerm = false;
+      try {
+        hasPerm = await chrome.permissions.contains({ origins: [`*://${url.hostname}/*`] });
+      } catch (_) {}
+      if (!hasPerm) {
+        for (const pattern of allowedSites) {
+          if (isDomainAllowed(url.hostname, [pattern])) {
+            const originPattern = pattern.startsWith("*.") ? `*://${pattern}/*` : `*://${pattern}/*`;
+            try {
+              if (await chrome.permissions.contains({ origins: [originPattern] })) {
+                hasPerm = true;
+                break;
+              }
+            } catch (_) {}
+          }
+        }
+      }
+
       if (hasPerm) {
         await chrome.scripting.executeScript({
           target: { tabId: tabId, allFrames: true },
@@ -394,3 +438,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
   } catch (_) {}
 });
+
+// Ensure dynamic scripts are synchronized on service worker initialization
+syncRegisteredContentScripts().catch(() => {});

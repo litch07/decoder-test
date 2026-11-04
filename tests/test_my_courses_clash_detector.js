@@ -65,6 +65,9 @@ assert('CSS has .clash-badge.danger and .clash-badge.ok',
   popupCss.includes('.clash-badge.danger') && popupCss.includes('.clash-badge.ok'));
 assert('CSS has .enrolled-summary-card', popupCss.includes('.enrolled-summary-card'));
 assert('CSS has .clash-alert-box', popupCss.includes('.clash-alert-box'));
+assert('CSS has .clash-alert-box.is-warning and .clash-item.warning', popupCss.includes('.clash-alert-box.is-warning') && popupCss.includes('.clash-item.warning'));
+assert('CSS has .clash-badge.warning', popupCss.includes('.clash-badge.warning'));
+assert('CSS has .enrolled-course-card.has-same-day and .enrolled-card-sameday-banner', popupCss.includes('.enrolled-course-card.has-same-day') && popupCss.includes('.enrolled-card-sameday-banner'));
 assert('CSS has .btn-enroll-toggle', popupCss.includes('.btn-enroll-toggle'));
 assert('CSS has .btn-row-enroll', popupCss.includes('.btn-row-enroll'));
 assert('CSS has .course-grid-row.is-clashing', popupCss.includes('.course-grid-row.is-clashing'));
@@ -72,6 +75,7 @@ assert('CSS has .course-grid-row.is-clashing', popupCss.includes('.course-grid-r
 // ── 3. JS function & state presence ────────────────────────────────────────
 assert('popup.js has enrolledCourses state', popupJs.includes('enrolledCourses ='));
 assert('popup.js has detectExamClashes function', popupJs.includes('function detectExamClashes'));
+assert('popup.js has detectSameDayExams function', popupJs.includes('function detectSameDayExams'));
 assert('popup.js has computeEnrolledCredits function', popupJs.includes('function computeEnrolledCredits'));
 assert('popup.js has updateEnrolledUI function', popupJs.includes('function updateEnrolledUI'));
 assert('popup.js has toggleEnrollCourse function', popupJs.includes('function toggleEnrollCourse'));
@@ -97,6 +101,41 @@ function normalizeCourseData(val) {
     prerequisiteNote: val.prerequisiteNote || "",
     credits: typeof val.credits === "number" ? val.credits : null
   };
+}
+
+
+function detectSameDayExams(enrolledList, catalog) {
+  var dayMap = {};
+  var sameDays = [];
+
+  for (var i = 0; i < enrolledList.length; i++) {
+    var code = enrolledList[i];
+    var data = normalizeCourseData(catalog[code]);
+    var day = (data.examDay || "").trim();
+    var slot = (data.examSlot || "").trim();
+
+    if (!day) continue;
+    var lowerDay = day.toLowerCase();
+    if (lowerDay === "n/a" || lowerDay === "none" || lowerDay === "in-class") continue;
+
+    if (!dayMap[day]) dayMap[day] = [];
+    dayMap[day].push({
+      code: code,
+      slot: slot || "TBA",
+      name: data.name || ""
+    });
+  }
+
+  for (var d in dayMap) {
+    if (dayMap.hasOwnProperty(d) && dayMap[d].length > 1) {
+      sameDays.push({
+        day: d,
+        count: dayMap[d].length,
+        courses: dayMap[d]
+      });
+    }
+  }
+  return sameDays;
 }
 
 function detectExamClashes(enrolledList, catalog) {
@@ -209,6 +248,67 @@ const mockCatalogCredits = {
 };
 const totalCredits = computeEnrolledCredits(['CSE 2215', 'CSE 2216', 'BDS 1201', 'ENG 1011', 'NO_CRED'], mockCatalogCredits);
 assert('computeEnrolledCredits sums enrolled credits accurately (9 Cr)', totalCredits === 9);
+
+
+// Test G: Same-day multiple exams with different slots
+const mockCatalogG = {
+  'CSE 2215': { examDay: 'Day 4', examSlot: 'T1' },
+  'CSE 3313': { examDay: 'Day 4', examSlot: 'T3' },
+  'ENG 1011': { examDay: 'Day 1', examSlot: 'T2' }
+};
+const sameDayG = detectSameDayExams(['CSE 2215', 'CSE 3313', 'ENG 1011'], mockCatalogG);
+assert('Same-day multiple exams detected on Day 4 for different slots (T1 and T3)',
+  sameDayG.length === 1 &&
+  sameDayG[0].day === 'Day 4' &&
+  sameDayG[0].count === 2 &&
+  sameDayG[0].courses.some(c => c.code === 'CSE 2215' && c.slot === 'T1') &&
+  sameDayG[0].courses.some(c => c.code === 'CSE 3313' && c.slot === 'T3'));
+
+// Test H: N/A, In-Class, and empty exam days ignored in same-day detector
+const mockCatalogH = {
+  'CSE 1111': { examDay: 'Day 4', examSlot: 'T1' },
+  'CSE 1112': { examDay: 'N/A', examSlot: 'N/A' },
+  'CSE 1110': { examDay: 'In-Class', examSlot: 'None' },
+  'CSE 4000': { examDay: '', examSlot: '' }
+};
+const sameDayH = detectSameDayExams(['CSE 1111', 'CSE 1112', 'CSE 1110', 'CSE 4000'], mockCatalogH);
+assert('Same-day detector ignores N/A, In-Class, and empty exam days', sameDayH.length === 0);
+
+// Test I: 3 courses on the same day
+const mockCatalogI = {
+  'CSE 101': { examDay: 'Day 2', examSlot: 'T1' },
+  'CSE 102': { examDay: 'Day 2', examSlot: 'T2' },
+  'CSE 103': { examDay: 'Day 2', examSlot: 'T3' }
+};
+const sameDayI = detectSameDayExams(['CSE 101', 'CSE 102', 'CSE 103'], mockCatalogI);
+assert('3 courses on the same day (T1, T2, T3) are grouped into single count:3 same-day record',
+  sameDayI.length === 1 && sameDayI[0].count === 3 && sameDayI[0].day === 'Day 2');
+
+// Test J: All courses on distinct days - zero same-day warnings
+const mockCatalogJ = {
+  'CSE 101': { examDay: 'Day 1', examSlot: 'T1' },
+  'CSE 102': { examDay: 'Day 2', examSlot: 'T1' },
+  'CSE 103': { examDay: 'Day 3', examSlot: 'T1' }
+};
+const sameDayJ = detectSameDayExams(['CSE 101', 'CSE 102', 'CSE 103'], mockCatalogJ);
+assert('All courses on distinct days yields zero same-day warnings', sameDayJ.length === 0);
+
+// Test K: Enrolled courses ordering (Newest first via unshift)
+let mockEnrolled = [];
+function mockToggleEnroll(code) {
+  var idx = mockEnrolled.indexOf(code);
+  if (idx === -1) {
+    mockEnrolled.unshift(code);
+  } else {
+    mockEnrolled.splice(idx, 1);
+  }
+}
+mockToggleEnroll('CSE 1111');
+mockToggleEnroll('MATH 1151');
+mockToggleEnroll('ENG 1011');
+assert('Newly added courses appear at the top (newest first)',
+  mockEnrolled[0] === 'ENG 1011' && mockEnrolled[1] === 'MATH 1151' && mockEnrolled[2] === 'CSE 1111');
+assert('popup.js prepends new additions via unshift', popupJs.includes('enrolledCourses.unshift(code)'));
 
 // ── Summary ────────────────────────────────────────────────────────────────
 console.log(`\n  Results: ${passed} passed, ${failed} failed`);

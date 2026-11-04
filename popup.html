@@ -140,6 +140,59 @@
     </div>
   </div>
 
+  <!-- Community & Contribution Guide Modal -->
+  <div class="modal-overlay" id="contributionModal" role="dialog" aria-modal="true" aria-labelledby="contributionModalTitle">
+    <div class="modal-content contrib-modal-content">
+      <div class="contrib-modal-header">
+        <div class="contrib-modal-title-row">
+          <svg class="contrib-modal-icon" viewBox="0 0 24 24">
+            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+          </svg>
+          <h2 id="contributionModalTitle">Community &amp; Contributing</h2>
+        </div>
+        <button type="button" class="modal-close" id="contribModalCloseBtn" aria-label="Close contribution dialog">&times;</button>
+      </div>
+      <p class="contrib-modal-desc">
+        UIU Course Code Decoder is an open-source tool maintained by and for UIU students. Help keep course data, credits, and exam schedules complete for all departments!
+      </p>
+      <div class="contrib-cards-list">
+        <a href="https://github.com/litch07/uiu-course-decoder/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="contrib-action-card">
+          <div class="contrib-action-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          </div>
+          <div class="contrib-action-text">
+            <strong>Contributing Guide</strong>
+            <span>Learn the course schema, formatting rules, and pull request steps.</span>
+          </div>
+          <span class="contrib-action-arrow">&rarr;</span>
+        </a>
+        <button type="button" class="contrib-action-card" id="contribReportIssueBtn">
+          <div class="contrib-action-icon warning">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          </div>
+          <div class="contrib-action-text">
+            <strong>Report Outdated or Missing Data</strong>
+            <span>Open a pre-filled issue template to submit new courses, corrections, or routine updates.</span>
+          </div>
+          <span class="contrib-action-arrow">&rarr;</span>
+        </button>
+        <button type="button" class="contrib-action-card" id="contribExportCustomBtn">
+          <div class="contrib-action-icon success">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          </div>
+          <div class="contrib-action-text">
+            <strong>Export Custom Courses as JSON</strong>
+            <span>Download your custom course additions ready to submit in a PR.</span>
+          </div>
+          <span class="contrib-action-arrow">&darr;</span>
+        </button>
+      </div>
+      <div class="modal-actions" style="margin-top: 12px;">
+        <button type="button" class="btn-modal-cancel" id="contribModalDoneBtn" style="width: 100%;">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Slide container: holds both views side by side; CSS translateX switches between them -->
   <div class="view-wrapper" id="viewWrapper">
 
@@ -181,10 +234,26 @@
       </div>
 
       <div class="body">
-        <div class="stat-pill">
-          <span class="stat-label">Courses Indexed</span>
-          <span class="stat-value" id="courseCount">—</span>
-        </div>
+        <!-- Top Hero: Clickable Course Catalog Card -->
+        <button class="stat-pill stat-pill-interactive" id="openCoursesBtn" type="button" aria-label="Browse Course Database" title="Click to browse course database">
+          <div class="stat-pill-left">
+            <div class="stat-pill-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/>
+              </svg>
+            </div>
+            <div class="stat-pill-info">
+              <span class="stat-label">Courses Indexed</span>
+              <span class="stat-sub">Browse &amp; Search Catalog</span>
+            </div>
+          </div>
+          <div class="stat-pill-right">
+            <span class="stat-value" id="courseCount">—</span>
+            <svg class="stat-pill-arrow" viewBox="0 0 24 24">
+              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+            </svg>
+          </div>
+        </button>
 
         <div class="card site-card">
           <div class="site-card-header">
@@ -257,31 +326,43 @@
           </div>
         </div>
 
-        <!-- Feature 1: My Courses Button -->
-        <button class="btn-courses btn-mycourses enrolled-quick-card" id="homeEnrolledCard" type="button" aria-label="Open My Courses and Exam Routine">
-          <svg style="width:16px;height:16px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
-            <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM3.45 9L12 4.34 20.55 9 12 13.66 3.45 9zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
-          </svg>
-          <span class="btn-mycourses-text">My Courses (<span id="homeEnrolledCount">0</span>)</span>
-          <span class="clash-badge danger" id="homeClashBadge" style="display: none;">⚠️ Clash</span>
-          <span id="homeEnrolledCredits" style="display: none;">0.0 Cr</span>
+        <!-- Feature 1: My Courses Hub Card -->
+        <button class="card enrolled-hub-card enrolled-quick-card" id="homeEnrolledCard" type="button" aria-label="Open My Courses and Exam Routine">
+          <div class="enrolled-hub-top">
+            <div class="enrolled-hub-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM3.45 9L12 4.34 20.55 9 12 13.66 3.45 9zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+              </svg>
+            </div>
+            <div class="enrolled-hub-info">
+              <div class="enrolled-hub-title-row">
+                <span class="enrolled-hub-title">My Courses</span>
+                <span class="enrolled-hub-count-chip"><span id="homeEnrolledCount">0</span></span>
+              </div>
+              <div class="enrolled-hub-sub">
+                <span id="homeEnrolledCredits">0.0 Cr</span>
+                <span class="enrolled-hub-dot">&bull;</span>
+                <span id="homeEnrolledStatusHint">Plan exam routine</span>
+              </div>
+            </div>
+            <div class="enrolled-hub-arrow">
+              <svg viewBox="0 0 24 24">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="clash-badge danger" id="homeClashBadge" style="display: none;">
+            &#9888;&#65039; Exam Schedule Notice
+          </div>
         </button>
 
-        <!-- Feature 2: Browse Course Database Button -->
-        <button class="btn-courses" id="openCoursesBtn" type="button" style="margin-top: 6px;">
-          <svg style="width:15px;height:15px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
-            <path
-              d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z" />
-          </svg>
-          Browse Course Database
-        </button>
+
       </div>
 
       <div class="footer">
         <div class="footer-left">
           <span>Developed by</span>
-          <a href="https://github.com/litch07" target="_blank" rel="noopener noreferrer" class="footer-author">Sadid
-            Ahmed</a>
+          <a href="https://github.com/litch07" target="_blank" rel="noopener noreferrer" class="footer-author">Sadid Ahmed</a>
         </div>
         <a href="https://github.com/litch07/uiu-course-decoder" target="_blank" rel="noopener noreferrer"
           class="footer-github-btn" title="View Source on GitHub">
@@ -308,6 +389,11 @@
           <p id="coursesPanelCount">— courses loaded</p>
         </div>
         <div class="header-actions">
+          <button type="button" id="openContribModalBtn" class="header-export-btn" title="Contributing &amp; Community Guide" aria-label="Community &amp; Contributing Guide">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+          </button>
           <button type="button" id="exportCoursesBtn" class="header-export-btn" title="Export Courses"
             aria-label="Export Courses">
             <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
@@ -414,14 +500,30 @@
           <p id="detailsCourseCode">—</p>
         </div>
         <span class="origin-badge official" id="detailsOriginBadge">Official</span>
-        <span class="origin-badge credits" id="detailsCreditsBadge" style="display: none;">—</span>
-        <button type="button" class="btn-enroll-toggle" id="detailsEnrollBtn" title="Toggle enrollment in this course">
-          <svg class="enroll-star-icon" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-          <span id="detailsEnrollBtnText">Enroll</span>
+        <button type="button" class="header-export-btn" id="detailsInfoBtn" title="How to contribute or report wrong data" aria-label="Contributing &amp; Community Guide">
+          <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+          </svg>
         </button>
       </div>
 
       <div class="body">
+        <!-- Routine Enrollment Action Card -->
+        <div class="detail-enroll-card" id="detailEnrollCard">
+          <div class="detail-enroll-status-col">
+            <div class="detail-enroll-status-row">
+              <span class="detail-enroll-indicator" id="detailEnrollIndicator"></span>
+              <span class="detail-enroll-status-text" id="detailEnrollStatusText">Not in Trimester Routine</span>
+              <span class="origin-badge credits" id="detailsCreditsBadge" style="display: none;">3.0 Cr</span>
+            </div>
+            <span class="detail-enroll-hint" id="detailEnrollHint">Add to track credits and detect exam schedule clashes</span>
+          </div>
+          <button type="button" class="btn-enroll-toggle" id="detailsEnrollBtn" title="Toggle enrollment in this course">
+            <svg class="enroll-star-icon" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            <span id="detailsEnrollBtnText">Enroll</span>
+          </button>
+        </div>
+
         <!-- Clash Warning Banner in Course Details (Task 3.2) -->
         <div class="detail-clash-warning" id="detailClashWarning" style="display: none;">
           <svg class="clash-alert-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
@@ -437,7 +539,10 @@
           <div class="form-group">
             <div class="form-label-row">
               <label class="form-label" for="detailPrereq">Prerequisites</label>
-              <span class="form-hint">Separate with commas</span>
+              <label class="form-checkbox-inline" for="detailNoPrereq">
+                <input type="checkbox" id="detailNoPrereq" class="form-checkbox-sm" />
+                <span>None (Direct entry)</span>
+              </label>
             </div>
             <input type="text" id="detailPrereq" class="form-input" placeholder="e.g. CSE 1111, MATH 1151" />
           </div>
@@ -462,6 +567,12 @@
               <input type="number" id="detailCredits" class="form-input" placeholder="e.g. 3.0" step="0.5" min="0" max="15" />
             </div>
           </div>
+          <div class="form-checkbox-row">
+            <label class="form-checkbox-label" for="detailInClass">
+              <input type="checkbox" id="detailInClass" class="form-checkbox" />
+              <span>In-class evaluation / Lab viva (No central routine exam)</span>
+            </label>
+          </div>
 
           <div class="details-actions">
             <button class="btn-save-details" id="detailSaveBtn">
@@ -480,7 +591,7 @@
         </div>
 
         <!-- Prerequisite Tree & Unlocks Explorer (Task 2.4) -->
-        <div class="prereq-tree-section" id="prereqTreeSection" style="display:none;">
+        <div class="prereq-tree-section" id="prereqTreeSection">
 
           <!-- Code / Name view toggle -->
           <div class="prereq-view-toggle-row">
@@ -510,7 +621,7 @@
                 <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/>
               </svg>
               <span class="prereq-tree-label">Prerequisite Chain</span>
-              <span class="prereq-tree-count" id="prereqChainCount"></span>
+              <span class="prereq-tree-count" id="prereqChainCount">0</span>
             </div>
             <div class="prereq-tree-body" id="prereqChainBody"></div>
           </div>
@@ -522,7 +633,7 @@
                 <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
               </svg>
               <span class="prereq-tree-label">Unlocks</span>
-              <span class="prereq-tree-count" id="unlocksCount"></span>
+              <span class="prereq-tree-count" id="unlocksCount">0</span>
             </div>
             <div class="prereq-tree-body" id="unlocksBody"></div>
           </div>
@@ -573,6 +684,13 @@
           <h1>Add / Import Courses</h1>
           <p id="importViewSubtitle">Add single course or bulk JSON</p>
         </div>
+        <div class="header-actions">
+          <button type="button" class="header-export-btn" id="importInfoBtn" title="Community Contributing Guide" aria-label="Community Contributing Guide">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="body">
         <!-- Segmented Tab Navigation -->
@@ -593,88 +711,185 @@
         </div>
 
         <!-- Section 1: Single Course Form -->
-        <div class="single-course-card" id="singleCourseSection">
-          <!-- Section A: Identity -->
-          <div class="form-section-header">
-            <div class="form-section-title">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-              </svg>
-              <span>Course Identity</span>
+        <div class="single-course-container" id="singleCourseSection">
+          <!-- State 1: Clean, Professional Input Form -->
+          <div class="single-course-card" id="singleCourseFormState">
+            <!-- Section Header: Course Identity -->
+            <div class="form-section-header">
+              <div class="form-section-title">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                </svg>
+                <span>Course Identity</span>
+              </div>
             </div>
-            <span class="section-tag-required">Required</span>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label" for="singleCourseCode">Course Code <span class="required-star">*</span></label>
-            <input type="text" class="form-input" id="singleCourseCode" placeholder="e.g. CSE 3715 or ACT 1111"
-              autocomplete="off" spellcheck="false" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="singleCourseName">Course Title / Name <span class="required-star">*</span></label>
-            <input type="text" class="form-input" id="singleCourseName" placeholder="e.g. Software Engineering"
-              autocomplete="off" />
-          </div>
-
-          <!-- Section B: Schedule & Prerequisites -->
-          <div class="form-section-header is-secondary">
-            <div class="form-section-title">
-              <svg viewBox="0 0 24 24">
-                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-              </svg>
-              <span>Schedule &amp; Prerequisites</span>
+            <!-- Row 1: Code (2fr) + Credits (1fr) -->
+            <div class="form-row-code-cr">
+              <div class="form-group">
+                <label class="form-label" for="singleCourseCode">Course Code <span class="required-star">*</span></label>
+                <input type="text" class="form-input" id="singleCourseCode" placeholder="e.g. CSE 3715 or ACT 1111"
+                  autocomplete="off" spellcheck="false" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="singleCourseCredits">Credits</label>
+                <input type="number" class="form-input" id="singleCourseCredits" placeholder="3.0" step="0.5" min="0" max="15"
+                  autocomplete="off" />
+              </div>
             </div>
-            <span class="section-tag-optional">Optional</span>
-          </div>
 
-          <div class="form-row-3col">
+            <!-- Row 2: Title (Full width) -->
             <div class="form-group">
-              <label class="form-label" for="singleCourseDay">Exam Day</label>
-              <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. D1, D2, or D3"
+              <label class="form-label" for="singleCourseName">Course Title <span class="required-star">*</span></label>
+              <input type="text" class="form-input" id="singleCourseName" placeholder="e.g. Software Engineering"
                 autocomplete="off" />
             </div>
 
-            <div class="form-group">
-              <label class="form-label" for="singleCourseSlot">Exam Slot</label>
-              <input type="text" class="form-input" id="singleCourseSlot" placeholder="e.g. T1, T2, or T3"
-                autocomplete="off" />
+            <!-- Collapsible Accordion: Schedule & Prerequisites (Optional) -->
+            <div class="form-accordion" id="singleCourseAccordion">
+              <button type="button" class="form-accordion-toggle" id="singleCourseAccordionToggle" aria-expanded="false" aria-controls="singleCourseAccordionBody">
+                <div class="accordion-toggle-left">
+                  <svg class="accordion-icon" viewBox="0 0 24 24">
+                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                  </svg>
+                  <span>Schedule &amp; Prerequisites</span>
+                  <span class="accordion-opt-pill">Optional</span>
+                </div>
+                <svg class="accordion-arrow" viewBox="0 0 24 24">
+                  <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                </svg>
+              </button>
+
+              <div class="form-accordion-body" id="singleCourseAccordionBody" style="display: none;">
+                <!-- Schedule Type Segmented Selector -->
+                <div class="schedule-mode-selector">
+                  <label class="schedule-radio-pill active" id="pillExamRoutine">
+                    <input type="radio" name="singleExamMode" id="examModeRoutine" value="routine" checked />
+                    <span>Central Routine</span>
+                  </label>
+                  <label class="schedule-radio-pill" id="pillExamInClass">
+                    <input type="radio" name="singleExamMode" id="examModeInClass" value="inclass" />
+                    <span>In-Class / Lab Viva</span>
+                  </label>
+                </div>
+
+                <!-- Central Routine Day & Slot Row -->
+                <div class="form-row-2col" id="routineInputsRow">
+                  <div class="form-group">
+                    <label class="form-label" for="singleCourseDay">Exam Day</label>
+                    <input type="text" class="form-input" id="singleCourseDay" placeholder="e.g. D1, D2, or D3" autocomplete="off" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="singleCourseSlot">Exam Slot</label>
+                    <input type="text" class="form-input" id="singleCourseSlot" placeholder="e.g. T1, T2, or T3" autocomplete="off" />
+                  </div>
+                </div>
+
+                <!-- Hidden checkbox to maintain backward compatibility with tests & logic -->
+                <input type="checkbox" id="singleCourseInClass" style="display: none;" />
+
+                <!-- Prerequisites Input with None toggle -->
+                <div class="form-group" style="margin-top: 6px;">
+                  <div class="form-label-row">
+                    <label class="form-label" for="singleCoursePrereq">Prerequisites</label>
+                    <label class="form-checkbox-inline" for="singleCourseNoPrereq">
+                      <input type="checkbox" id="singleCourseNoPrereq" class="form-checkbox-sm" />
+                      <span>None (Direct entry)</span>
+                    </label>
+                  </div>
+                  <input type="text" class="form-input" id="singleCoursePrereq"
+                    placeholder="e.g. CSE 2215, CSE 2216 (comma separated)" autocomplete="off" />
+                </div>
+
+                <!-- Prerequisite Note -->
+                <div class="form-group">
+                  <label class="form-label" for="singleCoursePrereqNote">Prerequisite Note</label>
+                  <input type="text" class="form-input" id="singleCoursePrereqNote"
+                    placeholder="e.g. Minimum 70 completed credits" autocomplete="off" />
+                </div>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label class="form-label" for="singleCourseCredits">Credits</label>
-              <input type="number" class="form-input" id="singleCourseCredits" placeholder="e.g. 3.0" step="0.5" min="0" max="15"
-                autocomplete="off" />
+            <div class="import-msg" id="singleCourseMsg" style="display: none;"></div>
+
+            <!-- Form Actions -->
+            <div class="import-actions">
+              <button class="btn-import" id="addSingleCourseBtn">
+                <svg style="width:14px;height:14px;fill:white;" viewBox="0 0 24 24">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                </svg>
+                Add Course to Catalog
+              </button>
+              <button class="btn-clear" id="clearSingleFormBtn">
+                <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+                Clear
+              </button>
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="singleCoursePrereq">Prerequisites</label>
-            <input type="text" class="form-input" id="singleCoursePrereq"
-              placeholder="e.g. CSE 2215, CSE 2216 (comma separated)" autocomplete="off" />
-          </div>
+          <!-- State 2: Dedicated Post-Add Success & GitHub Action Screen -->
+          <div class="single-course-card success-card" id="singleCourseSuccessState" style="display: none;">
+            <div class="success-header">
+              <div class="success-icon-badge">
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
+                </svg>
+              </div>
+              <div class="success-header-text">
+                <h3>Course Added to Catalog!</h3>
+                <p>Saved to your local extension database</p>
+              </div>
+            </div>
 
-          <div class="form-group">
-            <label class="form-label" for="singleCoursePrereqNote">Prerequisite Note</label>
-            <input type="text" class="form-input" id="singleCoursePrereqNote"
-              placeholder="e.g. Minimum 70 credits required" autocomplete="off" />
-          </div>
+            <!-- Summary card of the newly added course -->
+            <div class="added-course-preview">
+              <div class="preview-code-row">
+                <span class="preview-code" id="successCourseCode">CSE 3715</span>
+                <span class="preview-credits" id="successCourseCredits">3.0 Cr</span>
+              </div>
+              <div class="preview-name" id="successCourseName">Software Engineering</div>
+              <div class="preview-meta-row">
+                <span class="preview-meta-badge" id="successCourseMeta">Day D1 • Slot T2</span>
+                <span class="preview-meta-badge" id="successCoursePrereq">Prereq: CSE 2215</span>
+              </div>
+            </div>
 
-          <div class="import-msg" id="singleCourseMsg"></div>
+            <!-- Community GitHub Action Box (has id="singleCourseContribPrompt") -->
+            <div class="success-community-card contrib-prompt-card" id="singleCourseContribPrompt">
+              <div class="community-card-header">
+                <div class="community-icon-box">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
+                  </svg>
+                </div>
+                <div class="community-text">
+                  <strong>Share with UIU Community?</strong>
+                  <span id="contribPromptDesc">Submit this course to the official catalog on GitHub so all students can decode it.</span>
+                </div>
+                <button type="button" class="btn-community-dismiss" id="contribDismissBtn" title="Dismiss" aria-label="Dismiss">&times;</button>
+              </div>
+              <button type="button" class="btn-github-submit" id="contribSubmitGithubBtn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
+                </svg>
+                <span>Submit to GitHub (1-Click)</span>
+              </button>
+            </div>
 
-          <div class="import-actions">
-            <button class="btn-import" id="addSingleCourseBtn">
-              <svg style="width:14px;height:14px;fill:white;" viewBox="0 0 24 24">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-              </svg>
-              Add Course to Catalog
-            </button>
-            <button class="btn-clear" id="clearSingleFormBtn">
-              <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-              </svg>
-              Clear
-            </button>
+            <!-- Post-add Action Buttons -->
+            <div class="success-actions">
+              <button type="button" class="btn-success-add-another" id="successAddAnotherBtn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                </svg>
+                Add Another Course
+              </button>
+              <button type="button" class="btn-success-view-catalog" id="successViewCatalogBtn">
+                View in Catalog &rarr;
+              </button>
+            </div>
           </div>
         </div>
 
@@ -696,8 +911,12 @@
             </button>
           </div>
           <div class="import-hint">
-            Import courses using a JSON object or click <strong>Copy</strong> for a sample template. Course code and
-            title are required.
+            <svg class="import-hint-icon" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+            <div class="import-hint-text">
+              Import courses via JSON file or text. Click <strong>Copy</strong> for schema template. Course code &amp; title required.
+            </div>
           </div>
           <!-- File Drag-and-Drop Zone -->
           <div class="file-drop-zone" id="fileDropZone" tabindex="0" role="button"
@@ -766,10 +985,9 @@
         </div>
         <div class="header-actions">
           <button type="button" class="header-export-btn" id="openIcsExportBtn" title="Export scheduled exams to .ics calendar" aria-label="Export Exam Calendar">
-            <svg style="width:15px;height:15px;fill:currentColor;" viewBox="0 0 24 24">
+            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
               <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
             </svg>
-            <span class="export-btn-label">Export .ics</span>
           </button>
         </div>
       </div>
@@ -781,38 +999,37 @@
             <svg class="mycourses-search-icon" viewBox="0 0 24 24">
               <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
             </svg>
-            <input type="text" id="myCoursesSearchInput" placeholder="Quick add: search code or title (e.g. CSE 2215)…" autocomplete="off" spellcheck="false" />
+            <input type="text" id="myCoursesSearchInput" placeholder="Search course code or title (e.g. CSE 2215)…" autocomplete="off" spellcheck="false" />
             <button type="button" class="mycourses-search-clear" id="myCoursesSearchClearBtn" style="display: none;" title="Clear search" aria-label="Clear search">&times;</button>
           </div>
           <!-- Dropdown autocomplete suggestions -->
           <div class="mycourses-suggestions-list" id="myCoursesSuggestionsList" style="display: none;"></div>
         </div>
 
-        <!-- Exam Routine Clash Alert Card -->
+                <!-- Exam Routine Clash Alert Card -->
         <div class="clash-alert-box" id="clashAlertBox" style="display: none;">
           <div class="clash-alert-header">
-            <span class="clash-alert-icon-wrap">
+            <span class="clash-alert-icon-wrap" id="clashAlertIconWrap">
               <svg viewBox="0 0 24 24">
-                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
               </svg>
             </span>
             <div class="clash-alert-text">
-              <span class="clash-alert-title">Exam Schedule Conflict Detected!</span>
-              <span class="clash-alert-subtitle">Two or more enrolled courses share the same final exam slot.</span>
+              <span class="clash-alert-title" id="clashAlertTitle">Same-Day Final Exams Scheduled</span>
+              <span class="clash-alert-subtitle" id="clashAlertSubtitle" style="display: none;"></span>
             </div>
           </div>
           <div class="clash-alert-list" id="clashAlertList"></div>
         </div>
 
-        <!-- Trimester Summary Card & Credit Meter -->
-        <div class="enrolled-summary-card" id="enrolledSummaryCard">
+<div class="enrolled-summary-card" id="enrolledSummaryCard">
           <div class="enrolled-summary-header">
             <div class="enrolled-summary-title">
-              <span class="enrolled-summary-label">Trimester Load</span>
+              <span class="enrolled-summary-label">Enrolled Summary</span>
               <div class="enrolled-summary-stats">
                 <strong><span id="enrolledTotalCourses">0</span> courses</strong>
                 <span class="stat-dot-sep">&bull;</span>
-                <strong><span id="enrolledTotalCredits">0.0</span> Cr</strong>
+                <strong><span id="enrolledTotalCredits">0.0</span> credits</strong>
               </div>
             </div>
             <button type="button" class="btn-clear-enrolled" id="clearEnrolledBtn" title="Drop all courses">
@@ -821,12 +1038,6 @@
               </svg>
               Drop All
             </button>
-          </div>
-          <div class="enrolled-load-bar" id="enrolledLoadBar">
-            <div class="load-track">
-              <div class="load-fill" id="enrolledLoadFill" style="width: 0%;"></div>
-            </div>
-            <span class="load-badge" id="enrolledLoadBadge">0.0 / 15.0 Cr</span>
           </div>
         </div>
 

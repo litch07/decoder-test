@@ -53,6 +53,15 @@
     previewCloseBtn: document.getElementById("previewCloseBtn"),
     previewCancelBtn: document.getElementById("previewCancelBtn"),
     previewConfirmBtn: document.getElementById("previewConfirmBtn"),
+    contributionModal: document.getElementById("contributionModal"),
+    contribModalCloseBtn: document.getElementById("contribModalCloseBtn"),
+    contribModalDoneBtn: document.getElementById("contribModalDoneBtn"),
+    openContribModalBtn: document.getElementById("openContribModalBtn"),
+    detailsInfoBtn: document.getElementById("detailsInfoBtn"),
+    importInfoBtn: document.getElementById("importInfoBtn"),
+    contribExportCustomBtn: document.getElementById("contribExportCustomBtn"),
+    contribReportIssueBtn: document.getElementById("contribReportIssueBtn"),
+    importContribLink: document.getElementById("importContribLink"),
     previewSummaryRow: document.getElementById("previewSummaryRow"),
     previewDiffList: document.getElementById("previewDiffList"),
     trashActionsRow: document.getElementById("trashActionsRow"),
@@ -82,6 +91,30 @@
     singleCourseSlot: document.getElementById("singleCourseSlot"),
     singleCoursePrereq: document.getElementById("singleCoursePrereq"),
     singleCoursePrereqNote: document.getElementById("singleCoursePrereqNote"),
+    singleCourseFormState: document.getElementById("singleCourseFormState"),
+    singleCourseSuccessState: document.getElementById("singleCourseSuccessState"),
+    singleCourseAccordionToggle: document.getElementById("singleCourseAccordionToggle"),
+    singleCourseAccordionBody: document.getElementById("singleCourseAccordionBody"),
+    examModeRoutine: document.getElementById("examModeRoutine"),
+    examModeInClass: document.getElementById("examModeInClass"),
+    pillExamRoutine: document.getElementById("pillExamRoutine"),
+    pillExamInClass: document.getElementById("pillExamInClass"),
+    routineInputsRow: document.getElementById("routineInputsRow"),
+    singleCourseInClass: document.getElementById("singleCourseInClass"),
+    singleCourseNoPrereq: document.getElementById("singleCourseNoPrereq"),
+    singleCourseContribPrompt: document.getElementById("singleCourseContribPrompt"),
+    contribPromptDesc: document.getElementById("contribPromptDesc"),
+    contribSubmitGithubBtn: document.getElementById("contribSubmitGithubBtn"),
+    contribDismissBtn: document.getElementById("contribDismissBtn"),
+    successCourseCode: document.getElementById("successCourseCode"),
+    successCourseCredits: document.getElementById("successCourseCredits"),
+    successCourseName: document.getElementById("successCourseName"),
+    successCourseMeta: document.getElementById("successCourseMeta"),
+    successCoursePrereq: document.getElementById("successCoursePrereq"),
+    successAddAnotherBtn: document.getElementById("successAddAnotherBtn"),
+    successViewCatalogBtn: document.getElementById("successViewCatalogBtn"),
+    detailInClass: document.getElementById("detailInClass"),
+    detailNoPrereq: document.getElementById("detailNoPrereq"),
     addSingleCourseBtn: document.getElementById("addSingleCourseBtn"),
     clearSingleFormBtn: document.getElementById("clearSingleFormBtn"),
     singleCourseMsg: document.getElementById("singleCourseMsg"),
@@ -99,6 +132,7 @@
     homeEnrolledCount: document.getElementById("homeEnrolledCount"),
     homeEnrolledCredits: document.getElementById("homeEnrolledCredits"),
     homeClashBadge: document.getElementById("homeClashBadge"),
+    homeEnrolledStatusHint: document.getElementById("homeEnrolledStatusHint"),
     mycoursesView: document.querySelector(".mycourses-view"),
     myCoursesBackBtn: document.getElementById("myCoursesBackBtn"),
     myCoursesHeaderSubtitle: document.getElementById("myCoursesHeaderSubtitle"),
@@ -109,7 +143,6 @@
     myCoursesList: document.getElementById("myCoursesList"),
     myCoursesEmptyState: document.getElementById("myCoursesEmptyState"),
     browseCatalogFromMyCoursesBtn: document.getElementById("browseCatalogFromMyCoursesBtn"),
-    enrolledLoadBadge: document.getElementById("enrolledLoadBadge"),
     filterEnrolledBtn: document.getElementById("filterEnrolledBtn"),
     enrolledCountBadge: document.getElementById("enrolledCountBadge"),
     enrolledSummaryCard: document.getElementById("enrolledSummaryCard"),
@@ -117,6 +150,8 @@
     enrolledTotalCredits: document.getElementById("enrolledTotalCredits"),
     clearEnrolledBtn: document.getElementById("clearEnrolledBtn"),
     clashAlertBox: document.getElementById("clashAlertBox"),
+    clashAlertTitle: document.getElementById("clashAlertTitle"),
+    clashAlertSubtitle: document.getElementById("clashAlertSubtitle"),
     clashAlertList: document.getElementById("clashAlertList"),
     detailsEnrollBtn: document.getElementById("detailsEnrollBtn"),
     detailsEnrollBtnText: document.getElementById("detailsEnrollBtnText"),
@@ -174,6 +209,7 @@
 
   let currentEditingCode = null;
   let pendingAction = null;
+  let lastAddedCourseForContrib = null;
   let pendingSaveVal = null;
   let pendingTarget = null;
   let isTrashMode = false;
@@ -325,7 +361,7 @@
   }
 
   async function loadStorageData() {
-    const stored = await chrome.storage.local.get(["courses", "userCourses", "softDeletedCourses", "mode", "allowedSites", "showExamInfo", "showPrerequisites", "lastSyncedAt", "remoteCourses", "hardDeletedCourses", "lastSyncResult", "themePreference"]);
+    const stored = await chrome.storage.local.get(["courses", "userCourses", "softDeletedCourses", "mode", "allowedSites", "showExamInfo", "showPrerequisites", "lastSyncedAt", "remoteCourses", "hardDeletedCourses", "lastSyncResult", "themePreference", "enrolledCourses"]);
     courses = stored.courses || {};
     userCourses = stored.userCourses || {};
     softDeletedCourses = stored.softDeletedCourses || [];
@@ -338,6 +374,7 @@
     remoteCourses = stored.remoteCourses || {};
     lastSyncResult = stored.lastSyncResult || null;
     currentThemePreference = stored.themePreference || "system";
+    enrolledCourses = Array.isArray(stored.enrolledCourses) ? stored.enrolledCourses : [];
     applyTheme(currentThemePreference);
 
     try {
@@ -489,6 +526,7 @@
     }
 
     updateCourseCount();
+    updateEnrolledUI();
     updateToggleAndStatus();
     renderAllowlist();
 
@@ -550,9 +588,22 @@
   // can show the correct active/inactive status instantly!
   function isHostAllowed(host, sites) {
     if (!host) return false;
-    return sites.some(pattern => {
-      const regex = "^" + pattern.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
-      return new RegExp(regex, "i").test(host);
+    const h = host.toLowerCase().trim();
+    return (sites || []).some((pattern) => {
+      if (!pattern) return false;
+      const p = pattern.toLowerCase().trim();
+      if (h === p) return true;
+      if (p.startsWith("*.")) {
+        const baseDomain = p.slice(2);
+        if (h === baseDomain || h.endsWith("." + baseDomain)) return true;
+      }
+      if (h.endsWith("." + p)) return true;
+      const regex = "^" + p.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
+      try {
+        return new RegExp(regex, "i").test(h);
+      } catch (_) {
+        return false;
+      }
     });
   }
 
@@ -560,8 +611,18 @@
     let enabled = isHostAllowed(currentHost, allowedSites);
     if (enabled && currentHost) {
       try {
-        const origin = `*://${currentHost}/*`;
-        const hasPerm = await chrome.permissions.contains({ origins: [origin] });
+        let hasPerm = await chrome.permissions.contains({ origins: [`*://${currentHost}/*`] });
+        if (!hasPerm) {
+          for (const pattern of allowedSites) {
+            if (isHostAllowed(currentHost, [pattern])) {
+              const originPattern = pattern.startsWith("*.") ? `*://${pattern}/*` : `*://${pattern}/*`;
+              if (await chrome.permissions.contains({ origins: [originPattern] }).catch(() => false)) {
+                hasPerm = true;
+                break;
+              }
+            }
+          }
+        }
         if (!hasPerm) {
           enabled = false;
         }
@@ -885,8 +946,13 @@
   function downloadJsonFile(filename, dataObj) {
     try {
       const jsonStr = JSON.stringify(dataObj, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
+      let url;
+      try {
+        const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
+        url = URL.createObjectURL(blob);
+      } catch (_) {
+        url = "data:application/json;charset=utf-8," + encodeURIComponent(jsonStr);
+      }
       const a = document.createElement("a");
       a.href = url;
       a.download = filename;
@@ -896,10 +962,14 @@
         if (a.parentNode) {
           a.parentNode.removeChild(a);
         }
-        URL.revokeObjectURL(url);
-      }, 150);
+        if (url && typeof url === "string" && url.startsWith("blob:")) {
+          try { URL.revokeObjectURL(url); } catch (_) {}
+        }
+      }, 200);
+      showToast(`Exported ${filename}`, "success");
     } catch (err) {
       console.error("Failed to export JSON file", err);
+      showToast("Export failed: " + (err.message || "Unknown error"), "danger");
     }
   }
 
@@ -1075,6 +1145,35 @@
       }
     });
     els.exportOptionsList.appendChild(customCard);
+  }
+
+  /**
+   * Contextual course exporter.
+   * Exports custom courses if available, or opens the Course Catalog export options.
+   * @param {string} [type="catalog"] - 'custom' or 'catalog'
+   */
+  function exportCoursesContextual(type) {
+    const dateStr = getExportDateString();
+    if (type === "custom") {
+      const customEntries = Object.entries(userCourses)
+        .filter(([code]) => !softDeletedCourses.includes(code) && !hardDeletedCourses.includes(code))
+        .sort((a, b) => a[0].localeCompare(b[0]));
+
+      if (customEntries.length > 0) {
+        const payload = {};
+        for (const [code, data] of customEntries) {
+          const finalData = courses[code] || data;
+          payload[code] = formatCourseForExport(finalData);
+        }
+        downloadJsonFile(`uiu-custom-courses-${dateStr}.json`, payload);
+        showToast(`Exported ${customEntries.length} custom course(s) ready for contribution`, "success");
+      } else {
+        openExportModal();
+        showToast("No custom edits found yet. Showing catalog export options...", "info");
+      }
+    } else {
+      openExportModal();
+    }
   }
 
   // ── Task 3.5: Keyboard Navigation & Focus Trap Engine ───────────────────
@@ -1546,6 +1645,10 @@
     const card = document.createElement("div");
     card.className = "drop-file-card";
 
+    // Main top row: Badge + Metadata + Close Button
+    const mainRow = document.createElement("div");
+    mainRow.className = "drop-file-main";
+
     // File type badge (JSON with icon)
     const badge = document.createElement("div");
     badge.className = "drop-file-badge";
@@ -1562,7 +1665,7 @@
     tag.className = "drop-file-badge-tag";
     tag.textContent = "JSON";
     badge.appendChild(tag);
-    card.appendChild(badge);
+    mainRow.appendChild(badge);
 
     // File metadata (Name + Size + Status Pill)
     const meta = document.createElement("div");
@@ -1615,44 +1718,9 @@
     }
     stats.appendChild(statusPill);
     meta.appendChild(stats);
-    card.appendChild(meta);
+    mainRow.appendChild(meta);
 
-    // Actions: Preview Pill Button + Clean Remove Button
-    const actions = document.createElement("div");
-    actions.className = "drop-file-actions";
-
-    if (!parseError && pendingImportDiff && (pendingImportDiff.toAdd.length > 0 || pendingImportDiff.toUpdate.length > 0)) {
-      const previewBtn = document.createElement("button");
-      previewBtn.type = "button";
-      previewBtn.className = "btn-card-preview";
-      previewBtn.title = "Preview changes before committing";
-
-      const eyeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      eyeSvg.setAttribute("viewBox", "0 0 24 24");
-      const eyePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      eyePath.setAttribute("d", "M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z");
-      eyeSvg.appendChild(eyePath);
-
-      const previewTxt = document.createElement("span");
-      previewTxt.textContent = "Preview";
-
-      previewBtn.appendChild(eyeSvg);
-      previewBtn.appendChild(previewTxt);
-      previewBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (!pendingImportDiff && els.jsonInput?.value) {
-          try {
-            const parsed = JSON.parse(els.jsonInput.value);
-            pendingImportDiff = computeImportDiff(parsed, courses);
-          } catch (err) {}
-        }
-        if (pendingImportDiff) {
-          openImportPreviewModal(pendingImportDiff);
-        }
-      });
-      actions.appendChild(previewBtn);
-    }
-
+    // Remove button on top-right
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.className = "drop-zone-file-remove";
@@ -1676,9 +1744,43 @@
         showImportMsg("info", "File unloaded.");
       }
     });
-    actions.appendChild(removeBtn);
+    mainRow.appendChild(removeBtn);
 
-    card.appendChild(actions);
+    card.appendChild(mainRow);
+
+    // Action row: Dedicated Preview Changes Button (when diff exists)
+    if (!parseError && pendingImportDiff && (pendingImportDiff.toAdd.length > 0 || pendingImportDiff.toUpdate.length > 0)) {
+      const previewBtn = document.createElement("button");
+      previewBtn.type = "button";
+      previewBtn.className = "btn-card-preview";
+      previewBtn.title = "Preview changes before committing";
+
+      const eyeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      eyeSvg.setAttribute("viewBox", "0 0 24 24");
+      const eyePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      eyePath.setAttribute("d", "M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z");
+      eyeSvg.appendChild(eyePath);
+
+      const totalChanges = pendingImportDiff.toAdd.length + pendingImportDiff.toUpdate.length;
+      const previewTxt = document.createElement("span");
+      previewTxt.textContent = "Preview Changes (" + totalChanges + " to import)";
+
+      previewBtn.appendChild(eyeSvg);
+      previewBtn.appendChild(previewTxt);
+      previewBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!pendingImportDiff && els.jsonInput?.value) {
+          try {
+            const parsed = JSON.parse(els.jsonInput.value);
+            pendingImportDiff = computeImportDiff(parsed, courses);
+          } catch (err) {}
+        }
+        if (pendingImportDiff) {
+          openImportPreviewModal(pendingImportDiff);
+        }
+      });
+      card.appendChild(previewBtn);
+    }
 
     els.dropZoneFileInfo.appendChild(card);
     els.dropZoneFileInfo.style.display = "flex";
@@ -1808,6 +1910,21 @@
           }
         });
         emptyState.appendChild(clearBtn);
+
+        const contribTip = document.createElement("div");
+        contribTip.className = "empty-contrib-tip";
+        contribTip.style.cssText = "margin-top: 8px; font-size: 0.65rem; color: var(--text-muted);";
+        const contribLink = document.createElement("a");
+        contribLink.href = "#";
+        contribLink.textContent = "Contribute to the catalog \u2192";
+        contribLink.style.cssText = "color: var(--accent); font-weight: 600; margin-left: 4px; cursor: pointer; text-decoration: none;";
+        contribLink.addEventListener("click", (e) => {
+          e.preventDefault();
+          openContributionModal();
+        });
+        contribTip.appendChild(document.createTextNode("Missing a course?"));
+        contribTip.appendChild(contribLink);
+        emptyState.appendChild(contribTip);
       } else {
         titleEl.textContent = "Trash is Empty";
         subEl.textContent = "Courses you delete will appear here until permanently removed.";
@@ -2228,15 +2345,30 @@
    * @param {string} content
    */
   function downloadIcsBlob(filename, content) {
-    var blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+    try {
+      var url;
+      try {
+        var blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
+        url = URL.createObjectURL(blob);
+      } catch (_) {
+        url = "data:text/calendar;charset=utf-8," + encodeURIComponent(content);
+      }
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        if (a.parentNode) {
+          a.parentNode.removeChild(a);
+        }
+        if (url && typeof url === "string" && url.startsWith("blob:")) {
+          try { URL.revokeObjectURL(url); } catch (_) {}
+        }
+      }, 2000);
+    } catch (e) {
+      console.error("Failed to download .ics", e);
+    }
   }
 
   /**
@@ -2349,6 +2481,49 @@
    * @param {Object} catalog - Merged courses catalog
    * @returns {Array<{ day: string, slot: string, courses: string[] }>}
    */
+  /**
+   * Detects same-day exam routine occurrences across enrolled courses.
+   * A same-day collision occurs when two or more courses share the exact same non-empty Day,
+   * regardless of whether they are in the same or different slots.
+   * Lab / In-Class / N/A schedules are ignored.
+   * @param {string[]} enrolledList - Array of course codes
+   * @param {Object} catalog - Merged courses catalog
+   * @returns {Array<{ day: string, count: number, courses: Array<{ code: string, slot: string, name: string }> }>}
+   */
+  function detectSameDayExams(enrolledList, catalog) {
+    var dayMap = {};
+    var sameDays = [];
+
+    for (var i = 0; i < enrolledList.length; i++) {
+      var code = enrolledList[i];
+      var data = normalizeCourseData(catalog[code]);
+      var day = (data.examDay || "").trim();
+      var slot = (data.examSlot || "").trim();
+
+      if (!day) continue;
+      var lowerDay = day.toLowerCase();
+      if (lowerDay === "n/a" || lowerDay === "none" || lowerDay === "in-class") continue;
+
+      if (!dayMap[day]) dayMap[day] = [];
+      dayMap[day].push({
+        code: code,
+        slot: slot || "TBA",
+        name: data.name || ""
+      });
+    }
+
+    for (var d in dayMap) {
+      if (dayMap.hasOwnProperty(d) && dayMap[d].length > 1) {
+        sameDays.push({
+          day: d,
+          count: dayMap[d].length,
+          courses: dayMap[d]
+        });
+      }
+    }
+    return sameDays;
+  }
+
   function detectExamClashes(enrolledList, catalog) {
     var slotMap = {};
     var clashes = [];
@@ -2410,19 +2585,36 @@
     var totalCredits = computeEnrolledCredits(enrolledCourses, courses);
     var clashes = detectExamClashes(enrolledCourses, courses);
     var hasClashes = clashes.length > 0;
+    var sameDayExams = detectSameDayExams(enrolledCourses, courses);
+    var hasSameDay = sameDayExams.length > 0;
 
     // 1. View 0 (Home) Button
     if (els.homeEnrolledCard) {
       if (els.homeEnrolledCount) els.homeEnrolledCount.textContent = String(totalEnrolled);
       if (els.homeEnrolledCredits) els.homeEnrolledCredits.textContent = totalCredits.toFixed(1) + " Cr";
+      if (els.homeEnrolledStatusHint) {
+        if (totalEnrolled === 0) {
+          els.homeEnrolledStatusHint.textContent = "Plan exam routine";
+        } else {
+          els.homeEnrolledStatusHint.textContent = totalEnrolled === 1 ? "1 course enrolled" : (totalEnrolled + " courses enrolled");
+        }
+      }
       if (els.homeClashBadge) {
-        if (totalEnrolled === 0 || !hasClashes) {
+        if (totalEnrolled === 0) {
           els.homeClashBadge.style.display = "none";
           els.homeClashBadge.className = "clash-badge ok";
-        } else {
-          els.homeClashBadge.style.display = "inline-flex";
+        } else if (hasClashes) {
+          els.homeClashBadge.style.display = "flex";
           els.homeClashBadge.className = "clash-badge danger";
-          els.homeClashBadge.textContent = "⚠️ " + clashes.length + " Clash" + (clashes.length > 1 ? "es" : "");
+          els.homeClashBadge.textContent = "\u26A0\uFE0F " + clashes.length + " Exam Clash" + (clashes.length > 1 ? "es" : "") + " (Same slot)";
+        } else if (hasSameDay) {
+          els.homeClashBadge.style.display = "flex";
+          els.homeClashBadge.className = "clash-badge warning";
+          var daysCount = sameDayExams.length;
+          els.homeClashBadge.textContent = "\u26A0\uFE0F " + (daysCount === 1 ? (sameDayExams[0].count + " Exams on Same Day (Check routine)") : (daysCount + " Days with Multiple Exams"));
+        } else {
+          els.homeClashBadge.style.display = "none";
+          els.homeClashBadge.className = "clash-badge ok";
         }
       }
     }
@@ -2433,44 +2625,112 @@
     }
     if (els.enrolledTotalCourses) els.enrolledTotalCourses.textContent = String(totalEnrolled);
     if (els.enrolledTotalCredits) els.enrolledTotalCredits.textContent = totalCredits.toFixed(1);
+    if (els.clearEnrolledBtn) els.clearEnrolledBtn.style.display = totalEnrolled > 0 ? "inline-flex" : "none";
 
-    if (els.enrolledLoadBadge) {
-      var loadStatus = totalCredits < 9 ? "Light" : totalCredits <= 15 ? "Normal" : "Overload";
-      els.enrolledLoadBadge.textContent = totalCredits.toFixed(1) + " / 15.0 Cr (" + loadStatus + ")";
-    }
-
-    var loadFill = document.getElementById("enrolledLoadFill");
-    if (loadFill) {
-      var pct = Math.min(100, Math.round((totalCredits / 15.0) * 100));
-      loadFill.style.width = pct + "%";
-      if (totalCredits > 15) {
-        loadFill.style.background = "linear-gradient(90deg, #f59e0b, #ef4444)";
-      } else {
-        loadFill.style.background = "linear-gradient(90deg, #FF7A00, #f26522)";
-      }
-    }
-
-    // 3. Clash Alert Box in My Courses
+    // 3. Clash & Same-Day Alert Box in My Courses (Sleek Executive Redesign)
     if (els.clashAlertBox) {
-      if (hasClashes && totalEnrolled > 0) {
+      var shouldShowAlertBox = totalEnrolled > 0 && (hasClashes || hasSameDay);
+      if (shouldShowAlertBox) {
         els.clashAlertBox.style.display = "flex";
+
+        var iconWrap = document.getElementById("clashAlertIconWrap");
+        if (iconWrap) {
+          while (iconWrap.firstChild) iconWrap.removeChild(iconWrap.firstChild);
+          var headSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          headSvg.setAttribute("viewBox", "0 0 24 24");
+          var headPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          if (hasClashes) {
+            headPath.setAttribute("d", "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z");
+          } else {
+            headPath.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z");
+          }
+          headSvg.appendChild(headPath);
+          iconWrap.appendChild(headSvg);
+        }
+
+        if (hasClashes) {
+          els.clashAlertBox.className = "clash-alert-box has-clash";
+          if (els.clashAlertTitle) {
+            els.clashAlertTitle.textContent = hasSameDay ? "Exam Routine Conflicts & Same-Day Warnings" : "Exam Schedule Conflict Detected";
+          }
+        } else {
+          els.clashAlertBox.className = "clash-alert-box is-warning";
+          if (els.clashAlertTitle) {
+            els.clashAlertTitle.textContent = "Same-Day Final Exams Scheduled";
+          }
+        }
+
+        if (els.clashAlertSubtitle) {
+          els.clashAlertSubtitle.textContent = "";
+        }
+
         if (els.clashAlertList) {
           while (els.clashAlertList.firstChild) els.clashAlertList.removeChild(els.clashAlertList.firstChild);
+
+          // Direct slot collisions (Critical)
           clashes.forEach(function(c) {
             var item = document.createElement("div");
-            item.className = "clash-item";
-            var itemIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            itemIcon.setAttribute("viewBox", "0 0 24 24");
-            itemIcon.setAttribute("style", "width:13px;height:13px;fill:currentColor;flex-shrink:0;");
-            var itemPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            itemPath.setAttribute("d", "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z");
-            itemIcon.appendChild(itemPath);
+            item.className = "clash-item danger";
+
+            var bullet = document.createElement("span");
+            bullet.className = "clash-item-bullet";
+            bullet.textContent = "•";
 
             var itemText = document.createElement("span");
-            itemText.textContent = c.day + " • Slot " + c.slot + ": " + c.courses.join(" & ");
-            item.appendChild(itemIcon);
+            itemText.className = "clash-item-text";
+
+            var dayLabel = document.createElement("strong");
+            dayLabel.textContent = c.day + " (Slot " + c.slot + "): ";
+            itemText.appendChild(dayLabel);
+
+            var coursesSpan = document.createElement("span");
+            coursesSpan.textContent = c.courses.join(" & ") + " — Direct Slot Clash";
+            itemText.appendChild(coursesSpan);
+
+            item.appendChild(bullet);
             item.appendChild(itemText);
             els.clashAlertList.appendChild(item);
+          });
+
+          // Same-day multiple exams (Warning)
+          sameDayExams.forEach(function(sd) {
+            var hasDistinctSlots = false;
+            for (var a = 0; a < sd.courses.length; a++) {
+              for (var b = a + 1; b < sd.courses.length; b++) {
+                if (sd.courses[a].slot !== sd.courses[b].slot) {
+                  hasDistinctSlots = true;
+                  break;
+                }
+              }
+              if (hasDistinctSlots) break;
+            }
+
+            if (hasDistinctSlots || clashes.length === 0) {
+              var courseSummaries = sd.courses.map(function(c) {
+                return c.code + " (" + (c.slot || "TBA") + ")";
+              });
+              var item = document.createElement("div");
+              item.className = "clash-item warning";
+
+              var bullet = document.createElement("span");
+              bullet.className = "clash-item-bullet";
+              bullet.textContent = "•";
+
+              var itemText = document.createElement("span");
+              itemText.className = "clash-item-text";
+
+              var dayLabel = document.createElement("strong");
+              dayLabel.textContent = sd.day + " (" + sd.count + " exams): ";
+              itemText.appendChild(dayLabel);
+
+              var coursesSpan = document.createElement("span");
+              coursesSpan.textContent = courseSummaries.join(" & ");
+              itemText.appendChild(coursesSpan);
+
+              item.appendChild(bullet);
+              item.appendChild(itemText);
+              els.clashAlertList.appendChild(item);
+            }
           });
         }
       } else {
@@ -2500,7 +2760,7 @@
           var examDay = typeof cData === "object" && cData !== null && cData.examDay ? cData.examDay : "";
           var examSlot = typeof cData === "object" && cData !== null && cData.examSlot ? cData.examSlot : "";
 
-          // Check for clash
+          // Check for direct slot clash
           var isCourseClashing = false;
           var clashDetailsText = "";
           for (var ci = 0; ci < clashes.length; ci++) {
@@ -2512,8 +2772,32 @@
             }
           }
 
+          // Check for same-day exam with another course
+          var isCourseSameDay = false;
+          var sameDayDetailsText = "";
+          for (var sdi = 0; sdi < sameDayExams.length; sdi++) {
+            var sde = sameDayExams[sdi];
+            var match = sde.courses.find(function(c) { return c.code === code; });
+            if (match) {
+              var otherSameDayCourses = sde.courses.filter(function(c) { return c.code !== code; });
+              if (otherSameDayCourses.length > 0) {
+                isCourseSameDay = true;
+                sameDayDetailsText = sde.day + " with " + otherSameDayCourses.map(function(o) {
+                  return o.code + (o.slot ? " (" + o.slot + ")" : "");
+                }).join(", ");
+                break;
+              }
+            }
+          }
+
           var card = document.createElement("div");
-          card.className = "enrolled-course-card" + (isCourseClashing ? " is-clashing" : "");
+          var cardClass = "enrolled-course-card";
+          if (isCourseClashing) {
+            cardClass += " is-clashing";
+          } else if (isCourseSameDay) {
+            cardClass += " has-same-day";
+          }
+          card.className = cardClass;
 
           // Top Header: Code, Credit badge, and Drop button
           var header = document.createElement("div");
@@ -2570,7 +2854,13 @@
           routineRow.className = "enrolled-card-routine-row";
 
           var slotChip = document.createElement("span");
-          if (examDay || examSlot) {
+          var lowerDay = (examDay || "").trim().toLowerCase();
+          if (lowerDay === "in-class") {
+            slotChip.className = "routine-slot-badge lab-slot";
+            var labText = document.createElement("span");
+            labText.textContent = "📝 In-Class Evaluation";
+            slotChip.appendChild(labText);
+          } else if (examDay || examSlot) {
             slotChip.className = "routine-slot-badge";
             var calIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             calIcon.setAttribute("viewBox", "0 0 24 24");
@@ -2582,14 +2872,14 @@
             slotChip.appendChild(calIcon);
             slotChip.appendChild(slotText);
           } else {
-            slotChip.className = "routine-slot-badge lab-slot";
-            var labText = document.createElement("span");
-            labText.textContent = "Lab / In-Class Evaluation";
-            slotChip.appendChild(labText);
+            slotChip.className = "routine-slot-badge pending-slot";
+            var pendingText = document.createElement("span");
+            pendingText.textContent = "🕒 Routine Pending / TBA";
+            slotChip.appendChild(pendingText);
           }
           routineRow.appendChild(slotChip);
 
-          // Clash banner inside card
+          // Direct slot clash banner inside card
           if (isCourseClashing) {
             var clashPill = document.createElement("div");
             clashPill.className = "enrolled-card-clash-banner";
@@ -2599,11 +2889,32 @@
             warnPath.setAttribute("d", "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z");
             warnIcon.appendChild(warnPath);
             var clashMsg = document.createElement("span");
-            clashMsg.textContent = "Clashes with " + clashDetailsText;
+            clashMsg.textContent = "Direct Clash: " + clashDetailsText;
             clashPill.appendChild(warnIcon);
             clashPill.appendChild(clashMsg);
             routineRow.appendChild(clashPill);
+          } else if (isCourseSameDay) {
+            // Same-day multiple exams banner
+            var sameDayPill = document.createElement("div");
+            sameDayPill.className = "enrolled-card-sameday-banner";
+            var sameDayIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            sameDayIcon.setAttribute("viewBox", "0 0 24 24");
+            var sameDayPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            sameDayPath.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z");
+            sameDayIcon.appendChild(sameDayPath);
+            var sameDayMsg = document.createElement("span");
+            sameDayMsg.textContent = "Same-Day Exam: " + sameDayDetailsText;
+            sameDayPill.appendChild(sameDayIcon);
+            sameDayPill.appendChild(sameDayMsg);
+            routineRow.appendChild(sameDayPill);
           }
+
+          // Make card tap-to-inspect (excluding drop button)
+          card.style.cursor = "pointer";
+          card.addEventListener("click", function(e) {
+            if (e.target.closest(".btn-card-drop")) return;
+            openCourseDetails(code, cData, "mycourses");
+          });
 
           // Footer: Inspect action
           var footerRow = document.createElement("div");
@@ -2612,9 +2923,10 @@
           var inspectBtn = document.createElement("button");
           inspectBtn.type = "button";
           inspectBtn.className = "btn-card-inspect";
-          inspectBtn.textContent = "View Details & Prereqs ›";
-          inspectBtn.addEventListener("click", function() {
-            openCourseDetails(code);
+          inspectBtn.textContent = "View Details & Prereqs →";
+          inspectBtn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            openCourseDetails(code, cData, "mycourses");
           });
 
           footerRow.appendChild(inspectBtn);
@@ -2637,24 +2949,79 @@
         if (els.detailsEnrollBtnText) {
           els.detailsEnrollBtnText.textContent = isEnrolledInDetails ? "Enrolled" : "Enroll";
         }
+        els.detailsEnrollBtn.title = isEnrolledInDetails ? "Drop " + currentEditingCode + " from routine" : "Add " + currentEditingCode + " to routine";
+      }
+
+      var statusTextEl = document.getElementById("detailEnrollStatusText");
+      if (statusTextEl) {
+        statusTextEl.textContent = isEnrolledInDetails ? "Enrolled in Routine" : "Not in Trimester Routine";
+      }
+      var hintEl = document.getElementById("detailEnrollHint");
+      if (hintEl) {
+        hintEl.textContent = isEnrolledInDetails ? "Tap button to drop from routine" : "Add to track credits and detect exam clashes";
+      }
+      var indicatorEl = document.getElementById("detailEnrollIndicator");
+      if (indicatorEl) {
+        indicatorEl.className = "detail-enroll-indicator " + (isEnrolledInDetails ? "active" : "");
       }
 
       if (els.detailClashWarning) {
         var isInspectedClashing = false;
         var inspectedClashText = "";
-        for (var ci2 = 0; ci2 < clashes.length; ci2++) {
-          if (clashes[ci2].courses.indexOf(currentEditingCode) !== -1) {
+        var isInspectedSameDay = false;
+        var inspectedSameDayText = "";
+
+        var curData = normalizeCourseData(courses[currentEditingCode]);
+        var curDay = (curData.examDay || "").trim();
+        var curSlot = (curData.examSlot || "").trim();
+        var curDayLower = curDay.toLowerCase();
+        var curSlotLower = curSlot.toLowerCase();
+        var hasValidExam = curDay && curSlot && curDayLower !== "n/a" && curDayLower !== "none" && curDayLower !== "in-class" && curSlotLower !== "n/a" && curSlotLower !== "none";
+
+        // Check direct clash against other enrolled courses
+        for (var ci2 = 0; ci2 < enrolledCourses.length; ci2++) {
+          var oCode = enrolledCourses[ci2];
+          if (oCode === currentEditingCode) continue;
+          var oData = normalizeCourseData(courses[oCode]);
+          var oDay = (oData.examDay || "").trim();
+          var oSlot = (oData.examSlot || "").trim();
+          if (hasValidExam && oDay.toLowerCase() === curDayLower && oSlot.toLowerCase() === curSlotLower) {
             isInspectedClashing = true;
-            var otherCourses = clashes[ci2].courses.filter(function(c) { return c !== currentEditingCode; });
-            inspectedClashText = clashes[ci2].day + " " + clashes[ci2].slot + " with " + otherCourses.join(", ");
+            inspectedClashText = curDay + " " + curSlot + " with " + oCode;
             break;
           }
         }
 
+        // Check same-day exam against other enrolled courses (if no direct clash)
+        if (!isInspectedClashing && curDay && curDayLower !== "n/a" && curDayLower !== "none" && curDayLower !== "in-class") {
+          var sameDayMatches = [];
+          for (var si = 0; si < enrolledCourses.length; si++) {
+            var sCode = enrolledCourses[si];
+            if (sCode === currentEditingCode) continue;
+            var sData = normalizeCourseData(courses[sCode]);
+            var sDay = (sData.examDay || "").trim();
+            if (sDay && sDay.toLowerCase() === curDayLower) {
+              var sSlot = (sData.examSlot || "").trim();
+              sameDayMatches.push(sCode + (sSlot ? " (" + sSlot + ")" : ""));
+            }
+          }
+          if (sameDayMatches.length > 0) {
+            isInspectedSameDay = true;
+            inspectedSameDayText = curDay + " with enrolled " + sameDayMatches.join(", ") + " (" + (sameDayMatches.length + 1) + " exams on this day)";
+          }
+        }
+
         if (isInspectedClashing) {
+          els.detailClashWarning.className = "detail-clash-warning danger";
           els.detailClashWarning.style.display = "flex";
           if (els.detailClashText) {
             els.detailClashText.textContent = "Exam Routine Clash: " + inspectedClashText;
+          }
+        } else if (isInspectedSameDay) {
+          els.detailClashWarning.className = "detail-clash-warning is-warning";
+          els.detailClashWarning.style.display = "flex";
+          if (els.detailClashText) {
+            els.detailClashText.textContent = "⚠️ Same-Day Exam: " + inspectedSameDayText;
           }
         } else {
           els.detailClashWarning.style.display = "none";
@@ -2663,14 +3030,11 @@
     }
   }
 
-  /**
-   * Toggles enrollment state for a course and updates chrome.storage.local
-   */
   function toggleEnrollCourse(code) {
     if (!code) return;
     var idx = enrolledCourses.indexOf(code);
     if (idx === -1) {
-      enrolledCourses.push(code);
+      enrolledCourses.unshift(code);
     } else {
       enrolledCourses.splice(idx, 1);
     }
@@ -2702,7 +3066,9 @@
     visited.add(rootCode);
 
     var rootData = normalizeCourseData(catalog[rootCode]);
-    var rootPrereqs = Array.isArray(rootData.prerequisites) ? rootData.prerequisites : [];
+    var rootPrereqs = (Array.isArray(rootData.prerequisites) ? rootData.prerequisites : []).filter(function(c) {
+      return c && c.toUpperCase() !== "NONE";
+    });
     directCodes = rootPrereqs.slice();
 
     var currentLevel = rootPrereqs.filter(function(c) { return !visited.has(c); });
@@ -2910,6 +3276,7 @@
     detailsOriginView = originView;
     currentEditingCode = code;
     els.detailsCourseCode.textContent = code;
+    courseData = courseData || courses[code];
 
     const origin = getCourseOrigin(code);
     const badgeEl = document.getElementById("detailsOriginBadge");
@@ -2924,25 +3291,104 @@
     const prerequisites = typeof courseData === "object" && courseData !== null && courseData.prerequisites ? courseData.prerequisites.join(", ") : "";
 
     els.detailName.value = name;
+    const isLabOrInClass = (examDay || "").trim().toLowerCase() === "in-class";
+    if (els.detailInClass) {
+      els.detailInClass.checked = isLabOrInClass;
+    }
     els.detailDay.value = examDay;
+    els.detailDay.disabled = isLabOrInClass;
     els.detailSlot.value = examSlot;
+    els.detailSlot.disabled = isLabOrInClass;
+
+    const hasExplicitNonePrereq = (typeof courseData === "object" && courseData !== null && Array.isArray(courseData.prerequisites) && courseData.prerequisites.length === 1 && courseData.prerequisites[0].toLowerCase() === "none");
+    if (els.detailNoPrereq) {
+      els.detailNoPrereq.checked = hasExplicitNonePrereq;
+    }
     els.detailPrereq.value = prerequisites;
+    els.detailPrereq.disabled = hasExplicitNonePrereq;
     if (els.detailPrereqNote) els.detailPrereqNote.value = (typeof courseData === "object" && courseData !== null) ? (courseData.prerequisiteNote || "") : "";
     const creditsVal = (typeof courseData === "object" && courseData !== null && courseData.credits !== undefined && courseData.credits !== null) ? courseData.credits : "";
     if (els.detailCredits) els.detailCredits.value = creditsVal;
     if (els.detailsCreditsBadge) {
-      if (creditsVal) {
-        els.detailsCreditsBadge.textContent = creditsVal + " Cr";
-        els.detailsCreditsBadge.style.display = "inline-block";
+      var numCr = parseFloat(creditsVal);
+      if (!isNaN(numCr) && numCr > 0) {
+        els.detailsCreditsBadge.textContent = numCr.toFixed(1) + " Cr";
       } else {
-        els.detailsCreditsBadge.style.display = "none";
+        els.detailsCreditsBadge.textContent = "3.0 Cr";
       }
+      els.detailsCreditsBadge.style.display = "inline-flex";
     }
 
     els.detailName.style.borderColor = "";
 
     els.detailDelBtn.disabled = false;
     els.detailDelBtn.title = "";
+
+    // Populate Course Details Hero Card
+    if (els.detailCourseTitle) {
+      els.detailCourseTitle.textContent = name || "Untitled Course";
+    }
+    if (els.detailHeroCredits) {
+      var numCr = parseFloat(creditsVal);
+      els.detailHeroCredits.textContent = (!isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) : "3.0") + " Credits";
+    }
+    if (els.detailHeroRoutine) {
+      var lowerDay = (examDay || "").trim().toLowerCase();
+      if (lowerDay === "in-class") {
+        els.detailHeroRoutine.textContent = "📝 In-Class Evaluation (No central routine)";
+        els.detailHeroRoutine.style.display = "inline-flex";
+      } else if (examDay && examSlot && lowerDay !== "n/a" && lowerDay !== "none") {
+        var slotTimes = { "T1": "09:00–11:00", "T2": "11:30–13:30", "T3": "14:30–16:30" };
+        var timeLabel = slotTimes[examSlot] ? (" (" + slotTimes[examSlot] + ")") : "";
+        els.detailHeroRoutine.textContent = examDay + " • Slot " + examSlot + timeLabel;
+        els.detailHeroRoutine.style.display = "inline-flex";
+      } else {
+        els.detailHeroRoutine.textContent = "🕒 Routine Pending / TBA";
+        els.detailHeroRoutine.style.display = "inline-flex";
+      }
+    }
+    if (els.detailHeroDept) {
+      var prefix = code.split(" ")[0] || code.substring(0, 3);
+      var deptMap = {
+        "CSE": "Computer Science & Eng.",
+        "DS": "Data Science",
+        "SE": "Software Engineering",
+        "EEE": "Electrical & Electronic",
+        "CE": "Civil Engineering",
+        "BBA": "Business Administration",
+        "ACT": "Accounting",
+        "FIN": "Finance",
+        "MKT": "Marketing",
+        "HRM": "Human Resource Mgt.",
+        "ECO": "Economics",
+        "ENG": "English / Humanities",
+        "MATH": "Mathematics",
+        "PHY": "Physics",
+        "CHEM": "Chemistry",
+        "BIO": "Biology / Life Sciences",
+        "URP": "Urban & Regional Planning"
+      };
+      els.detailHeroDept.textContent = deptMap[prefix] || prefix;
+    }
+    if (els.detailHeroPrereqNote) {
+      var noteVal = (typeof courseData === "object" && courseData !== null) ? (courseData.prerequisiteNote || "").trim() : "";
+      if (noteVal) {
+        els.detailHeroPrereqNote.textContent = "📌 Prerequisite Note: " + noteVal;
+        els.detailHeroPrereqNote.style.display = "flex";
+      } else {
+        els.detailHeroPrereqNote.style.display = "none";
+      }
+    }
+
+    // Default edit form: expanded for custom/edited courses, collapsed for official courses
+    if (els.detailsFormContainer && els.editToggleBadge) {
+      var isCustom = origin.class !== "official";
+      els.detailsFormContainer.style.display = isCustom ? "block" : "none";
+      els.editToggleBadge.textContent = isCustom ? "Hide Form ▴" : "Edit Data ▾";
+      if (els.toggleEditFormBtn) {
+        els.toggleEditFormBtn.setAttribute("aria-expanded", String(isCustom));
+      }
+    }
 
     els.viewWrapper.classList.add("show-details");
     els.viewWrapper.classList.remove("show-courses", "show-settings", "show-trash", "show-import");
@@ -2958,6 +3404,8 @@
     els.viewWrapper.classList.remove("show-details");
     if (detailsOriginView === "settings") {
       els.viewWrapper.classList.add("show-settings");
+    } else if (detailsOriginView === "mycourses") {
+      els.viewWrapper.classList.add("show-mycourses");
     } else {
       els.viewWrapper.classList.add("show-courses");
     }
@@ -3463,6 +3911,97 @@
     els.exportCoursesBtn?.addEventListener("click", openExportModal);
     els.exportModalCloseBtn?.addEventListener("click", closeExportModal);
     els.exportModalCancelBtn?.addEventListener("click", closeExportModal);
+
+    const openContributionModal = () => {
+      openModalSafely(els.contributionModal, els.contribModalCloseBtn);
+    };
+    const closeContributionModal = () => {
+      closeModalSafely(els.contributionModal);
+    };
+
+    els.openContribModalBtn?.addEventListener("click", openContributionModal);
+    els.detailsInfoBtn?.addEventListener("click", openContributionModal);
+    els.importInfoBtn?.addEventListener("click", openContributionModal);
+    els.importContribLink?.addEventListener("click", (e) => {
+      e.preventDefault();
+      openContributionModal();
+    });
+
+    els.contribModalCloseBtn?.addEventListener("click", closeContributionModal);
+    els.contribModalDoneBtn?.addEventListener("click", closeContributionModal);
+    els.contribExportCustomBtn?.addEventListener("click", () => {
+      closeContributionModal();
+      exportCoursesContextual("custom");
+    });
+
+    els.contribReportIssueBtn?.addEventListener("click", () => {
+      closeContributionModal();
+
+      let title = "";
+      let body = "";
+
+      if (currentEditingCode && els.viewWrapper.classList.contains("show-details")) {
+        const courseData = courses[currentEditingCode];
+        const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
+        const examDay = typeof courseData === "object" && courseData !== null ? (courseData.examDay || "") : "";
+        const examSlot = typeof courseData === "object" && courseData !== null ? (courseData.examSlot || "") : "";
+        const prereqs = typeof courseData === "object" && courseData !== null && Array.isArray(courseData.prerequisites)
+          ? courseData.prerequisites.join(", ")
+          : "";
+        const note = typeof courseData === "object" && courseData !== null ? (courseData.prerequisiteNote || "") : "";
+        const credits = typeof courseData === "object" && courseData !== null && courseData.credits ? courseData.credits : "";
+
+        title = encodeURIComponent(`[Data Correction] ${currentEditingCode} - ${name || "Course Details"}`);
+        let courseDetailsMd = `### 📚 Course Information\n` +
+          `- **Course Code:** \`${currentEditingCode}\` — ${name || "Untitled"}\n` +
+          `- **Credits:** ${credits ? credits + " Cr" : "—"}\n` +
+          `- **Exam Routine:** Day ${examDay || "—"}, Slot ${examSlot || "—"}\n` +
+          `- **Prerequisites:** ${prereqs || "None"}\n`;
+        if (note) {
+          courseDetailsMd += `- **Prerequisite Note:** ${note}\n`;
+        }
+
+        body = encodeURIComponent(
+          courseDetailsMd +
+          `\n---\n\n` +
+          `### ✏️ What is missing or needs fixing?\n` +
+          `*(Describe what is missing or incorrect, e.g. wrong course name, missing prerequisite, outdated exam slot)*\n\n\n\n` +
+          `### 💡 Correct Information (if known)\n` +
+          `*(Provide the correct details from UCAM, official routine, or syllabus)*\n\n\n\n` +
+          `---\n` +
+          `*Submitted via UIU Course Code Decoder extension. Thanks for keeping the catalog accurate!*`
+        );
+      } else {
+        title = encodeURIComponent(`[Missing Course] New Course or Department Curriculum Report`);
+        body = encodeURIComponent(
+          `### 📋 Missing Course Information\n\n` +
+          `- **Course Code:** \n` +
+          `- **Course Title:** \n` +
+          `- **Department / Program:** (e.g. BSCSE, BSSE, BBA, BSCIVIL, BSDS, MS)\n` +
+          `- **Credit Hours:** (e.g. 3.0, 1.5, 4.0)\n\n` +
+          `---\n\n` +
+          `### ⏰ Exam Routine (if scheduled)\n` +
+          `- **Exam Day:** (e.g. D1, D4, or Unscheduled)\n` +
+          `- **Exam Slot:** (e.g. T1: 09:00–11:00, T2: 11:30–13:30, T3: 14:30–16:30)\n\n` +
+          `---\n\n` +
+          `### 🔗 Prerequisites\n` +
+          `- **Prerequisite Courses:** (e.g. CSE 1111, MATH 1151, or None)\n` +
+          `- **Prerequisite Note:** (e.g. Minimum 70 completed credits)\n\n` +
+          `---\n\n` +
+          `### 📌 Source / Evidence\n` +
+          `*(e.g. UCAM course registration screenshot, official university routine PDF, syllabus link)*\n\n\n\n` +
+          `---\n` +
+          `*Submitted via UIU Course Code Decoder extension. Thank you for contributing to UIU's community catalog!*`
+        );
+      }
+
+      const issueUrl = `https://github.com/litch07/uiu-course-decoder/issues/new?title=${title}&body=${body}&labels=data-correction,course-addition`;
+      try {
+        chrome.tabs.create({ url: issueUrl });
+      } catch (_) {
+        window.open(issueUrl, "_blank", "noopener,noreferrer");
+      }
+    });
     els.exportModal?.addEventListener("click", (e) => {
       if (e.target === els.exportModal) {
         closeExportModal();
@@ -3521,7 +4060,13 @@
         } else if (els.viewWrapper.classList.contains("show-import")) {
           els.importBackBtn?.click();
         } else if (els.viewWrapper.classList.contains("show-mycourses")) {
-          els.myCoursesBackBtn?.click();
+          if (els.myCoursesSuggestionsList && els.myCoursesSuggestionsList.style.display !== "none") {
+            els.myCoursesSuggestionsList.style.display = "none";
+            if (els.myCoursesSearchInput) els.myCoursesSearchInput.value = "";
+            if (els.myCoursesSearchClearBtn) els.myCoursesSearchClearBtn.style.display = "none";
+          } else {
+            els.myCoursesBackBtn?.click();
+          }
         } else if (els.viewWrapper.classList.contains("show-settings")) {
           els.settingsBackBtn?.click();
         } else if (els.viewWrapper.classList.contains("show-courses")) {
@@ -3683,6 +4228,13 @@
       els.openCoursesBtn?.click();
     });
 
+    els.clearEnrolledBtn?.addEventListener("click", () => {
+      if (enrolledCourses.length === 0) return;
+      pendingAction = "clear-enrolled";
+      setModalText("Drop all courses?", `Are you sure you want to remove all ${enrolledCourses.length} courses from your trimester routine?`);
+      openModalSafely(els.confirmModal, els.modalConfirmBtn);
+    });
+
     // Quick add search bar with autocomplete suggestions in My Courses
     function setupMyCoursesQuickAdd() {
       if (!els.myCoursesSearchInput || !els.myCoursesSuggestionsList) return;
@@ -3798,6 +4350,26 @@
         els.myCoursesSearchInput.value = "";
         renderSuggestions("");
         els.myCoursesSearchInput.focus();
+      });
+
+      els.myCoursesSearchInput.addEventListener("focus", () => {
+        if (els.myCoursesSearchInput.value.trim()) {
+          renderSuggestions(els.myCoursesSearchInput.value);
+        }
+      });
+
+      els.myCoursesSearchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          els.myCoursesSearchInput.value = "";
+          renderSuggestions("");
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (els.myCoursesSuggestionsList && !els.myCoursesAddCard?.contains(e.target)) {
+          els.myCoursesSuggestionsList.style.display = "none";
+        }
       });
     }
 
@@ -3942,14 +4514,19 @@
         return;
       }
 
-      const newDay = els.detailDay.value.trim();
-      const newSlot = els.detailSlot.value.trim();
+      const isDetailInClass = !!els.detailInClass?.checked;
+      const isDetailNoPrereq = !!els.detailNoPrereq?.checked;
+
+      const newDay = isDetailInClass ? "In-Class" : els.detailDay.value.trim();
+      const newSlot = isDetailInClass ? "" : els.detailSlot.value.trim();
       const newPrereqRaw = els.detailPrereq.value.trim();
       const newPrereqNote = els.detailPrereqNote ? els.detailPrereqNote.value.trim() : "";
 
       let newPrereqs = [];
-      if (newPrereqRaw) {
-        newPrereqs = newPrereqRaw.split(",").map(s => s.trim()).filter(Boolean);
+      if (isDetailNoPrereq) {
+        newPrereqs = ["None"];
+      } else if (newPrereqRaw) {
+        newPrereqs = newPrereqRaw.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
       }
 
       const newCreditsRaw = els.detailCredits ? els.detailCredits.value.trim() : "";
@@ -3993,6 +4570,16 @@
       pendingAction = "delete";
       setModalText(`Move ${currentEditingCode} to Trash?`, "This course will be excluded from active decoding. You can review or restore it from the Trash Bin at any time.");
       els.confirmModal.classList.add("show");
+    });
+
+    els.detailsEnrollBtn?.addEventListener("click", () => {
+      if (!currentEditingCode) return;
+      toggleEnrollCourse(currentEditingCode);
+      const isNowEnrolled = enrolledCourses.indexOf(currentEditingCode) !== -1;
+      showToast(
+        isNowEnrolled ? `Added ${currentEditingCode} to My Courses` : `Removed ${currentEditingCode} from My Courses`,
+        isNowEnrolled ? "success" : "info"
+      );
     });
 
     els.modalCancelBtn?.addEventListener("click", () => {
@@ -4212,6 +4799,11 @@
         renderAllowlist();
         await updateToggleAndStatus();
         showToast(count === 1 ? "Removed 1 domain" : "Removed " + count + " domains", "info");
+      } else if (pendingAction === "clear-enrolled") {
+        enrolledCourses = [];
+        await chrome.storage.local.set({ enrolledCourses: [] });
+        updateEnrolledUI();
+        showToast("Dropped all enrolled courses", "info");
       }
 
       pendingAction = null;
@@ -4347,15 +4939,201 @@
       });
     });
 
-    // Add single course to database
+    // Collapsible Accordion: Schedule & Prerequisites
+    els.singleCourseAccordionToggle?.addEventListener("click", () => {
+      if (!els.singleCourseAccordionBody) return;
+      const isOpen = els.singleCourseAccordionBody.style.display !== "none";
+      els.singleCourseAccordionBody.style.display = isOpen ? "none" : "flex";
+      els.singleCourseAccordionToggle.classList.toggle("is-open", !isOpen);
+      els.singleCourseAccordionToggle.setAttribute("aria-expanded", String(!isOpen));
+    });
+
+    // Segmented Exam Mode: Central Routine vs In-Class
+    function setExamMode(mode) {
+      const isRoutine = mode === "routine";
+      if (els.examModeRoutine) els.examModeRoutine.checked = isRoutine;
+      if (els.examModeInClass) els.examModeInClass.checked = !isRoutine;
+      if (els.pillExamRoutine) els.pillExamRoutine.classList.toggle("active", isRoutine);
+      if (els.pillExamInClass) els.pillExamInClass.classList.toggle("active", !isRoutine);
+      if (els.routineInputsRow) els.routineInputsRow.style.display = isRoutine ? "grid" : "none";
+      if (els.singleCourseInClass) els.singleCourseInClass.checked = !isRoutine;
+      if (!isRoutine) {
+        if (els.singleCourseDay) els.singleCourseDay.value = "In-Class";
+        if (els.singleCourseSlot) els.singleCourseSlot.value = "";
+      } else {
+        if (els.singleCourseDay && els.singleCourseDay.value === "In-Class") {
+          els.singleCourseDay.value = "";
+        }
+      }
+    }
+
+    els.examModeRoutine?.addEventListener("change", () => setExamMode("routine"));
+    els.examModeInClass?.addEventListener("change", () => setExamMode("inclass"));
+    els.pillExamRoutine?.addEventListener("click", () => setExamMode("routine"));
+    els.pillExamInClass?.addEventListener("click", () => setExamMode("inclass"));
+
+    // Schedule & Prerequisite Toggles for Single Course Form
+    els.singleCourseInClass?.addEventListener("change", () => {
+      const isChecked = !!els.singleCourseInClass.checked;
+      setExamMode(isChecked ? "inclass" : "routine");
+    });
+
+    els.singleCourseNoPrereq?.addEventListener("change", () => {
+      const isChecked = !!els.singleCourseNoPrereq.checked;
+      if (els.singleCoursePrereq) {
+        els.singleCoursePrereq.disabled = isChecked;
+        els.singleCoursePrereq.value = isChecked ? "None" : "";
+      }
+    });
+
+    // Schedule & Prerequisite Toggles for Details View
+    els.detailInClass?.addEventListener("change", () => {
+      const isChecked = !!els.detailInClass.checked;
+      if (els.detailDay) {
+        els.detailDay.disabled = isChecked;
+        els.detailDay.value = isChecked ? "In-Class" : "";
+      }
+      if (els.detailSlot) {
+        els.detailSlot.disabled = isChecked;
+        els.detailSlot.value = "";
+      }
+    });
+
+    els.detailNoPrereq?.addEventListener("change", () => {
+      const isChecked = !!els.detailNoPrereq.checked;
+      if (els.detailPrereq) {
+        els.detailPrereq.disabled = isChecked;
+        els.detailPrereq.value = isChecked ? "None" : "";
+      }
+    });
+
+    // GitHub 1-Click Contribution Handler
+    els.contribSubmitGithubBtn?.addEventListener("click", () => {
+      if (!lastAddedCourseForContrib) return;
+      const c = lastAddedCourseForContrib;
+      const title = encodeURIComponent("[Course Addition]: " + c.code + " - " + c.name);
+      const body = encodeURIComponent(
+        "### 📚 Course Addition Proposal\n\n" +
+        "| Field | Value |\n" +
+        "| :--- | :--- |\n" +
+        "| **Course Code** | `" + c.code + "` |\n" +
+        "| **Course Title** | " + c.name + " |\n" +
+        "| **Credits** | " + c.credits + " |\n" +
+        "| **Exam Schedule** | " + c.examSchedule + " |\n" +
+        "| **Prerequisites** | " + c.prerequisites + " |\n" +
+        "| **Prerequisite Note** | " + c.prerequisiteNote + " |\n\n" +
+        "---\n\n" +
+        "### 📌 Source / Verification\n" +
+        "*(e.g. UCAM course registration screenshot, official routine, department syllabus)*\n\n\n" +
+        "---\n" +
+        "*Submitted via UIU Course Code Decoder extension. Thank you for contributing to UIU's community catalog!*"
+      );
+
+      const issueUrl = "https://github.com/litch07/uiu-course-decoder/issues/new?title=" + title + "&body=" + body + "&labels=course-addition";
+      try {
+        chrome.tabs.create({ url: issueUrl });
+      } catch (_) {
+        window.open(issueUrl, "_blank", "noopener,noreferrer");
+      }
+
+      // Update button state visually
+      if (els.contribSubmitGithubBtn) {
+        els.contribSubmitGithubBtn.style.opacity = "0.75";
+        els.contribSubmitGithubBtn.textContent = "✓ Opening GitHub in New Tab...";
+        setTimeout(() => {
+          if (els.contribSubmitGithubBtn) {
+            els.contribSubmitGithubBtn.textContent = "🚀 Reopen GitHub Issue";
+            els.contribSubmitGithubBtn.style.opacity = "1";
+          }
+        }, 3000);
+      }
+      showToast("Opening GitHub issue in new tab...", "info");
+    });
+
+    els.contribDismissBtn?.addEventListener("click", () => {
+      if (els.singleCourseContribPrompt) els.singleCourseContribPrompt.style.display = "none";
+    });
+
+    // Reset form and return to input state for adding another course
+    function resetSingleCourseForm() {
+      if (els.singleCourseCode) {
+        els.singleCourseCode.value = "";
+        els.singleCourseCode.classList.remove("input-error");
+      }
+      if (els.singleCourseName) {
+        els.singleCourseName.value = "";
+        els.singleCourseName.classList.remove("input-error");
+      }
+      if (els.singleCourseDay) {
+        els.singleCourseDay.value = "";
+        els.singleCourseDay.disabled = false;
+      }
+      if (els.singleCourseSlot) {
+        els.singleCourseSlot.value = "";
+        els.singleCourseSlot.disabled = false;
+      }
+      if (els.singleCourseCredits) els.singleCourseCredits.value = "";
+      if (els.singleCoursePrereq) {
+        els.singleCoursePrereq.value = "";
+        els.singleCoursePrereq.disabled = false;
+      }
+      if (els.singleCourseNoPrereq) els.singleCourseNoPrereq.checked = false;
+      if (els.singleCoursePrereqNote) els.singleCoursePrereqNote.value = "";
+      if (els.singleCourseMsg) {
+        els.singleCourseMsg.className = "import-msg";
+        els.singleCourseMsg.style.display = "none";
+        els.singleCourseMsg.textContent = "";
+      }
+      if (els.singleCourseAccordionBody) {
+        els.singleCourseAccordionBody.style.display = "none";
+      }
+      if (els.singleCourseAccordionToggle) {
+        els.singleCourseAccordionToggle.classList.remove("is-open");
+        els.singleCourseAccordionToggle.setAttribute("aria-expanded", "false");
+      }
+      setExamMode("routine");
+      lastAddedCourseForContrib = null;
+
+      // Show form state, hide success state
+      if (els.singleCourseFormState) els.singleCourseFormState.style.display = "flex";
+      if (els.singleCourseSuccessState) els.singleCourseSuccessState.style.display = "none";
+    }
+
+    els.successAddAnotherBtn?.addEventListener("click", () => {
+      resetSingleCourseForm();
+      setTimeout(() => els.singleCourseCode?.focus(), 50);
+    });
+
+    els.successViewCatalogBtn?.addEventListener("click", () => {
+      const codeToSearch = lastAddedCourseForContrib ? lastAddedCourseForContrib.code : "";
+      resetSingleCourseForm();
+      // Switch to Course Catalog View
+      if (els.importBackBtn) {
+        els.importBackBtn.click();
+      }
+      if (els.viewWrapper && !els.viewWrapper.classList.contains("show-courses")) {
+        els.openCoursesBtn?.click();
+      }
+      if (codeToSearch && els.courseSearch) {
+        els.courseSearch.value = codeToSearch;
+        searchQuery = codeToSearch;
+        if (els.searchClearBtn) els.searchClearBtn.style.display = "inline-flex";
+        renderCourseList(searchQuery);
+      }
+    });
+
+    // Add single course keyboard shortcut (Enter to submit from text fields)
     els.addSingleCourseBtn?.addEventListener("click", async () => {
       els.singleCourseCode?.classList.remove("input-error");
       els.singleCourseName?.classList.remove("input-error");
 
       const rawCode = els.singleCourseCode?.value.trim() || "";
       const rawName = els.singleCourseName?.value.trim() || "";
-      const rawDay = els.singleCourseDay?.value.trim() || "";
-      const rawSlot = els.singleCourseSlot?.value.trim() || "";
+      const isInClass = !!els.singleCourseInClass?.checked;
+      const hasNoPrereqs = !!els.singleCourseNoPrereq?.checked;
+
+      const rawDay = isInClass ? "In-Class" : (els.singleCourseDay?.value.trim() || "");
+      const rawSlot = isInClass ? "" : (els.singleCourseSlot?.value.trim() || "");
       const rawPrereq = els.singleCoursePrereq?.value.trim() || "";
       const prereqNote = els.singleCoursePrereqNote ? els.singleCoursePrereqNote.value.trim() : "";
       const rawCredits = els.singleCourseCredits?.value.trim() || "";
@@ -4382,9 +5160,9 @@
       }
 
       const code = rawCode.toUpperCase();
-      const prereqs = rawPrereq 
-        ? rawPrereq.split(",").map(p => p.trim().toUpperCase()).filter(Boolean) 
-        : [];
+      const prereqs = hasNoPrereqs
+        ? ["None"]
+        : (rawPrereq ? rawPrereq.split(",").map(p => p.trim().toUpperCase()).filter(Boolean) : []);
 
       // Construct course object JSON (empty schedule/prereqs if left blank)
       const courseObj = {
@@ -4424,15 +5202,44 @@
         showSingleCourseMsg("success", `${code} added to course database!`);
         showToast(`${code} added to catalog`, "success");
 
-        // Clear input form for next entry
-        if (els.singleCourseCode) els.singleCourseCode.value = "";
-        if (els.singleCourseName) els.singleCourseName.value = "";
-        if (els.singleCourseDay) els.singleCourseDay.value = "";
-        if (els.singleCourseSlot) els.singleCourseSlot.value = "";
-        if (els.singleCourseCredits) els.singleCourseCredits.value = "";
-        if (els.singleCoursePrereq) els.singleCoursePrereq.value = "";
-        if (els.singleCoursePrereqNote) els.singleCoursePrereqNote.value = "";
-        els.singleCourseCode?.focus();
+        // Setup Community Contribution Action Card
+        let examScheduleDesc = "Routine Pending / TBA";
+        if (isInClass) {
+          examScheduleDesc = "In-Class Assessment / Lab Viva";
+        } else if (rawDay && rawSlot) {
+          examScheduleDesc = "Day " + rawDay + " • Slot " + rawSlot;
+        } else if (rawDay) {
+          examScheduleDesc = "Day " + rawDay;
+        }
+
+        let prereqDesc = "Not specified";
+        if (hasNoPrereqs) {
+          prereqDesc = "None (Direct entry)";
+        } else if (prereqs.length > 0) {
+          prereqDesc = prereqs.join(", ");
+        }
+
+        lastAddedCourseForContrib = {
+          code: code,
+          name: rawName,
+          credits: singleCredits !== null ? singleCredits.toFixed(1) : "3.0",
+          examSchedule: examScheduleDesc,
+          prerequisites: prereqDesc,
+          prerequisiteNote: prereqNote || "None"
+        };
+
+        // Transition from Form State to Dedicated Success State
+        if (els.successCourseCode) els.successCourseCode.textContent = code;
+        if (els.successCourseCredits) els.successCourseCredits.textContent = (singleCredits !== null ? singleCredits.toFixed(1) : "3.0") + " Cr";
+        if (els.successCourseName) els.successCourseName.textContent = rawName;
+        if (els.successCourseMeta) els.successCourseMeta.textContent = examScheduleDesc;
+        if (els.successCoursePrereq) els.successCoursePrereq.textContent = "Prerequisites: " + prereqDesc;
+
+        if (els.singleCourseFormState) els.singleCourseFormState.style.display = "none";
+        if (els.singleCourseSuccessState) els.singleCourseSuccessState.style.display = "flex";
+
+        const importBody = document.querySelector(".import-view .body");
+        if (importBody) importBody.scrollTo({ top: 0, behavior: "smooth" });
       } catch (err) {
         console.error("Failed to add course:", err);
         showSingleCourseMsg("error", "Failed to save course. Please try again.");
@@ -4441,24 +5248,7 @@
 
     // Clear single course form
     els.clearSingleFormBtn?.addEventListener("click", () => {
-      if (els.singleCourseCode) {
-        els.singleCourseCode.value = "";
-        els.singleCourseCode.classList.remove("input-error");
-      }
-      if (els.singleCourseName) {
-        els.singleCourseName.value = "";
-        els.singleCourseName.classList.remove("input-error");
-      }
-      if (els.singleCourseDay) els.singleCourseDay.value = "";
-      if (els.singleCourseSlot) els.singleCourseSlot.value = "";
-      if (els.singleCourseCredits) els.singleCourseCredits.value = "";
-      if (els.singleCoursePrereq) els.singleCoursePrereq.value = "";
-      if (els.singleCoursePrereqNote) els.singleCoursePrereqNote.value = "";
-      if (els.singleCourseMsg) {
-        els.singleCourseMsg.className = "import-msg";
-        els.singleCourseMsg.style.display = "none";
-        els.singleCourseMsg.textContent = "";
-      }
+      resetSingleCourseForm();
       els.singleCourseCode?.focus();
     });
 
@@ -4603,7 +5393,7 @@
         return;
       }
       if (!allowedSites.includes(val)) {
-        const origin = val.startsWith("*") ? `*://${val.replace(/^\*\./, "")}/*` : `*://${val}/*`;
+        const origin = val.startsWith("*.") ? `*://${val}/*` : (val.startsWith("*") ? `*://${val.replace(/^\*/, "")}/*` : `*://${val}/*`);
         allowedSites.push(val);
         await chrome.storage.local.set({ allowedSites });
         els.allowlistInput.value = "";

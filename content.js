@@ -149,7 +149,19 @@
 
     const titleSpan = document.createElement("span");
     titleSpan.className = "cce-inline-title";
-    titleSpan.textContent = `${matchText} (${data.name})`;
+
+    const codeSpan = document.createElement("span");
+    codeSpan.className = "cce-inline-code";
+    codeSpan.textContent = matchText;
+    titleSpan.appendChild(codeSpan);
+
+    titleSpan.appendChild(document.createTextNode(" "));
+
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "cce-inline-name";
+    nameSpan.textContent = `(${data.name})`;
+    titleSpan.appendChild(nameSpan);
+
     wrapEl.appendChild(titleSpan);
 
     if (data.exam) {
@@ -186,20 +198,25 @@
     };
 
     if (showExamInfo) {
-      if (resolved.examDay || resolved.examSlot) {
+      const lowerDay = (resolved.examDay || "").trim().toLowerCase();
+      if (lowerDay === "in-class") {
+        data.exam = "In-Class Evaluation";
+      } else if (resolved.examDay || resolved.examSlot) {
         let examParts = [];
         if (resolved.examDay) examParts.push(resolved.examDay);
         if (resolved.examSlot) examParts.push("Slot " + resolved.examSlot);
         data.exam = examParts.join(", ");
       } else {
-        data.exam = "In-Class";
+        data.exam = "Schedule Pending / TBA";
       }
     }
 
     if (showPrerequisites) {
       let decodedPrereqs = [];
-      if (resolved.prerequisites && resolved.prerequisites.length > 0) {
+      const hasExplicitNone = (resolved.prerequisites && resolved.prerequisites.length === 1 && resolved.prerequisites[0].toLowerCase() === "none");
+      if (resolved.prerequisites && resolved.prerequisites.length > 0 && !hasExplicitNone) {
         for (const pCode of resolved.prerequisites) {
+          if (pCode.toLowerCase() === "none") continue;
           const pResolved = resolve(pCode);
           if (pResolved && pResolved.name) {
             decodedPrereqs.push(pResolved.name);
@@ -212,7 +229,14 @@
       if (resolved.prerequisiteNote) {
         prereqText = prereqText ? (prereqText + " (" + resolved.prerequisiteNote + ")") : resolved.prerequisiteNote;
       }
-      data.prereq = prereqText || "None";
+
+      if (hasExplicitNone) {
+        data.prereq = "None (Direct Entry)";
+      } else if (prereqText) {
+        data.prereq = prereqText;
+      } else {
+        data.prereq = "Not Specified";
+      }
     }
     return data;
   }
@@ -379,10 +403,16 @@
   function renderSvgInline(wrap, matchText, data) {
     wrap.textContent = "";
 
+    const codeLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+    codeLine.setAttribute("fill", "#0f172a");
+    codeLine.setAttribute("font-weight", "600");
+    codeLine.textContent = matchText + " ";
+    wrap.appendChild(codeLine);
+
     const nameLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    nameLine.setAttribute("fill", "#0f172a");
+    nameLine.setAttribute("fill", "#f26522");
     nameLine.setAttribute("font-weight", "600");
-    nameLine.textContent = `${matchText} (${data.name})`;
+    nameLine.textContent = `(${data.name})`;
     wrap.appendChild(nameLine);
 
     if (data.exam) {
@@ -461,16 +491,31 @@
   // Checks if the extension should run on this site.
   // We also check ancestor frames to make sure it works inside iframes (like embedded google sheets)!
   function isHostAllowed(host, allowedSites) {
-    const matches = (h) =>
-      allowedSites.some((pattern) => {
-        const re = "^" + pattern.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
-        return new RegExp(re, "i").test(h);
+    const matches = (h) => {
+      if (!h) return false;
+      const target = h.toLowerCase().trim();
+      return (allowedSites || []).some((pattern) => {
+        if (!pattern) return false;
+        const p = pattern.toLowerCase().trim();
+        if (target === p) return true;
+        if (p.startsWith("*.")) {
+          const baseDomain = p.slice(2);
+          if (target === baseDomain || target.endsWith("." + baseDomain)) return true;
+        }
+        if (target.endsWith("." + p)) return true;
+        const re = "^" + p.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
+        try {
+          return new RegExp(re, "i").test(target);
+        } catch (_) {
+          return false;
+        }
       });
+    };
 
     if (matches(host)) return true;
 
     // Check ancestor frames for cross-origin iframes
-    if (window.location.ancestorOrigins) {
+    if (typeof window !== "undefined" && window.location && window.location.ancestorOrigins) {
       for (let i = 0; i < window.location.ancestorOrigins.length; i++) {
         try {
           const origin = window.location.ancestorOrigins[i];
@@ -483,7 +528,7 @@
 
     // Same-origin fallback
     try {
-      if (window !== window.top && window.top.location.hostname) {
+      if (typeof window !== "undefined" && window !== window.top && window.top.location && window.top.location.hostname) {
         if (matches(window.top.location.hostname)) return true;
       }
     } catch (e) { }
@@ -594,6 +639,16 @@
         word-break: break-word !important;
         overflow-wrap: break-word !important;
       }
+      .cce-inline-code {
+        font-weight: 600;
+      }
+      .cce-inline-name {
+        color: #f26522 !important;
+        font-weight: 600;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+      }
       .cce-inline-row {
         white-space: normal !important;
         word-break: break-word !important;
@@ -643,12 +698,19 @@
     `;
     (document.head || document.documentElement).appendChild(style);
 
-    // One global tooltip element, repositioned on mouseover
-    const globalTooltip = document.createElement("div");
-    globalTooltip.className = "cce-global-tooltip";
-    (document.body || document.documentElement).appendChild(globalTooltip);
+    attachTooltipListeners(document, window);
+  }
 
-    document.addEventListener("mouseover", (e) => {
+  function attachTooltipListeners(doc, win) {
+    if (!doc) return;
+    let globalTooltip = doc.querySelector(".cce-global-tooltip");
+    if (!globalTooltip) {
+      globalTooltip = doc.createElement("div");
+      globalTooltip.className = "cce-global-tooltip";
+      (doc.body || doc.documentElement).appendChild(globalTooltip);
+    }
+
+    doc.addEventListener("mouseover", (e) => {
       const target = e.target.closest
         ? e.target.closest(".cce-tooltip-wrap, .cce-highlight, .cce-inline")
         : null;
@@ -664,18 +726,21 @@
         const tipWidth = tipRect.width || 280;
         const tipHeight = tipRect.height || 100;
 
+        const winWidth = (win && win.innerWidth) ? win.innerWidth : (doc.documentElement.clientWidth || 800);
+        const winHeight = (win && win.innerHeight) ? win.innerHeight : (doc.documentElement.clientHeight || 600);
+
         let left = rect.left + rect.width / 2;
         const halfW = tipWidth / 2;
         if (left - halfW < 12) {
           left = halfW + 12;
-        } else if (left + halfW > window.innerWidth - 12) {
-          left = window.innerWidth - halfW - 12;
+        } else if (left + halfW > winWidth - 12) {
+          left = winWidth - halfW - 12;
         }
         globalTooltip.style.left = left + "px";
 
         if (rect.top >= tipHeight + 16) {
           globalTooltip.style.top = "auto";
-          globalTooltip.style.bottom = (window.innerHeight - rect.top + 8) + "px";
+          globalTooltip.style.bottom = (winHeight - rect.top + 8) + "px";
         } else {
           globalTooltip.style.bottom = "auto";
           globalTooltip.style.top = (rect.bottom + 8) + "px";
@@ -683,13 +748,13 @@
       }
     });
 
-    document.addEventListener("mouseout", (e) => {
+    doc.addEventListener("mouseout", (e) => {
       if (e.target.closest && e.target.closest(".cce-tooltip-wrap, .cce-highlight, .cce-inline")) {
         globalTooltip.classList.remove("cce-visible");
       }
     });
 
-    document.addEventListener("mousemove", (e) => {
+    doc.addEventListener("mousemove", (e) => {
       if (!enabled) return;
       const chartContainer = e.target.closest ? e.target.closest(".highcharts-container") : null;
       if (chartContainer) {
@@ -699,6 +764,53 @@
         }
       }
     }, { passive: true });
+  }
+
+  function injectStylesIntoDoc(doc) {
+    if (!doc || doc.getElementById("cce-custom-styles")) return;
+    const style = doc.createElement("style");
+    style.id = "cce-custom-styles";
+    const mainStyle = document.getElementById("cce-custom-styles");
+    if (mainStyle) {
+      style.textContent = mainStyle.textContent;
+    }
+    (doc.head || doc.documentElement).appendChild(style);
+  }
+
+  // Ensures Google Sheets pubhtml and embedded iframes are decoded seamlessly
+  function processSameOriginIframe(iframe) {
+    if (!iframe || !enabled || !courseRegex) return;
+    try {
+      const doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
+      if (!doc) return;
+      const frameWin = iframe.contentWindow;
+      if (frameWin && frameWin.__UIU_COURSE_DECODER_INJECTED__) return;
+
+      const frameBody = doc.body || doc.documentElement;
+      if (frameBody) {
+        injectStylesIntoDoc(doc);
+        attachTooltipListeners(doc, frameWin);
+        normalizeCourseSplits(frameBody);
+        processNode(frameBody);
+      }
+    } catch (_) {
+      // Cross-origin iframe or restricted sandbox - handled safely
+    }
+  }
+
+  function hookSameOriginIframes(root) {
+    if (!root || !root.querySelectorAll) return;
+    try {
+      const iframes = root.querySelectorAll("iframe");
+      for (const iframe of iframes) {
+        if (iframe.dataset && iframe.dataset.cceHooked) continue;
+        if (iframe.dataset) iframe.dataset.cceHooked = "1";
+        iframe.addEventListener("load", () => {
+          setTimeout(() => processSameOriginIframe(iframe), 100);
+        });
+        processSameOriginIframe(iframe);
+      }
+    } catch (_) {}
   }
 
   // Tags whose text we shouldn't mess with
@@ -1191,6 +1303,9 @@
         if (mutation.type === "childList") {
           for (const node of mutation.addedNodes) {
             if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+              if (node.nodeType === Node.ELEMENT_NODE && (node.tagName === "IFRAME" || (node.querySelector && node.querySelector("iframe")))) {
+                hookSameOriginIframes(node.tagName === "IFRAME" ? node.parentElement || document.body : node);
+              }
               const isTooltip = (node.nodeType === Node.ELEMENT_NODE && node.classList && node.classList.contains("highcharts-tooltip")) ||
                 (node.parentElement && node.parentElement.closest && node.parentElement.closest(".highcharts-tooltip"));
               if (isTooltip) {
@@ -1279,6 +1394,7 @@
     if (!rootNode) return;
     normalizeCourseSplits(rootNode);
     processNode(rootNode);
+    hookSameOriginIframes(rootNode);
     startObserver();
   }
 

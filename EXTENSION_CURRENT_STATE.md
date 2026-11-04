@@ -108,20 +108,35 @@
 
 2. **Dedicated "My Courses & Exam Routine" Screen & Clash Detector (Task 3.2)**:
    - Dedicated Feature View (`.mycourses-view`): Transformed "My Courses" from an overloaded table filter into a full-featured personal academic planner screen accessible directly from the clean Home Screen button (`#homeEnrolledCard`) and course details.
+   - Interactive Course Catalog Hero Card: Converted static "Courses Indexed" pill into an interactive top card (`#openCoursesBtn`) with book icon, live catalog count, and right chevron arrow, eliminating the redundant bottom button and achieving zero vertical scrolling on the Home dashboard.
    - Cleaned Catalog Table: Removed star icons (`★`) and inline credit chips from the Course Database table rows in View 1, restoring over 100px of width for course titles and eliminating table overflow/cramming within the 360px viewport.
    - Quick Add Search with Autocomplete: Real-time search box (`#myCoursesSearchInput`) in the My Courses screen that suggests unenrolled courses on-the-fly with 1-click addition (`+ Add`).
-   - Trimester Summary & Load Indicator: Real-time summary card showing total enrolled courses, total credit hours, and academic load indicator badge (`#enrolledLoadBadge`, e.g. `12.0 / 15.0 Cr`).
-   - Exam Schedule Collision Engine (`detectExamClashes`): Evaluates enrolled course routines, groups overlapping Day & Slot timings, and alerts students of exam conflicts while intelligently filtering out labs and in-class evaluations.
-   - Rich Enrolled Course Cards: Displays enrolled courses with day/slot badges, credit badges, quick "Inspect" navigation into View 3, and individual "Drop" buttons (`btn-card-drop`).
+   - Trimester Summary: Real-time summary card showing total enrolled courses and total credit hours.
+   - Dual-Level Exam Routine Conflict & Workload Detector:
+     * **Direct Collision Engine (`detectExamClashes`)**: Evaluates enrolled course routines, groups overlapping Day & Slot timings, and alerts students of critical exam clashes (same day & same slot) while intelligently filtering out labs and in-class evaluations.
+     * **Same-Day Multiple Exam Warning Engine (`detectSameDayExams`)**: Alerts students whenever 2 or more enrolled courses share the same final exam date (even with different slots, e.g. T1 & T3), avoiding severe advising burnout and intense multi-exam stress.
+     * **Multi-Surface Warnings**: Displays critical red badges (`🚨 N Clashes`) or high-workload amber alerts (`⚠️ 2 on Same Day`) on Home (`#homeClashBadge`), My Courses top alert box (`#clashAlertBox`), enrolled course cards (`.enrolled-card-sameday-banner`), and live in Course Details (`#detailClashWarning`).
+   - Rich Enrolled Course Cards: Displays enrolled courses with day/slot badges, credit badges, same-day warnings, quick "Inspect" navigation into View 3, and individual "Drop" buttons (`btn-card-drop`).
    - Drop All Courses Safety Action: Allows clearing enrolled courses with confirmation (`#clearEnrolledBtn`).
-   - Strict Zero-`innerHTML` DOM generation with 100% test coverage in `tests/test_my_courses_clash_detector.js` (31/31 passing).
-3. **Exam Week Calendar Export (.ics / RFC 5545) (Task 3.3)**:
+   - Strict Zero-`innerHTML` DOM generation with 100% test coverage in `tests/test_my_courses_clash_detector.js` (39/39 passing).
+3. **Community & Contribution Discovery System (Task 3.6)**:
+   - Dedicated Contribution Modal (`#contributionModal`): Accessible via clean 32×32 Info buttons (`ℹ`) across Course Database (`#openContribModalBtn`), Course Details (`#detailsInfoBtn`), and Add/Import (`#importInfoBtn`), as well as a "Contribute" footer link on the Home dashboard (`#homeContributeBtn`).
+   - 3-Pronged Action Paths:
+     1. Direct link to official `CONTRIBUTING.md` guide for formatting rules and course schema.
+     2. Pre-filled GitHub Issue link with intelligent markdown templates tailored for:
+        - Specific course data corrections (when accessed from Course Details, capturing code, title, credits, exam day/slot, prerequisites, notes).
+        - Missing course additions & department curriculum reports (when opened from catalog/home, providing prompts for course code, title, department, credits, routine, prerequisites, and syllabus/routine proof).
+     3. 1-click "Export Custom Courses as JSON" action formatted for Pull Request submission.
+   - Contextual Empty-Search Guidance: When course searches return 0 matches, displays a prompt inviting students to contribute missing courses to the official catalog.
+   - Batch Upload Contribution Tip: Surfaces a gentle prompt in View 4 encouraging students with custom department curricula to share them repository-wide.
+
+4. **Exam Week Calendar Export (.ics / RFC 5545) (Task 3.3)**:
    - iCalendar Serialization Engine: Formats scheduled course exams into standard `.ics` events compatible with Google Calendar, Apple Calendar, and Microsoft Outlook.
    - Intelligent Slot Mapping: Automatically maps exam slots (`T1` &rarr; 09:00–11:00, `T2` &rarr; 11:30–13:30, `T3` &rarr; 14:30–16:30) and calculates calendar dates based on user-chosen exam week start dates.
    - Interactive Export Modal (`#examExportModal`): Accessible via `#openIcsExportBtn` in the My Courses summary bar; includes live scheduled exam preview, date picker, and dual `VALARM` reminder configuration (24 hours and 2 hours prior to exams).
    - Zero-`innerHTML` Security: Fully safe programmatic DOM creation with comprehensive coverage in `tests/test_exam_calendar_export.js` (25/25 passing).
 
-4. **System-Adaptive OLED Dark Mode Palette (Task 3.4)**:
+5. **System-Adaptive OLED Dark Mode Palette (Task 3.4)**:
    - Deep OLED Dark Theme: Custom-engineered OLED palette with pure blacks (`--bg: #090d16`), dark surfaces (`--surface: #111827`, `--surface2: #162032`), high-contrast text (`--text-main: #f9fafb`, `--text-muted: #94a3b8`), and refined borders (`--border-color: #243048`).
    - Settings Preference Radiogroup (`#themeOptionsGroup`): Segmented 3-state control in View 5 supporting System Default (`#themeSystem`), Light (`#themeLight`), and Dark OLED (`#themeDark`).
    - Zero-Flash Pure CSS Fallback: Uses `@media (prefers-color-scheme: dark)` and `:root:not([data-theme="light"])` to guarantee zero white flash before storage initializes.
@@ -129,7 +144,7 @@
    - Persistent Local Storage: Retains user preference across browser sessions in `chrome.storage.local` under `themePreference`.
    - Comprehensive test suite: `tests/test_dark_mode_palette.js` (45/45 passing).
 
-5. **Keyboard Navigation & ARIA Accessibility (Task 3.5)**:
+6. **Keyboard Navigation & ARIA Accessibility (Task 3.5)**:
    - Full ARIA Landmarks: Added `role="region"` and `aria-label` to all 5 sliding panels; `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` across all confirmation and export modals.
    - Tabs & Controls Semantics: Implemented `role="tablist"`, `role="tab"`, `aria-selected`, and `aria-controls` on import tabs; `role="radiogroup"` and `role="radio"` on theme and prerequisite view controls.
    - Modal Focus-Trapping: Dependency-free engine cycling keyboard focus within open dialogs on `Tab` and `Shift+Tab`, with automatic restoration to trigger elements upon close.
@@ -248,7 +263,7 @@
 - `PRIVACY.md` — Full transparent privacy documentation.
 - `CONTRIBUTING.md` — Contribution guide and course schema specification.
 - `.github/workflows/validate-catalog.yml` — Automated CI workflow validating catalog syntax and running regression tests.
-- `tests/` — Comprehensive automated test suite (22 test suites):
+- `tests/` — Comprehensive automated test suite (24 test suites):
   - `tests/test_batch_upload.js`
   - `tests/test_empty_trash_all.js`
   - `tests/test_merge.js`
@@ -271,6 +286,7 @@
   - `tests/test_exam_calendar_export.js`
   - `tests/test_dark_mode_palette.js`
   - `tests/test_keyboard_accessibility.js`
+  - `tests/test_google_sheets_pubhtml.js`
 
 ---
 
@@ -280,4 +296,4 @@ Run the entire automated test suite sequentially from the repository root:
 ```powershell
 node tests/run_all.js
 ```
-**Expected Result**: All 22 test suites pass with zero failures.
+**Expected Result**: All 24 test suites pass with zero failures.

@@ -1,0 +1,92 @@
+/**
+ * tests/test_schedule_prereq_github_prompt.js
+ *
+ * Verifies:
+ * 1. Schedule & Prerequisites form additions in popup.html (In-Class & No-Prereq toggles)
+ * 2. Community 1-Click GitHub issue contribution prompt in popup.html & popup.js
+ * 3. Content script buildExtendedData discrimination between In-Class, Scheduled, and TBA
+ * 4. Content script buildExtendedData discrimination between None and Not Specified prerequisites
+ * 5. Zero innerHTML usage in new logic
+ */
+
+const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+
+const ROOT = path.resolve(__dirname, "..");
+const HTML = fs.readFileSync(path.join(ROOT, "popup.html"), "utf8");
+const JS = fs.readFileSync(path.join(ROOT, "popup.js"), "utf8");
+const CONTENT_JS = fs.readFileSync(path.join(ROOT, "content.js"), "utf8");
+const CSS = fs.readFileSync(path.join(ROOT, "popup.css"), "utf8");
+
+console.log("Running Schedule, Prerequisite & GitHub Prompt Tests...");
+
+// ── 1. HTML Element Existence ────────────────────────────────────────────────
+assert.ok(HTML.includes('id="singleCourseInClass"'), "HTML has #singleCourseInClass checkbox");
+assert.ok(HTML.includes('id="singleCourseNoPrereq"'), "HTML has #singleCourseNoPrereq checkbox");
+assert.ok(HTML.includes('id="singleCourseContribPrompt"'), "HTML has #singleCourseContribPrompt card");
+assert.ok(HTML.includes('id="contribSubmitGithubBtn"'), "HTML has #contribSubmitGithubBtn button");
+assert.ok(HTML.includes('id="contribDismissBtn"'), "HTML has #contribDismissBtn button");
+assert.ok(HTML.includes('id="detailInClass"'), "HTML has #detailInClass in Details View");
+assert.ok(HTML.includes('id="detailNoPrereq"'), "HTML has #detailNoPrereq in Details View");
+
+// ── 2. CSS Styling Existence ─────────────────────────────────────────────────
+assert.ok(CSS.includes(".form-checkbox-row"), "CSS has .form-checkbox-row");
+assert.ok(CSS.includes(".form-checkbox-label"), "CSS has .form-checkbox-label");
+assert.ok(CSS.includes(".contrib-prompt-card"), "CSS has .contrib-prompt-card");
+assert.ok(CSS.includes(".btn-contrib-submit"), "CSS has .btn-contrib-submit");
+assert.ok(CSS.includes(".routine-slot-badge.pending-slot"), "CSS has .routine-slot-badge.pending-slot");
+
+// ── 3. Content Script Extended Data Behavior ─────────────────────────────────
+// Extract buildExtendedData function from content.js for isolated unit testing
+const buildExtMatch = CONTENT_JS.match(/function buildExtendedData\([\s\S]*?\n  \}/);
+assert.ok(buildExtMatch, "content.js contains buildExtendedData");
+
+// Create test sandbox for buildExtendedData
+const showExamInfo = true;
+const showPrerequisites = true;
+function resolve(code) {
+  if (code === "CSE 1111") return { name: "Structured Programming" };
+  return null;
+}
+
+const testFn = new Function(
+  "showExamInfo", "showPrerequisites", "resolve",
+  `return ${buildExtMatch[0]};`
+)(showExamInfo, showPrerequisites, resolve);
+
+// Test A: Explicit In-Class exam
+const resInClass = testFn({ name: "OOP Lab", examDay: "In-Class", examSlot: "", prerequisites: [] });
+assert.strictEqual(resInClass.exam, "In-Class Evaluation", "In-Class must return 'In-Class Evaluation'");
+
+// Test B: Empty / omitted exam schedule -> Routine Pending / TBA (NOT In-Class!)
+const resEmptyExam = testFn({ name: "Algorithms", examDay: "", examSlot: "", prerequisites: [] });
+assert.strictEqual(resEmptyExam.exam, "Schedule Pending / TBA", "Empty exam schedule must return 'Schedule Pending / TBA'");
+
+// Test C: Standard scheduled exam
+const resScheduled = testFn({ name: "Data Structures", examDay: "D1", examSlot: "T2", prerequisites: [] });
+assert.strictEqual(resScheduled.exam, "D1, Slot T2", "Scheduled exam must return formatted parts");
+
+// Test D: Explicit None prerequisites
+const resNonePrereq = testFn({ name: "Intro to CS", examDay: "D2", examSlot: "T1", prerequisites: ["None"] });
+assert.strictEqual(resNonePrereq.prereq, "None (Direct Entry)", "Explicit 'None' must return 'None (Direct Entry)'");
+
+// Test E: Empty / omitted prerequisites -> Not Specified
+const resEmptyPrereq = testFn({ name: "Senior Course", examDay: "D3", examSlot: "T3", prerequisites: [] });
+assert.strictEqual(resEmptyPrereq.prereq, "Not Specified", "Empty prerequisites must return 'Not Specified'");
+
+// ── 4. popup.js Zero-innerHTML and Event Wiring Check ────────────────────────
+assert.ok(JS.includes("els.singleCourseInClass"), "popup.js references els.singleCourseInClass");
+assert.ok(JS.includes("els.singleCourseNoPrereq"), "popup.js references els.singleCourseNoPrereq");
+assert.ok(JS.includes("els.contribSubmitGithubBtn"), "popup.js references els.contribSubmitGithubBtn");
+assert.ok(JS.includes("https://github.com/litch07/uiu-course-decoder/issues/new"), "popup.js generates GitHub issue URL");
+
+// Ensure no innerHTML was introduced in new handlers
+const contribBlockIdx = JS.indexOf("els.contribSubmitGithubBtn?.addEventListener");
+const contribBlockEnd = JS.indexOf("els.contribDismissBtn?.addEventListener");
+assert.ok(contribBlockIdx !== -1 && contribBlockEnd !== -1, "Found GitHub contribution listener block");
+const contribSnippet = JS.substring(contribBlockIdx, contribBlockEnd + 100);
+assert.ok(!contribSnippet.includes(".innerHTML"), "Zero innerHTML in GitHub contribution handlers");
+
+console.log("All Schedule, Prerequisite & GitHub Prompt Tests Passed! 🎉");
+

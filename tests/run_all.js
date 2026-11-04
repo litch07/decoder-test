@@ -26,7 +26,9 @@ const testFiles = [
   'tests/test_my_courses_clash_detector.js',
   'tests/test_exam_calendar_export.js',
   'tests/test_dark_mode_palette.js',
-  'tests/test_keyboard_accessibility.js'
+  'tests/test_keyboard_accessibility.js',
+  'tests/test_google_sheets_pubhtml.js',
+  'tests/test_schedule_prereq_github_prompt.js'
 ];
 
 let failed = 0;
