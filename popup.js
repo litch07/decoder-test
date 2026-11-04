@@ -164,15 +164,7 @@
     detailsEnrollBtnText: document.getElementById("detailsEnrollBtnText"),
     detailClashWarning: document.getElementById("detailClashWarning"),
     detailClashText: document.getElementById("detailClashText"),
-    examExportModal: document.getElementById("examExportModal"),
-    examExportCloseBtn: document.getElementById("examExportCloseBtn"),
-    examExportCancelBtn: document.getElementById("examExportCancelBtn"),
-    openIcsExportBtn: document.getElementById("openIcsExportBtn"),
-    icsStartDateInput: document.getElementById("icsStartDateInput"),
-    icsEventCount: document.getElementById("icsEventCount"),
-    icsPreviewList: document.getElementById("icsPreviewList"),
-    icsRemindersToggle: document.getElementById("icsRemindersToggle"),
-    downloadIcsBtn: document.getElementById("downloadIcsBtn"),
+    exportRoutineMdBtn: document.getElementById("exportRoutineMdBtn"),
     themeSettingsCard: document.getElementById("themeSettingsCard"),
     themeSystem: document.getElementById("themeSystem"),
     themeLight: document.getElementById("themeLight"),
@@ -2240,159 +2232,189 @@
   let detailsOriginView = "courses";
   let showPrereqNames = false; // Task 2.4 Enhancement: Code/Name toggle preference
 
-  // ── Task 3.3: Exam Week Calendar Export (.ics) Helpers ────────────────────
+  // ── Task 3.3: Course Routine & Markdown (.md) Export Helpers ──────────────
 
   /**
-   * Escapes special characters for RFC 5545 iCalendar text values.
-   * @param {string} str
-   * @returns {string}
+   * UIU Exam Slot Timing Information
+   * T1: 09:00 AM – 11:00 AM
+   * T2: 11:30 AM – 01:30 PM
+   * T3: 02:00 PM – 03:00 PM
+   * @param {string} slot - e.g. "T1", "T2", "T3", "Slot 1"
+   * @returns {{ label: string, time: string, start: string, end: string } | null}
    */
-  function escapeIcsText(str) {
-    if (!str) return "";
-    return String(str)
-      .replace(/\\/g, "\\\\")
-      .replace(/;/g, "\\;")
-      .replace(/,/g, "\\,")
-      .replace(/\r?\n/g, "\\n");
+  function getExamSlotTiming(slot) {
+    if (!slot) return null;
+    var s = String(slot).trim().toUpperCase();
+    if (s.indexOf("T1") !== -1 || s.indexOf("SLOT 1") !== -1 || s === "1") {
+      return {
+        label: "T1",
+        time: "09:00 AM – 11:00 AM",
+        start: "09:00 AM",
+        end: "11:00 AM"
+      };
+    }
+    if (s.indexOf("T2") !== -1 || s.indexOf("SLOT 2") !== -1 || s === "2") {
+      return {
+        label: "T2",
+        time: "11:30 AM – 01:30 PM",
+        start: "11:30 AM",
+        end: "01:30 PM"
+      };
+    }
+    if (s.indexOf("T3") !== -1 || s.indexOf("SLOT 3") !== -1 || s === "3") {
+      return {
+        label: "T3",
+        time: "02:00 PM – 03:00 PM",
+        start: "02:00 PM",
+        end: "03:00 PM"
+      };
+    }
+    return {
+      label: slot,
+      time: slot,
+      start: "",
+      end: ""
+    };
   }
 
   /**
-   * Formats a Date object and time string ("HH:MM:SS") into an ICS timestamp (YYYYMMDDTHHMMSS).
-   * @param {Date} date
-   * @param {string} timeStr - "09:00:00"
-   * @returns {string}
+   * Generates a beautifully formatted Markdown (.md) summary of enrolled courses,
+   * exam schedule, slot timings, and conflict analysis.
+   * @param {string[]} enrolledList - Array of course codes
+   * @param {Object} catalog - Merged courses catalog
+   * @returns {string} Markdown document content
    */
-  function formatIcsDateTime(date, timeStr) {
-    var parts = timeStr.split(":");
-    var d = new Date(date.getTime());
-    d.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), parseInt(parts[2] || "0", 10), 0);
-    var pad = function(n) { return n < 10 ? "0" + n : String(n); };
-    return d.getFullYear() +
-      pad(d.getMonth() + 1) +
-      pad(d.getDate()) + "T" +
-      pad(d.getHours()) +
-      pad(d.getMinutes()) + "00";
-  }
-
-  /**
-   * Generates a standard RFC 5545 iCalendar (.ics) string for scheduled exams.
-   * @param {Array<[string, Object]>} courseEntries - Array of [code, courseData]
-   * @param {string} startDateStr - YYYY-MM-DD string for Day 1
-   * @param {boolean} includeReminders
-   * @returns {string}
-   */
-  function generateIcsCalendar(courseEntries, startDateStr, includeReminders) {
-    if (includeReminders === undefined) includeReminders = true;
-    var lines = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//UIU Course Code Decoder//Exam Calendar//EN",
-      "CALSCALE:GREGORIAN",
-      "METHOD:PUBLISH",
-      "X-WR-CALNAME:UIU Final Exam Schedule",
-      "X-WR-TIMEZONE:Asia/Dhaka"
-    ];
-
+  function generateRoutineMarkdown(enrolledList, catalog) {
     var now = new Date();
     var pad = function(n) { return n < 10 ? "0" + n : String(n); };
-    var nowStr = now.getUTCFullYear() +
-      pad(now.getUTCMonth() + 1) +
-      pad(now.getUTCDate()) + "T" +
-      pad(now.getUTCHours()) +
-      pad(now.getUTCMinutes()) +
-      pad(now.getUTCSeconds()) + "Z";
+    var dateStr = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+    var timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
 
-    var baseDateParts = (startDateStr || "").split("-");
-    var baseDate = baseDateParts.length === 3
-      ? new Date(parseInt(baseDateParts[0], 10), parseInt(baseDateParts[1], 10) - 1, parseInt(baseDateParts[2], 10))
-      : new Date();
+    var totalCourses = enrolledList.length;
+    var totalCredits = computeEnrolledCredits(enrolledList, catalog);
+    var clashes = detectExamClashes(enrolledList, catalog);
+    var sameDayExams = detectSameDayExams(enrolledList, catalog);
 
-    for (var i = 0; i < courseEntries.length; i++) {
-      var code = courseEntries[i][0];
-      var val = courseEntries[i][1];
-      var data = normalizeCourseData(val);
-      var day = (data.examDay || "").trim();
-      var slot = (data.examSlot || "").trim();
-
-      if (!day || !slot) continue;
-      var lowerDay = day.toLowerCase();
-      if (lowerDay === "n/a" || lowerDay === "none" || lowerDay === "in-class") continue;
-
-      // Extract day index (Day 1 -> 0, Day 2 -> 1, ...)
-      var dayMatch = day.match(/\d+/);
-      var dayOffset = dayMatch ? (parseInt(dayMatch[0], 10) - 1) : 0;
-      var eventDate = new Date(baseDate.getTime() + dayOffset * 86400000);
-
-      // Map slot to hours
-      var startTime = "09:00:00";
-      var endTime = "11:00:00";
-      var slotUpper = slot.toUpperCase();
-      if (slotUpper.indexOf("T1") !== -1 || slotUpper.indexOf("SLOT 1") !== -1 || slotUpper === "1") {
-        startTime = "09:00:00";
-        endTime = "11:00:00";
-      } else if (slotUpper.indexOf("T2") !== -1 || slotUpper.indexOf("SLOT 2") !== -1 || slotUpper === "2") {
-        startTime = "11:30:00";
-        endTime = "13:30:00";
-      } else if (slotUpper.indexOf("T3") !== -1 || slotUpper.indexOf("SLOT 3") !== -1 || slotUpper === "3") {
-        startTime = "14:30:00";
-        endTime = "16:30:00";
-      }
-
-      var dtStart = formatIcsDateTime(eventDate, startTime);
-      var dtEnd = formatIcsDateTime(eventDate, endTime);
-      var uid = "uiu-exam-" + code.replace(/\s+/g, "_") + "-" + dtStart + "@uiu-decoder";
-
-      var title = code + " Final Exam (" + (data.name || "Course") + ")";
-      var desc = "Course: " + code + " - " + (data.name || "") + "\n" +
-        "Exam Routine: " + day + ", Slot " + slot +
-        (data.credits ? "\nCredits: " + data.credits + " Cr" : "") + "\n" +
-        "United International University";
-      var location = "United International University (UIU), United City, Madani Avenue, Dhaka 1212";
-
-      lines.push("BEGIN:VEVENT");
-      lines.push("UID:" + uid);
-      lines.push("DTSTAMP:" + nowStr);
-      lines.push("DTSTART:" + dtStart);
-      lines.push("DTEND:" + dtEnd);
-      lines.push("SUMMARY:" + escapeIcsText(title));
-      lines.push("DESCRIPTION:" + escapeIcsText(desc));
-      lines.push("LOCATION:" + escapeIcsText(location));
-      lines.push("STATUS:CONFIRMED");
-
-      if (includeReminders) {
-        lines.push("BEGIN:VALARM");
-        lines.push("TRIGGER:-PT24H");
-        lines.push("ACTION:DISPLAY");
-        lines.push("DESCRIPTION:Reminder: " + escapeIcsText(title) + " tomorrow");
-        lines.push("END:VALARM");
-
-        lines.push("BEGIN:VALARM");
-        lines.push("TRIGGER:-PT2H");
-        lines.push("ACTION:DISPLAY");
-        lines.push("DESCRIPTION:Reminder: " + escapeIcsText(title) + " in 2 hours");
-        lines.push("END:VALARM");
-      }
-
-      lines.push("END:VEVENT");
+    var clashStatus = "✅ Clear (No direct exam clashes detected)";
+    if (clashes.length > 0) {
+      clashStatus = "⚠️ " + clashes.length + " Direct Exam Clash" + (clashes.length > 1 ? "es" : "") + " Detected";
+    } else if (sameDayExams.length > 0) {
+      clashStatus = "ℹ️ Notice (" + sameDayExams.length + " Same-Day Exam Period" + (sameDayExams.length > 1 ? "s" : "") + ")";
     }
 
-    lines.push("END:VCALENDAR");
-    return lines.join("\r\n");
+    var lines = [];
+    lines.push("# UIU Course Schedule & Exam Routine");
+    lines.push("");
+    lines.push("> **Generated:** " + dateStr + " at " + timeStr);
+    lines.push("> **Summary:** " + totalCourses + " Enrolled Course" + (totalCourses !== 1 ? "s" : "") + " • " + totalCredits.toFixed(1) + " Total Credits");
+    lines.push("> **Exam Status:** " + clashStatus);
+    lines.push("");
+    lines.push("---");
+    lines.push("");
+    lines.push("## 📚 Enrolled Courses");
+    lines.push("");
+    lines.push("| Course Code | Course Title | Credits | Exam Day | Exam Slot | Scheduled Time | Prerequisites |");
+    lines.push("|:---|:---|:---:|:---:|:---:|:---|:---|");
+
+    if (totalCourses === 0) {
+      lines.push("| *(None)* | No courses currently enrolled | 0.0 Cr | — | — | — | — |");
+    } else {
+      enrolledList.forEach(function(code) {
+        var raw = catalog[code];
+        var data = normalizeCourseData(raw);
+        var title = (data.name || "Course").replace(/\|/g, "\\|");
+        var credits = (data.credits ? data.credits.toFixed(1) : "3.0") + " Cr";
+        var day = data.examDay || "TBA";
+        var slot = data.examSlot || "TBA";
+        var lowerDay = day.toLowerCase();
+
+        var timeText = "Pending / TBA";
+        if (lowerDay === "in-class") {
+          day = "In-Class";
+          slot = "N/A";
+          timeText = "In-Class Evaluation";
+        } else if (data.examSlot) {
+          var timing = getExamSlotTiming(data.examSlot);
+          timeText = timing && timing.time ? timing.time : data.examSlot;
+        }
+
+        var prereqs = (data.prerequisites && data.prerequisites.length > 0)
+          ? data.prerequisites.join(", ")
+          : "None";
+
+        lines.push("| **" + code + "** | " + title + " | " + credits + " | " + day + " | " + slot + " | " + timeText + " | " + prereqs + " |");
+      });
+    }
+
+    lines.push("");
+    lines.push("---");
+    lines.push("");
+    lines.push("## 🕒 UIU Exam Slot Timing Reference");
+    lines.push("");
+    lines.push("| Slot | Official Time Window | Description |");
+    lines.push("|:---|:---|:---|");
+    lines.push("| **T1** | `09:00 AM – 11:00 AM` | Morning Exam Slot |");
+    lines.push("| **T2** | `11:30 AM – 01:30 PM` | Midday Exam Slot |");
+    lines.push("| **T3** | `02:00 PM – 03:00 PM` | Afternoon Exam Slot |");
+    lines.push("");
+    lines.push("---");
+    lines.push("");
+    lines.push("## ⚠️ Exam Conflict & Schedule Analysis");
+    lines.push("");
+
+    if (clashes.length === 0 && sameDayExams.length === 0) {
+      lines.push("- **Direct Clashes:** None detected.");
+      lines.push("- **Same-Day Exams:** None detected.");
+      lines.push("");
+      lines.push("Your exam schedule is completely clear of collisions!");
+    } else {
+      if (clashes.length > 0) {
+        lines.push("### ❌ Direct Exam Clashes (Same Day & Same Slot)");
+        clashes.forEach(function(c) {
+          var timing = getExamSlotTiming(c.slot);
+          var timeStr = timing && timing.time ? " (" + timing.time + ")" : "";
+          lines.push("- **" + c.day + ", Slot " + c.slot + timeStr + ":** " + c.courses.join(" vs "));
+        });
+        lines.push("");
+        lines.push("> **Action Required:** Please contact your department coordinator or advisor to resolve routine clashes.");
+        lines.push("");
+      }
+
+      if (sameDayExams.length > 0) {
+        lines.push("### ⚠️ Same-Day Exams (Different Slots)");
+        sameDayExams.forEach(function(sde) {
+          var courseListStr = sde.courses.map(function(c) {
+            var timing = getExamSlotTiming(c.slot);
+            var t = timing && timing.time ? " (" + c.slot + ": " + timing.time + ")" : (c.slot ? " (" + c.slot + ")" : "");
+            return "**" + c.code + "**" + t;
+          }).join(", ");
+          lines.push("- **" + sde.day + ":** " + sde.count + " exams scheduled (" + courseListStr + ")");
+        });
+        lines.push("");
+      }
+    }
+
+    lines.push("");
+    lines.push("---");
+    lines.push("*Exported via [UIU Course Code Decoder](https://github.com/tajim004/uiu-course-code-decoder-extension)*");
+    lines.push("");
+
+    return lines.join("\n");
   }
 
   /**
-   * Triggers a browser download of the generated .ics file.
+   * Triggers a browser download of the generated Markdown file.
    * @param {string} filename
    * @param {string} content
    */
-  function downloadIcsBlob(filename, content) {
+  function downloadMarkdownFile(filename, content) {
     try {
       var url;
       try {
-        var blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
+        var blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
         url = URL.createObjectURL(blob);
       } catch (_) {
-        url = "data:text/calendar;charset=utf-8," + encodeURIComponent(content);
+        url = "data:text/markdown;charset=utf-8," + encodeURIComponent(content);
       }
       var a = document.createElement("a");
       a.href = url;
@@ -2408,106 +2430,8 @@
         }
       }, 2000);
     } catch (e) {
-      console.error("Failed to download .ics", e);
+      console.error("Failed to download Markdown file", e);
     }
-  }
-
-  /**
-   * Retrieves scheduled courses for calendar export.
-   * Prefers enrolled courses if any; falls back to current filter list.
-   * @returns {Array<[string, Object]>}
-   */
-  function getCoursesForCalendar() {
-    var targets = [];
-    if (enrolledCourses.length > 0) {
-      for (var i = 0; i < enrolledCourses.length; i++) {
-        var c = enrolledCourses[i];
-        if (courses[c]) targets.push([c, courses[c]]);
-      }
-    } else {
-      for (var k in courses) {
-        if (courses.hasOwnProperty(k)) {
-          var data = normalizeCourseData(courses[k]);
-          if (data.examDay && data.examSlot) {
-            targets.push([k, courses[k]]);
-          }
-        }
-      }
-    }
-    return targets;
-  }
-
-  /**
-   * Renders the preview of courses that will be exported in the modal.
-   */
-  function renderIcsPreview() {
-    if (!els.icsPreviewList) return;
-    while (els.icsPreviewList.firstChild) {
-      els.icsPreviewList.removeChild(els.icsPreviewList.firstChild);
-    }
-
-    var entries = getCoursesForCalendar();
-    var scheduled = [];
-    for (var i = 0; i < entries.length; i++) {
-      var d = normalizeCourseData(entries[i][1]);
-      if (d.examDay && d.examSlot && d.examDay.toLowerCase() !== "n/a") {
-        scheduled.push({ code: entries[i][0], data: d });
-      }
-    }
-
-    if (els.icsEventCount) els.icsEventCount.textContent = String(scheduled.length);
-
-    if (scheduled.length === 0) {
-      var emptyEl = document.createElement("div");
-      emptyEl.className = "ics-event-item";
-      emptyEl.style.color = "var(--text-muted)";
-      emptyEl.textContent = "No scheduled exams found in selected courses.";
-      els.icsPreviewList.appendChild(emptyEl);
-      if (els.downloadIcsBtn) els.downloadIcsBtn.disabled = true;
-      return;
-    }
-
-    if (els.downloadIcsBtn) els.downloadIcsBtn.disabled = false;
-
-    scheduled.forEach(function(item) {
-      var row = document.createElement("div");
-      row.className = "ics-event-item";
-
-      var codeSpan = document.createElement("span");
-      codeSpan.className = "ics-event-code";
-      codeSpan.textContent = item.code;
-
-      var daySpan = document.createElement("span");
-      daySpan.className = "ics-event-day";
-      daySpan.textContent = item.data.examDay;
-
-      var slotSpan = document.createElement("span");
-      slotSpan.className = "ics-event-time";
-      slotSpan.textContent = "Slot " + item.data.examSlot;
-
-      row.appendChild(codeSpan);
-      row.appendChild(daySpan);
-      row.appendChild(slotSpan);
-      els.icsPreviewList.appendChild(row);
-    });
-  }
-
-  function openExamCalendarModal() {
-    if (!els.examExportModal) return;
-
-    // Set default start date to today (or upcoming Saturday)
-    if (els.icsStartDateInput && !els.icsStartDateInput.value) {
-      var today = new Date();
-      var pad = function(n) { return n < 10 ? "0" + n : String(n); };
-      els.icsStartDateInput.value = today.getFullYear() + "-" + pad(today.getMonth() + 1) + "-" + pad(today.getDate());
-    }
-
-    renderIcsPreview();
-    openModalSafely(els.examExportModal, els.icsStartDateInput);
-  }
-
-  function closeExamCalendarModal() {
-    closeModalSafely(els.examExportModal);
   }
 
   // ── End Task 3.3 Helpers ──────────────────────────────────────────────────
@@ -2808,7 +2732,9 @@
             if (clashes[ci].courses.indexOf(code) !== -1) {
               isCourseClashing = true;
               var others = clashes[ci].courses.filter(function(c) { return c !== code; });
-              clashDetailsText = clashes[ci].day + " " + clashes[ci].slot + " with " + others.join(", ");
+              var cTiming = getExamSlotTiming(clashes[ci].slot);
+              var cTimeStr = cTiming && cTiming.time ? " [" + cTiming.time + "]" : "";
+              clashDetailsText = clashes[ci].day + " " + clashes[ci].slot + cTimeStr + " with " + others.join(", ");
               break;
             }
           }
@@ -2824,7 +2750,9 @@
               if (otherSameDayCourses.length > 0) {
                 isCourseSameDay = true;
                 sameDayDetailsText = sde.day + " with " + otherSameDayCourses.map(function(o) {
-                  return o.code + (o.slot ? " (" + o.slot + ")" : "");
+                  var oTiming = getExamSlotTiming(o.slot);
+                  var tStr = oTiming && oTiming.time ? " (" + o.slot + ": " + oTiming.time + ")" : (o.slot ? " (" + o.slot + ")" : "");
+                  return o.code + tStr;
                 }).join(", ");
                 break;
               }
@@ -2908,10 +2836,20 @@
             var calPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
             calPath.setAttribute("d", "M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z");
             calIcon.appendChild(calPath);
-            var slotText = document.createElement("span");
-            slotText.textContent = "Exam: " + (examDay ? examDay : "") + (examDay && examSlot ? " • " : "") + (examSlot ? examSlot : "");
             slotChip.appendChild(calIcon);
-            slotChip.appendChild(slotText);
+
+            var timing = getExamSlotTiming(examSlot);
+            var slotLabel = document.createElement("span");
+            slotLabel.className = "routine-slot-label";
+            slotLabel.textContent = "Exam: " + (examDay ? examDay : "") + (examDay && examSlot ? " • " : "") + (examSlot ? examSlot : "");
+            slotChip.appendChild(slotLabel);
+
+            if (timing && timing.time && timing.time !== examSlot) {
+              var timeSpan = document.createElement("span");
+              timeSpan.className = "routine-slot-time";
+              timeSpan.textContent = "(" + timing.time + ")";
+              slotChip.appendChild(timeSpan);
+            }
           } else {
             slotChip.className = "routine-slot-badge pending-slot";
             var pendingText = document.createElement("span");
@@ -4321,25 +4259,19 @@
       }
     });
 
-    // Task 3.3: Exam Calendar Export Event Listeners
-    els.openIcsExportBtn?.addEventListener("click", openExamCalendarModal);
-    els.examExportCloseBtn?.addEventListener("click", closeExamCalendarModal);
-    els.examExportCancelBtn?.addEventListener("click", closeExamCalendarModal);
-    els.examExportModal?.addEventListener("click", (e) => {
-      if (e.target === els.examExportModal) {
-        closeExamCalendarModal();
+    // Task 3.3: Course Routine Markdown (.md) Export Event Listener
+    els.exportRoutineMdBtn?.addEventListener("click", () => {
+      if (enrolledCourses.length === 0) {
+        showToast("No enrolled courses to export. Add courses first.", "info");
+        return;
       }
-    });
-    els.icsStartDateInput?.addEventListener("change", renderIcsPreview);
-    els.downloadIcsBtn?.addEventListener("click", () => {
-      var entries = getCoursesForCalendar();
-      var startDate = els.icsStartDateInput ? els.icsStartDateInput.value : "";
-      var includeReminders = els.icsRemindersToggle ? els.icsRemindersToggle.checked : true;
-      var icsContent = generateIcsCalendar(entries, startDate, includeReminders);
-      var filename = "uiu-final-exams-" + (startDate || "schedule") + ".ics";
-      downloadIcsBlob(filename, icsContent);
-      showToast("Downloaded exam schedule calendar (.ics)", "success");
-      closeExamCalendarModal();
+      var now = new Date();
+      var pad = function(n) { return n < 10 ? "0" + n : String(n); };
+      var dateStr = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+      var mdContent = generateRoutineMarkdown(enrolledCourses, courses);
+      var filename = "uiu-course-routine-" + dateStr + ".md";
+      downloadMarkdownFile(filename, mdContent);
+      showToast("Downloaded course routine as Markdown (.md)", "success");
     });
 
     document.addEventListener("keydown", (e) => {
@@ -4349,8 +4281,7 @@
           trapModalFocus(els.confirmModal, e);
         } else if (els.exportModal?.classList.contains("show")) {
           trapModalFocus(els.exportModal, e);
-        } else if (els.examExportModal?.classList.contains("show")) {
-          trapModalFocus(els.examExportModal, e);
+
         } else if (els.importPreviewModal?.classList.contains("show")) {
           trapModalFocus(els.importPreviewModal, e);
         }
@@ -4362,8 +4293,7 @@
           closeImportPreviewModal();
         } else if (els.exportModal?.classList.contains("show")) {
           closeExportModal();
-        } else if (els.examExportModal?.classList.contains("show")) {
-          closeExamCalendarModal();
+
         } else if (els.confirmModal?.classList.contains("show")) {
           closeModalSafely(els.confirmModal);
           pendingAction = null;

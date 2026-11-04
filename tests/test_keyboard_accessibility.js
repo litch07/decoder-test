@@ -52,12 +52,7 @@ assert('exportModal has role="dialog" and aria-modal="true"',
 assert('exportModal has aria-labelledby="exportModalTitle" and matches element ID',
   popupHtml.includes('id="exportModalTitle"') && popupHtml.includes('aria-labelledby="exportModalTitle"'));
 
-assert('examExportModal has role="dialog" and aria-modal="true"',
-  popupHtml.includes('id="examExportModal"') &&
-  popupHtml.includes('role="dialog"') &&
-  popupHtml.includes('aria-modal="true"'));
-assert('examExportModal has aria-labelledby="examExportModalTitle" and matches element ID',
-  popupHtml.includes('id="examExportModalTitle"') && popupHtml.includes('aria-labelledby="examExportModalTitle"'));
+
 
 assert('importPreviewModal has role="dialog" and aria-modal="true"',
   popupHtml.includes('id="importPreviewModal"') &&

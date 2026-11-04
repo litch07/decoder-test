@@ -50,54 +50,7 @@
     </div>
   </div>
 
-  <!-- Exam Week Calendar Export Modal (Task 3.3) -->
-  <div class="modal-overlay" id="examExportModal" role="dialog" aria-modal="true" aria-labelledby="examExportModalTitle">
-    <div class="modal-content export-modal-content">
-      <div class="export-modal-header">
-        <div class="export-modal-title-row">
-          <svg class="export-modal-icon" viewBox="0 0 24 24">
-            <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
-          </svg>
-          <div class="export-modal-title" id="examExportModalTitle">Export Exam Calendar (.ics)</div>
-        </div>
-        <button type="button" class="export-modal-close-btn" id="examExportCloseBtn" title="Close calendar dialog" aria-label="Close calendar dialog">
-          <svg viewBox="0 0 24 24">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-          </svg>
-        </button>
-      </div>
-      <p class="export-modal-desc">Export scheduled exams to an iCalendar (.ics) file compatible with Google Calendar, Apple Calendar, and Outlook.</p>
-
-      <div class="form-group" style="margin-bottom: 12px;">
-        <label class="form-label" for="icsStartDateInput">Exam Week Start Date (Day 1)</label>
-        <input type="date" id="icsStartDateInput" class="form-input" />
-      </div>
-
-      <div class="ics-preview-section">
-        <div class="ics-preview-header">
-          <span class="ics-preview-title">Exams to Export (<span id="icsEventCount">0</span>)</span>
-        </div>
-        <div class="ics-preview-list" id="icsPreviewList"></div>
-      </div>
-
-      <label class="ics-reminder-label">
-        <input type="checkbox" id="icsRemindersToggle" checked />
-        <span>Include Calendar Reminders (24h &amp; 2h before)</span>
-      </label>
-
-      <div class="modal-actions" style="margin-top: 14px; gap: 8px;">
-        <button type="button" class="btn-save-details" id="downloadIcsBtn" style="flex: 1;">
-          <svg viewBox="0 0 24 24">
-            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-          </svg>
-          Download .ics File
-        </button>
-        <button type="button" class="btn-modal-cancel" id="examExportCancelBtn">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pre-Commit Import Preview Modal -->
+<!-- Pre-Commit Import Preview Modal -->
   <div class="modal-overlay" id="importPreviewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
     <div class="modal-content preview-modal-content">
       <div class="preview-modal-header">
@@ -1200,9 +1153,9 @@
           <p id="myCoursesHeaderSubtitle">0 enrolled courses &bull; 0.0 credits</p>
         </div>
         <div class="header-actions">
-          <button type="button" class="header-export-btn" id="openIcsExportBtn" title="Export scheduled exams to .ics calendar" aria-label="Export Exam Calendar">
+          <button type="button" class="header-export-btn" id="exportRoutineMdBtn" title="Export Enrolled Courses &amp; Routine (.md)" aria-label="Export Enrolled Courses &amp; Routine">
             <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z"/>
+              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
             </svg>
           </button>
         </div>

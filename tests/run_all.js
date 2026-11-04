@@ -24,7 +24,7 @@ const testFiles = [
   'tests/test_github_pages_docs.js',
   'tests/test_course_credits.js',
   'tests/test_my_courses_clash_detector.js',
-  'tests/test_exam_calendar_export.js',
+  'tests/test_routine_markdown_export.js',
   'tests/test_dark_mode_palette.js',
   'tests/test_keyboard_accessibility.js',
   'tests/test_google_sheets_pubhtml.js',
