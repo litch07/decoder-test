@@ -10214,7 +10214,7 @@ textarea:focus-visible,
 .main-view .enrolled-hub-sub { min-width: 0; }
 .main-view #homeEnrolledCredits { overflow-wrap: anywhere; }
 
-.main-view .body { padding: 8px 14px; gap: 6px; }
+.main-view .body { padding: 8px 14px; gap: 10px; }
 .main-view .body > .card:not(.enrolled-hub-card) { padding: 10px 12px; gap: 9px; }
 
 /* Source labels stay attached to the code and never compete with course names. */
@@ -10776,3 +10776,22 @@ svg[fill="none"][stroke="currentColor"] { fill: none !important; stroke: current
 }
 :root[data-theme="dark"] :is(.contrib-action-icon,.community-icon-box,.detail-contrib-banner-icon) { background: var(--accent-light); color: var(--accent); box-shadow: none; }
 @media (prefers-reduced-motion: reduce) { :root[data-theme="dark"] button svg { transition: none; } }
+
+/* Planning guidance is a quiet note with the same spacing as nearby cards. */
+:root[data-theme="dark"] .routine-source-note {
+  margin: 4px 0 2px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+:root[data-theme="dark"] .routine-source-note strong {
+  margin-bottom: 7px;
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 600;
+}
+:root[data-theme="dark"] .routine-source-note p + p { margin-top: 8px; }
