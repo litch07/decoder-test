@@ -36,7 +36,7 @@ const win = {
   addEventListener(type, handler) { handlers.set(type, handler); }
 };
 const context = {
-  enabled: true, themePreference: 'dark',
+  enabled: true, themePreference: 'dark', refreshInlineTitles() {},
   resolve: key => key === 'unknown' ? null : ({ name: key }),
   buildExtendedData: data => data,
   buildTooltipDom(data, node) { node.firstChild = { style: {} }; node.textContent = data.name; },
@@ -126,6 +126,7 @@ function domNode(tag) {
     removeChild(child) { this.children.splice(this.children.indexOf(child), 1); },
     get firstChild() { return this.children[0] || null; },
     setAttribute(key, value) { this.attrs[key] = value; },
+    removeAttribute(key) { delete this.attrs[key]; },
     get textContent() { return this.value || this.children.map(child => child.textContent).join(''); },
     set textContent(value) { this.value = value; this.children = []; }
   };
@@ -205,7 +206,7 @@ context.document = {
 };
 context.Event = class {};
 context.PROCESSED_ATTR = 'data-cce-done';
-vm.runInContext(source.slice(source.indexOf('  function undecorateAll('),
+vm.runInContext(source.slice(source.indexOf('  function clearInlineLayoutMarkers('), source.indexOf('  // Builds the inline expansion DOM')) + source.slice(source.indexOf('  function undecorateAll('),
   source.indexOf('  if (chrome?.storage?.local?.get)')), context);
 context.undecorateAll();
 assert.equal(restoredText, 'CSE…');
@@ -252,3 +253,89 @@ assert.deepEqual(chartContent.history.children.map(row => row.dataset.status), [
 assert.deepEqual(chartContent.history.children.map(row => row.children[1].textContent), ['21 (88%)', '0 (0%)', '3 (13%)']);
 assert.equal(chartContent.details.children[0].textContent, 'CSE 3421 (E)');
 console.log('  Chart history colors and independent footer structure checks passed.');
+
+const innerRow = domNode('tr');
+const outerRow = domNode('tr');
+const cell = domNode('td');
+const cellStyle = {maxHeight: 'none', overflowY: 'visible'};
+cell.ownerDocument = {defaultView: {getComputedStyle: () => cellStyle}};
+cell.closest = () => innerRow;
+const normalParent = {closest: selector => selector.startsWith('td, th') ? cell : null};
+const normalWrap = domNode('span');
+context.prepareInlineLayout(normalWrap, normalParent, {exam: 'Day 5'});
+assert.equal(normalWrap.dataset.cceCompact, undefined);
+assert.equal(innerRow.attrs['data-cce-inline-row'], '1');
+assert.equal(outerRow.attrs['data-cce-inline-row'], undefined, 'Only the nearest course row gets routine spacing');
+assert.equal(cell.attrs['data-cce-inline-cell'], '1');
+const gridParent = {closest: selector => selector.includes("[role='gridcell']") ? cell : null};
+const compactWrap = domNode('span');
+compactWrap.setAttribute('title', 'Old native title');
+context.prepareInlineLayout(compactWrap, gridParent, {exam: 'Day 5'});
+context.document = renderDoc;
+context.buildInlineDom('CSE 3421', {name: 'Software Engineering', exam: 'Day 5', prereq: 'CSE 3411'}, compactWrap);
+assert.equal(compactWrap.dataset.cceCompact, '1');
+assert.equal(compactWrap.children.length, 1, 'Fixed cells contain only the compact course title');
+assert.ok(compactWrap.textContent.includes('Software Engineering'));
+assert.equal(compactWrap.attrs.title, undefined, 'Compact cells use the full styled tooltip instead of duplicate native titles');
+assert.equal(compactWrap.attrs.tabindex, '0', 'Compact content remains keyboard reachable');
+cellStyle.maxHeight = '32px';
+const boundedWrap = domNode('span');
+context.prepareInlineLayout(boundedWrap, normalParent, {});
+assert.equal(boundedWrap.dataset.cceCompact, '1', 'Bounded ordinary cells also use compact content');
+context.clearInlineLayoutMarkers({querySelectorAll: () => [cell, innerRow]});
+assert.equal(cell.attrs['data-cce-inline-cell'], undefined);
+assert.equal(innerRow.attrs['data-cce-inline-row'], undefined);
+console.log('  Compact fixed cells, nearest-row scoping, and layout cleanup checks passed.');
+
+const fullInlineData = {name: 'Software Engineering', credits: 3, exam: 'Day 5', prereq: 'System Analysis and Design (CSE 3411)', inlinePrereq: 'CSE 3411'};
+const extraInline = context.inlineTooltipData(fullInlineData, false);
+assert.equal(extraInline.credits, 3);
+assert.equal(extraInline.prereq, fullInlineData.prereq);
+assert.equal(extraInline.name, undefined, 'Ordinary Inline popups do not repeat the visible name');
+assert.equal(extraInline.exam, undefined, 'Ordinary Inline popups do not repeat visible exam details');
+assert.equal(context.inlineTooltipData(fullInlineData, true), fullInlineData, 'Compact cells retain full tooltip details');
+const noExtra = context.inlineTooltipData({name: 'Example', prereq: 'No prerequisites', inlinePrereq: ''}, false);
+assert.ok(!noExtra.credits && !noExtra.prereq, 'No additional facts means no redundant popup');
+cellStyle.maxHeight = 'none';
+const expandedWithDetails = domNode('span');
+context.prepareInlineLayout(expandedWithDetails, normalParent, fullInlineData);
+assert.equal(expandedWithDetails.dataset.cceInlineDetails, '1');
+assert.equal(expandedWithDetails.attrs.tabindex, '0');
+context.prepareInlineLayout(expandedWithDetails, normalParent, {name: 'Example'});
+assert.equal(expandedWithDetails.dataset.cceInlineDetails, undefined);
+assert.equal(expandedWithDetails.attrs.tabindex, undefined, 'Removing extra facts removes the unused tab stop');
+expandedWithDetails.setAttribute('title', 'Old native tooltip');
+context.document = renderDoc;
+context.buildInlineDom('CSE 3421', fullInlineData, expandedWithDetails);
+assert.equal(expandedWithDetails.attrs.title, undefined, 'Expanded Inline removes the old native tooltip too');
+console.log('  Additional-only Inline tooltip checks passed.');
+
+const aliasCourses = {'CSE 3712': {key: 'CSE 3712', name: 'Computer Networks Laboratory'}, 'EEE 4414': {key: 'EEE 4414', name: 'Computer Networks Laboratory'}, 'CSE 1000': {key: 'CSE 1000', name: 'Introduction'}};
+context.courseRegex = /CSE 3712|EEE 4414|CSE 1000/g;
+context.resolve = code => aliasCourses[code] || null;
+function presentationFor(text, sheet = false) {
+  const root = {nodeType: 1, hasAttribute: () => false, ownerDocument: {location: {hostname: 'example.test', pathname: '/courses'}}, closest: selector => selector.startsWith('.waffle') ? (sheet ? root : null) : root};
+  const node = {nodeType: 3, nodeValue: text, parentElement: root};
+  root.childNodes = [node];
+  return context.inlinePresentations(node);
+}
+let aliases = presentationFor('CSE 3712 / EEE 4414');
+assert.equal(aliases.get(0).alias, true);
+assert.equal(aliases.get(0).omitName, true, 'Earlier slash aliases do not repeat the name');
+assert.equal(aliases.get(11).alias, true);
+assert.equal(aliases.get(11).omitName, false, 'Last alias retains the shared name');
+aliases = presentationFor('CSE 3712 / CSE 1000');
+assert.equal(aliases.get(0).alias, false, 'Different course names remain separate');
+aliases = presentationFor('CSE 3712 / EEE 4414: Computer Networks Laboratory');
+assert.equal(aliases.get(0).omitName, true);
+assert.equal(aliases.get(11).omitName, true, 'Existing native names are not inserted again');
+assert.equal(presentationFor('CSE 3712 / EEE 4414', true).size, 0, 'Sheet-type markup is excluded');
+const sheetParent = {ownerDocument: {location: {hostname: 'docs.google.com', pathname: '/spreadsheets/d/example/pubhtml'}}, closest: () => null};
+assert.equal(context.isSheetContext(sheetParent), true);
+const aliasWrap = domNode('span');
+aliasWrap.dataset.cceAlias = '1'; aliasWrap.dataset.cceOmitName = '1';
+context.buildInlineDom('CSE 3712', {name: 'Computer Networks Laboratory', exam: 'Day 5'}, aliasWrap);
+assert.equal(aliasWrap.textContent.trim(), 'CSE 3712', 'Alias labels retain their own codes without repeated metadata');
+console.log('  Slash aliases, existing names, and Sheets exclusion checks passed.');
+
+assert.equal(presentationFor('CSE 3712: Computer Networks LaboratoryII').get(0).omitName, false, 'A name prefix is not mistaken for the full existing course name');

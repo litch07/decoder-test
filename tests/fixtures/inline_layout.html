@@ -1,0 +1,122 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Inline layout regression fixture</title>
+<!-- Serve the project root on localhost and open this fixture; #results reports browser assertions. -->
+<style>
+  body { margin: 18px; font: 13px/1.5 system-ui; color: #334155; background: #f5f7fa; }
+  section { background: white; padding: 14px; border: 1px solid #dce3ec; border-radius: 8px; margin: 12px 0; }
+  h2 { font-size: 14px; margin: 0 0 10px; }
+  .fixed-grid { display: grid; grid-template-rows: 32px 32px; grid-template-columns: 190px; }
+  .fixed-grid > div { border: 1px solid #94a3b8; }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 0; vertical-align: top; }
+  #outer-cell { padding: 0; }
+  #results { white-space: pre-wrap; font-size: 11px; }
+</style>
+<section><h2>Fixed-height grid</h2><div class="fixed-grid"><div role="gridcell" id="fixed-cell">CSE 3421 (E)</div><div role="gridcell" id="next-cell">Next course row</div></div></section>
+<section><h2>Nested routine table</h2><table><tr id="outer-row"><td id="outer-cell"><table><tr id="course-row"><td id="course-cell"><strong>CSE 3421 (E)</strong></td><td id="time-cell">08:30 AM–09:50 AM</td></tr></table></td></tr></table></section>
+<section><h2>Unrelated row</h2><table><tr id="unrelated-row"><td>Other website information</td></tr></table></section>
+<section><h2>Inline without extra facts</h2><div id="no-extra">CSE 1000</div></section>
+<section id="dark-sample" style="background:#090d16;color:#e6ebf2"><h2>Highlight on a dark page</h2><p><span id="dark-target">CSE 3421</span> / <code id="dark-reference" style="font:inherit">CSE 3421</code></p></section>
+<section><h2>Highlight in bold text</h2><strong><span id="bold-target">CSE 3421</span> / <code id="bold-reference" style="font:inherit">CSE 3421</code></strong></section>
+<pre id="results">Running browser checks…</pre>
+<script>
+  window.chrome = {runtime: {id: 'inline-fixture'}, storage: {
+    local: {get(keys, callback) { callback({
+      courses: {'CSE 3421': {name: 'Software Engineering and Project Development', credits: 3, examDay: 'Day 5', examSlot: 'T3', prerequisites: ['CSE 3411']}, 'CSE 3411': {name: 'System Analysis and Design'}, 'CSE 1000': {name: 'Introduction', prerequisites: ['None']}},
+      mode: 'inline', allowedSites: ['localhost', '127.0.0.1'], showExamInfo: true, showPrerequisites: true
+    }); }},
+    onChanged: {addListener(callback) { window.changeSettings = callback; }}
+  }};
+</script>
+<script src="../../content.js"></script>
+<script>
+  const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+  (async () => {
+    const checks = [];
+    const check = (ok, message) => { if (!ok) throw Error(message); checks.push(message); };
+    try {
+      const fixed = document.getElementById('fixed-cell');
+      const next = document.getElementById('next-cell');
+      const outer = document.getElementById('outer-cell');
+      const inner = document.getElementById('course-cell');
+      const wrapper = fixed.querySelector('.cce-inline');
+      check(wrapper && wrapper.dataset.cceCompact === '1', 'Fixed cells use compact Inline');
+      check(!wrapper.querySelector('.cce-inline-row'), 'Fixed cells do not expand metadata');
+      check(wrapper.getBoundingClientRect().bottom <= next.getBoundingClientRect().top, 'Course does not overlap the next row');
+      check(wrapper.getBoundingClientRect().right <= fixed.getBoundingClientRect().right, 'Long course name stays inside its cell');
+      check(wrapper.textContent.includes('Software Engineering') && wrapper.textContent.endsWith(' (E)'), 'Course name and section remain available');
+      check(!wrapper.hasAttribute('title'), 'Compact course avoids duplicate native tooltip');
+      check(!document.getElementById('outer-row').hasAttribute('data-cce-inline-row'), 'Enclosing row is not marked');
+      check(getComputedStyle(outer).paddingTop === '0px', 'Enclosing cell retains original padding');
+      check(getComputedStyle(inner).paddingTop === '10px', 'Nearest course row gets routine spacing');
+      check(getComputedStyle(document.getElementById('time-cell')).paddingTop === '10px', 'Time stays aligned with course');
+      check(!document.getElementById('unrelated-row').hasAttribute('data-cce-inline-row'), 'Unrelated rows remain untouched');
+      wrapper.focus();
+      const tooltip = document.querySelector('.cce-global-tooltip');
+      check(tooltip.classList.contains('cce-visible'), 'Keyboard focus reveals full details');
+      check(tooltip.textContent.includes('Day 5') && tooltip.textContent.includes('System Analysis and Design'), 'Full exam and prerequisite information stays accessible');
+      wrapper.blur();
+      const expanded = inner.querySelector('.cce-inline');
+      check(!expanded.hasAttribute('title'), 'Expanded Inline removes its native tooltip');
+      expanded.focus();
+      check(tooltip.classList.contains('cce-visible'), 'Expanded Inline exposes styled extra details on focus');
+      check(tooltip.textContent.includes('3 Cr') && tooltip.textContent.includes('System Analysis and Design'), 'Extra details include credits and full prerequisite names');
+      check(!tooltip.textContent.includes('Software Engineering') && !tooltip.textContent.includes('Day 5'), 'Inline tooltip does not repeat visible name or exam');
+      expanded.blur();
+      document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}));
+      expanded.dispatchEvent(new MouseEvent('mouseover', {bubbles: true}));
+      await pause(260);
+      check(tooltip.classList.contains('cce-visible') && tooltip.textContent.includes('System Analysis and Design'), 'Expanded Inline extra details also work on hover');
+      document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}));
+      const noExtra = document.querySelector('#no-extra .cce-inline');
+      check(!noExtra.hasAttribute('title') && !noExtra.hasAttribute('tabindex'), 'No extra facts means no native tooltip or unnecessary tab stop');
+      noExtra.dispatchEvent(new MouseEvent('mouseover', {bubbles: true}));
+      await pause(260);
+      check(!tooltip.classList.contains('cce-visible'), 'Inline with no additional facts does not open a popup');
+      changeSettings({showExamInfo: {newValue: false}, showPrerequisites: {newValue: false}}, 'local');
+      await pause(40);
+      check(!document.getElementById('course-row').hasAttribute('data-cce-inline-row'), 'Removing metadata clears routine spacing');
+      check(getComputedStyle(inner).paddingTop === '0px', 'Original course-cell padding is restored');
+      changeSettings({showExamInfo: {newValue: true}, showPrerequisites: {newValue: true}}, 'local');
+      changeSettings({mode: {newValue: 'tooltip'}}, 'local');
+      await pause(40);
+      check(!document.querySelector('[data-cce-inline-row], [data-cce-inline-cell]'), 'Changing mode removes layout markers');
+      check(getComputedStyle(outer).paddingTop === '0px' && getComputedStyle(inner).paddingTop === '0px', 'Mode change restores both table levels');
+      changeSettings({mode: {newValue: 'highlight'}}, 'local');
+      await pause(40);
+      for (const prefix of ['dark', 'bold']) {
+        const marker = document.querySelector('#' + prefix + '-target .cce-highlight');
+        const reference = document.getElementById(prefix + '-reference');
+        const actual = getComputedStyle(marker);
+        const expected = getComputedStyle(reference);
+        check(actual.fontWeight === expected.fontWeight && actual.lineHeight === expected.lineHeight, prefix + ': Highlight preserves typography');
+        check(actual.color === expected.color, prefix + ': Highlight preserves text color');
+        check(Math.abs(marker.getBoundingClientRect().width - reference.getBoundingClientRect().width) < 0.5, prefix + ': Highlight adds no width');
+        check(actual.backgroundColor === 'rgba(217, 119, 6, 0.16)', prefix + ': Highlight uses subtle translucent amber');
+      }
+      changeSettings({mode: {newValue: 'inline'}}, 'local');
+      await pause(40);
+      check(fixed.querySelector('[data-cce-compact="1"]'), 'Returning to Inline restores compact layout');
+      changeSettings({allowedSites: {newValue: []}}, 'local');
+      await pause(40);
+      check(fixed.textContent === 'CSE 3421 (E)', 'Disabling restores exact original course text');
+      check(!document.querySelector('[data-cce-inline-row], [data-cce-inline-cell]'), 'Disabling clears layout markers');
+      changeSettings({allowedSites: {newValue: ['localhost', '127.0.0.1']}}, 'local');
+      await pause(40);
+      const preview = new URLSearchParams(location.search).get('preview');
+      if (preview === 'highlight') changeSettings({mode: {newValue: 'highlight'}}, 'local');
+      if (preview === 'details') {
+        inner.querySelector('.cce-inline').focus();
+        tooltip.style.transition = 'none';
+        tooltip.style.opacity = '1';
+        tooltip.style.visibility = 'visible';
+      }
+      document.getElementById('results').textContent = JSON.stringify({passed: true, checks});
+      document.title = 'PASS Inline layout regressions';
+    } catch (error) {
+      document.getElementById('results').textContent = JSON.stringify({passed: false, error: error.message, checks});
+      document.title = 'FAIL Inline layout regressions';
+    }
+  })();
+</script>

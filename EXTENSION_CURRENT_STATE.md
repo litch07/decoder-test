@@ -363,7 +363,7 @@ node tests/run_all.js
 
 
 ### Website tooltip interaction
-- Highlight keeps a persistent background; Tooltip uses a subtle dotted underline. Both reveal the same course facts on hover or keyboard focus. Inline keeps its visible expansion and does not open the shared hover tooltip.
+- Highlight keeps a persistent background; Tooltip uses a subtle dotted underline. Both reveal the same course facts on hover or keyboard focus. Inline keeps its visible expansion and opens the shared tooltip only for additional facts such as credits or full prerequisite names. Compact cells expose full details.
 - One tooltip per document uses safe DOM construction, an anchored pointer, viewport-aware placement, light/dark/system appearance, and reduced-motion support. Long prerequisite content scrolls within the available space.
 - Hover opens after 220 ms; a 140 ms leave delay allows moving onto the tooltip. Focus opens immediately. Escape, page scroll, resize, window blur, and local setting changes dismiss it.
 - HTML course markers are keyboard reachable without adding tab stops inside existing controls. Descriptions attach to the focused marker or its enclosing link and preserve existing `aria-describedby` references.
@@ -383,3 +383,24 @@ node tests/run_all.js
 - Attendance status labels and values use readable blue (Remaining), red (Absent), and green (Present), with separate dark-theme tokens. Other history rows retain neutral text. Source SVG tooltip content is hidden and used only to resolve course information and read the chart's existing history rows.
 - Hover opens the card; moving onto it permits reading/scrolling. Click pins it, another click releases the pin, and Escape/outside clicks dismiss it. Scrolls inside the card keep it open; page scrolling dismisses it.
 - Regression checks cover source history extraction, semantic status mapping, independent details/footer DOM, hover/pinning, and preserving exact attendance values. Long-list browser fixtures verify viewport bounds and footer visibility at normal and short window heights in both themes.
+
+
+### Inline layout boundaries
+- ARIA/grid cells and bounded or clipped table cells use compact Inline titles. Long names truncate within the cell; the code and section remain in the title, and the shared tooltip exposes full facts on hover or keyboard focus. All Inline wrappers omit the native browser title. Ordinary Inline titles expose only additional facts in the shared tooltip; compact titles retain full tooltip details.
+- Expanded table-cell wrapping and routine spacing use explicit `data-cce-inline-cell` and `data-cce-inline-row` markers. Only the nearest course cell/row is marked. Enclosing table rows and unrelated grid cells no longer match descendant-based layout overrides.
+- Markers are cleared before metadata updates and when decoding is disabled or the mode changes. Host style and `nowrap` attributes remain untouched.
+- Unit regressions run in the content-script resilience suite. `tests/fixtures/inline_layout.html` loads the real content script and runs 35 browser checks: serve the project root on localhost, open the fixture, and inspect its JSON result. It covers geometry, nested rows, keyboard details, metadata toggles, mode switches, and restoring original text.
+
+
+### Inline supplementary tooltips and adaptive Highlight
+- Ordinary Inline entries expose the shared styled tooltip only when credits or expanded prerequisite names add information. The popup omits the already-visible name and exam schedule. Entries without additional facts get no tooltip or extra tab stop. Compact entries retain full details on hover/focus.
+- Highlight uses translucent amber, inherited text color/font/letter spacing, and zero horizontal padding. This adapts to light/dark website surfaces while retaining the original text width, weight, and line height. Hover/focus slightly strengthens the amber without moving content.
+- The browser fixture checks supplementary-only content on focus/hover, no redundant popup without extra facts, and Highlight metrics/colors on dark and bold samples. Optional `?preview=highlight` and `?preview=details` show the final visual states after its assertions pass.
+
+
+### HTML-only bounded names and slash aliases
+- Ordinary HTML table titles are capped at two lines without assigning wider columns or changing table layout. Clipped names expose full course facts on hover/focus; short titles retain supplementary-only tooltips. Existing constrained-grid behavior stays compact.
+- Google Sheets URLs and sheet-style `.waffle`, `.ritz`, and `.docs-sheet-container` markup are excluded from the new name bounding and alias presentation rules.
+- Adjacent slash-separated catalog codes with matching normalized names retain independent markers, links, and course identities, while the last marker shows the shared name once. Alias details remain accessible per code, including differing credits and exam schedules. Different names are not grouped.
+- Original surrounding text is inspected without decoder-added text. A complete course name already present on the page is not inserted again. Source text, section suffixes, and unknown codes are preserved; extension-inserted line breaks are tagged and removed on mode changes/disable.
+- `tests/fixtures/inline_alias_tables.html` adds 25 browser checks for linked aliases, native names, differing metadata, bounded HTML widths/heights, Sheets exclusion, and exact mode-switch restoration. Existing 35 layout/tooltip/Highlight browser checks remain passing.

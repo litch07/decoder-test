@@ -88,10 +88,12 @@
     const content = document.createElement("div");
     content.className = "cce-tooltip-content";
 
-    const nameDiv = document.createElement("div");
-    nameDiv.className = "cce-tooltip-name";
-    nameDiv.textContent = data.name;
-    content.appendChild(nameDiv);
+    if (data.name) {
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "cce-tooltip-name";
+      nameDiv.textContent = data.name;
+      content.appendChild(nameDiv);
+    }
 
     if (data.exam || data.prereq || data.credits) {
       const details = document.createElement("div");
@@ -145,8 +147,118 @@
     container.appendChild(content);
   }
 
+  function clearInlineLayoutMarkers(doc) {
+    doc.querySelectorAll("[data-cce-inline-cell], [data-cce-inline-row]").forEach(el => {
+      el.removeAttribute("data-cce-inline-cell");
+      el.removeAttribute("data-cce-inline-row");
+    });
+  }
+
+  function inlineTooltipData(data, compact) {
+    if (compact) return data;
+    return {
+      credits: data.credits || null,
+      prereq: data.inlinePrereq && data.prereq !== data.inlinePrereq ? data.prereq : null
+    };
+  }
+
+  function isSheetContext(parent) {
+    const location = parent.ownerDocument && parent.ownerDocument.location;
+    return !!(location && location.hostname === "docs.google.com" && location.pathname.startsWith("/spreadsheets/")) ||
+      !!parent.closest(".waffle, .ritz, .docs-sheet-container");
+  }
+
+  function inlinePresentations(textNode) {
+    const parent = textNode.parentElement;
+    if (isSheetContext(parent)) return new Map();
+    const root = parent.closest("h1, h2, h3, h4, h5, h6, td, th, p, li") || parent.closest("a") || parent;
+    let original = "";
+    let offset = 0;
+    function visit(node) {
+      if (node === textNode) offset = original.length;
+      if (node.nodeType === 3) { original += node.nodeValue; return; }
+      if (node.hasAttribute && node.hasAttribute(PROCESSED_ATTR)) {
+        original += node.dataset.cceOriginal || node.dataset.cceMatch || "";
+        return;
+      }
+      for (const child of node.childNodes || []) visit(child);
+    }
+    visit(root);
+    const normalize = value => value.replace(/\s+/g, " ").trim().toLowerCase();
+    const matches = [...original.matchAll(new RegExp(courseRegex.source, courseRegex.flags))]
+      .map(match => ({index: match.index, end: match.index + match[0].length, course: resolve(match[0])}));
+    const result = new Map();
+    for (let i = 0; i < matches.length; i++) {
+      const item = matches[i];
+      if (!item.course) continue;
+      const linked = other => other && other.course && normalize(other.course.name) === normalize(item.course.name) &&
+        /^\s*\/\s*$/.test(original.slice(Math.min(item.end, other.end), Math.max(item.index, other.index)));
+      const previous = linked(matches[i - 1]);
+      const next = linked(matches[i + 1]);
+      const escapedName = normalize(item.course.name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const namePresent = new RegExp("(^|[^a-z0-9])" + escapedName + "($|[^a-z0-9])", "i").test(normalize(original));
+      result.set(item.index - offset, {
+        alias: !!(previous || next),
+        omitName: !!next || namePresent
+      });
+    }
+    return result;
+  }
+
+  function prepareInlineLayout(wrap, parent, data) {
+    const cell = parent.closest("td, th, [role='cell'], [role='gridcell'], .grid-cell");
+    const gridCell = parent.closest("[role='cell'], [role='gridcell'], .grid-cell");
+    let compact = !!gridCell;
+    if (cell && !compact) {
+      const style = cell.ownerDocument.defaultView.getComputedStyle(cell);
+      compact = (style.maxHeight !== "none" && Number.isFinite(parseFloat(style.maxHeight))) ||
+        ["hidden", "clip", "scroll", "auto"].includes(style.overflowY);
+    }
+    if (compact) {
+      wrap.dataset.cceCompact = "1";
+    } else {
+      delete wrap.dataset.cceCompact;
+      if (cell) {
+        cell.setAttribute("data-cce-inline-cell", "1");
+        const row = cell.closest("tr");
+        if (row && (data.exam || data.prereq)) row.setAttribute("data-cce-inline-row", "1");
+      }
+    }
+    const bounded = !!cell && !compact && !isSheetContext(parent);
+    if (bounded) wrap.dataset.cceBounded = "1";
+    else delete wrap.dataset.cceBounded;
+    const fullDetails = compact || wrap.dataset.cceAlias === "1";
+    updateInlineTooltipAccess(wrap, parent, data, fullDetails);
+  }
+
+  function updateInlineTooltipAccess(wrap, parent, data, fullDetails) {
+    const extra = inlineTooltipData(data, fullDetails);
+    if (fullDetails || extra.credits || extra.prereq) {
+      wrap.dataset.cceInlineDetails = "1";
+      if (!parent.closest("a, button, input, select, textarea, [tabindex]")) wrap.setAttribute("tabindex", "0");
+    } else {
+      delete wrap.dataset.cceInlineDetails;
+      wrap.removeAttribute("tabindex");
+    }
+  }
+
+  function refreshBoundedInline(wrap, data) {
+    if (wrap.dataset.cceBounded !== "1") return;
+    const title = wrap.querySelector(".cce-inline-title");
+    const clipped = title && title.scrollHeight > title.clientHeight + 1;
+    updateInlineTooltipAccess(wrap, wrap.parentElement, data, !!clipped || wrap.dataset.cceAlias === "1");
+  }
+
+  function refreshInlineTitles(root) {
+    for (const wrap of root.querySelectorAll('.cce-inline[data-cce-bounded="1"]')) {
+      const resolved = resolve(wrap.dataset.cceKey);
+      if (resolved) refreshBoundedInline(wrap, buildExtendedData(resolved));
+    }
+  }
+
   // Builds the inline expansion DOM inside `wrapEl` using safe DOM APIs (no innerHTML).
   function buildInlineDom(matchText, data, wrapEl) {
+    wrapEl.removeAttribute("title");
     while (wrapEl.firstChild) wrapEl.removeChild(wrapEl.firstChild);
 
     const titleSpan = document.createElement("span");
@@ -162,7 +274,7 @@
     const nameSpan = document.createElement("span");
     nameSpan.className = "cce-inline-name";
     nameSpan.textContent = `(${data.name})`;
-    titleSpan.appendChild(nameSpan);
+    if (wrapEl.dataset.cceOmitName !== "1") titleSpan.appendChild(nameSpan);
 
     wrapEl.appendChild(titleSpan);
 
@@ -171,6 +283,9 @@
       section.className = "cce-inline-section";
       section.textContent = wrapEl.dataset.cceSuffix;
       titleSpan.appendChild(section);
+    }
+    if (wrapEl.dataset.cceCompact === "1" || wrapEl.dataset.cceAlias === "1") {
+      return;
     }
     const rows = [["Exam", data.exam], ["Prerequisites", data.inlinePrereq || data.prereq]];
     for (const [labelText, value] of rows) {
@@ -303,6 +418,7 @@
   }
 
   function updateAllDecoratedElements() {
+    clearInlineLayoutMarkers(document);
     document.querySelectorAll(`[${PROCESSED_ATTR}="1"]`).forEach(wrap => {
       const key = wrap.dataset.cceKey;
       if (!key) return;
@@ -313,11 +429,9 @@
       const matchText = wrap.dataset.cceMatch;
 
       if (wrap.classList.contains("cce-inline")) {
-        wrap.title = `${matchText}: ${data.name}${data.exam ? ' | Exam: ' + data.exam : ''}${data.prereq ? ' | Prereq: ' + data.prereq : ''}`;
-      }
-
-      if (wrap.classList.contains("cce-inline")) {
+        prepareInlineLayout(wrap, wrap.parentElement, data);
         buildInlineDom(matchText, data, wrap);
+        refreshBoundedInline(wrap, data);
       } else if (wrap.tagName.toUpperCase() === "TSPAN" && !wrap.classList.contains("cce-highlight") && !wrap.classList.contains("cce-tooltip-wrap") && !wrap.dataset.cceName) {
         renderSvgTooltip(wrap, wrap.dataset.cceBefore || "", matchText, wrap.dataset.cceAfter || "", data);
       }
@@ -392,13 +506,17 @@
         position: relative;
         display: inline;
         cursor: help;
-        background-color: #ffe6cc;
-        color: #4a2500;
-        padding: 0 2px;
+        background-color: rgba(217, 119, 6, 0.16);
+        color: inherit;
+        padding: 0;
         border-radius: 3px;
-        font-weight: 500;
+        font: inherit;
+        letter-spacing: inherit;
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
       }
-      svg .cce-highlight { font-weight: inherit; padding: 0; }
+      .cce-highlight:hover, .cce-highlight:focus-visible { background-color: rgba(217, 119, 6, 0.24); }
+      svg .cce-highlight { background: none; }
       .cce-tooltip-wrap:hover, .cce-tooltip-wrap:focus-visible {
         border-bottom-style: solid;
       }
@@ -548,24 +666,50 @@
       }
       .cce-inline-label { font-weight: 500; }
       .cce-inline-value { min-width: 0; font-weight: 400; }
-      tr:has(> td .cce-inline-row) > td {
+      .cce-inline[data-cce-bounded="1"] .cce-inline-title {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+      }
+      .cce-inline[data-cce-alias="1"] { display: inline; vertical-align: baseline; }
+      .cce-inline[data-cce-alias="1"] .cce-inline-title { display: inline; margin: 0; }
+      .cce-inline[data-cce-compact="1"] {
+        display: inline-flex;
+        flex-direction: row;
+        vertical-align: baseline;
+        line-height: inherit;
+        max-height: 100%;
+        overflow: hidden;
+        white-space: nowrap !important;
+      }
+      .cce-inline[data-cce-compact="1"] .cce-inline-title {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        min-width: 0;
+        max-width: 100%;
+        margin-bottom: 0;
+        white-space: nowrap;
+      }
+      .cce-inline[data-cce-compact="1"] :is(.cce-inline-code, .cce-inline-section) { flex-shrink: 0; }
+      .cce-inline[data-cce-compact="1"] .cce-inline-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .cce-inline[data-cce-inline-details="1"] { cursor: help; }
+      .cce-inline[data-cce-inline-details="1"]:focus-visible { outline: 2px solid #bc713d; outline-offset: 2px; }
+      tr[data-cce-inline-row] > td {
         padding-top: 10px !important;
         padding-bottom: 10px !important;
         vertical-align: top;
         border-bottom: 1px solid #94a3b840;
       }
-      /* Prevent table cells, grid cells, and popup containers from clipping inline decoded courses */
-      td:has(.cce-inline),
-      th:has(.cce-inline),
-      [role="cell"]:has(.cce-inline),
-      [role="gridcell"]:has(.cce-inline),
-      .grid-cell:has(.cce-inline) {
+      [data-cce-inline-cell] {
         white-space: normal !important;
-        overflow: visible !important;
-        word-break: break-word !important;
         overflow-wrap: break-word !important;
-        height: auto !important;
-        max-height: none !important;
       }
       /* Hover uses the chart's own visibility; clicking holds a stable copy open. */
       .highcharts-container[data-cce-course-chart] {
@@ -694,7 +838,7 @@
     globalTooltip.setAttribute("role", "tooltip");
     globalTooltip.setAttribute("aria-hidden", "true");
     (doc.body || doc.documentElement).appendChild(globalTooltip);
-    const selector = ".cce-tooltip-wrap, .cce-highlight";
+    const selector = '.cce-tooltip-wrap, .cce-highlight, .cce-inline[data-cce-inline-details="1"]';
     let active = null;
     let hovered = null;
     let focused = null;
@@ -735,7 +879,13 @@
       active = target;
       globalTooltip.textContent = "";
       globalTooltip.dataset.theme = themePreference;
-      buildTooltipDom(buildExtendedData(resolved), globalTooltip);
+      const data = buildExtendedData(resolved);
+      const title = target.querySelector ? target.querySelector(".cce-inline-title") : null;
+      const clipped = target.dataset.cceBounded === "1" && title && title.scrollHeight > title.clientHeight + 1;
+      const tooltipData = target.classList.contains("cce-inline")
+        ? inlineTooltipData(data, target.dataset.cceCompact === "1" || target.dataset.cceAlias === "1" || clipped) : data;
+      if (!tooltipData.name && !tooltipData.credits && !tooltipData.exam && !tooltipData.prereq) return;
+      buildTooltipDom(tooltipData, globalTooltip);
       const rect = target.getBoundingClientRect();
       const height = Math.max(40, Math.max(rect.top, win.innerHeight - rect.bottom) - 47);
       globalTooltip.firstChild.style.maxHeight = height + "px";
@@ -800,7 +950,7 @@
       if (!globalTooltip.contains(e.target)) hide();
     }, true);
     doc.addEventListener("cce-dismiss-tooltip", hide);
-    win.addEventListener("resize", hide);
+    win.addEventListener("resize", () => { hide(); refreshInlineTitles(doc); });
     win.addEventListener("blur", hide);
 
     function showChart(point, chart, pin) {
@@ -1047,6 +1197,7 @@
     let match;
     let replaced = false;
     let lastMatchHadDetails = false;
+    const presentations = !isSvg && effectiveMode === "inline" ? inlinePresentations(textNode) : new Map();
 
     courseRegex.lastIndex = 0;
     while ((match = courseRegex.exec(matchText)) !== null) {
@@ -1074,10 +1225,10 @@
       if ((!isTooltip || !isSvg) && match.index > lastIndex) {
         const interText = text.slice(lastIndex, match.index);
         if (effectiveMode === "inline" && lastMatchHadDetails) {
-          frag.appendChild(document.createElement("br"));
-          if (interText.trim()) {
-            frag.appendChild(document.createTextNode(interText.trim() + " "));
-          }
+          const lineBreak = document.createElement("br");
+          lineBreak.setAttribute("data-cce-break", "1");
+          frag.appendChild(lineBreak);
+          frag.appendChild(document.createTextNode(interText));
         } else {
           frag.appendChild(document.createTextNode(interText));
         }
@@ -1131,14 +1282,17 @@
                     wrap.textContent = match[0];
         } else {
           wrap.className = "cce-inline";
+          const presentation = presentations.get(match.index);
+          if (presentation && presentation.alias) wrap.dataset.cceAlias = "1";
+          if (presentation && presentation.omitName) wrap.dataset.cceOmitName = "1";
           const suffix = text.slice(match.index + match[0].length).match(/^\s*\([A-Z0-9]{1,5}\)/);
           if (suffix) {
             wrap.dataset.cceSuffix = suffix[0];
             wrap.dataset.cceOriginal = match[0] + suffix[0];
           }
-                    wrap.title = `${match[0]}: ${data.name}${data.exam ? ' | Exam: ' + data.exam : ''}${data.prereq ? ' | Prereq: ' + data.prereq : ''}`;
+          prepareInlineLayout(wrap, textNode.parentElement, data);
           buildInlineDom(match[0], data, wrap);
-          lastMatchHadDetails = !!(data.exam || data.prereq);
+          lastMatchHadDetails = wrap.dataset.cceCompact !== "1" && wrap.dataset.cceAlias !== "1" && !!(data.exam || data.prereq);
         }
         if (effectiveMode !== "inline" && !textNode.parentElement.closest("a, button, input, select, textarea, [tabindex]")) {
           wrap.setAttribute("tabindex", "0");
@@ -1205,6 +1359,7 @@
       if (textNode.parentNode) {
         const parent = textNode.parentNode;
         parent.replaceChild(frag, textNode);
+        refreshInlineTitles(parent);
 
         // If we just edited text inside a Highcharts tooltip, fix its background box immediately!
         let tg = parent;
@@ -1325,6 +1480,7 @@
         if (frag && node.parentNode) {
           const parent = node.parentNode;
           parent.replaceChild(frag, node);
+          refreshInlineTitles(parent);
 
           // If we just edited text inside a Highcharts tooltip, fix its background box
           let tg = parent;
@@ -1364,6 +1520,7 @@
                   if (frag && node.parentNode) {
                     const parent = node.parentNode;
                     parent.replaceChild(frag, node);
+          refreshInlineTitles(parent);
                     let tg = parent;
                     while (tg && tg !== document.documentElement) {
                       if (tg.classList && tg.classList.contains("highcharts-tooltip")) break;
@@ -1450,7 +1607,9 @@
   }
 
   function undecorateAll() {
+    clearInlineLayoutMarkers(document);
     document.dispatchEvent(new Event("cce-dismiss-tooltip"));
+    document.querySelectorAll("[data-cce-break]").forEach(lineBreak => lineBreak.remove());
     document.querySelectorAll(`[${PROCESSED_ATTR}="1"]`).forEach(wrap => {
       if (wrap.parentNode) {
         if (wrap.dataset.cceOriginalTitle && !wrap.parentNode.querySelector("title")) {

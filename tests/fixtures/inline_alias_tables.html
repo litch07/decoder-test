@@ -1,0 +1,68 @@
+<!doctype html>
+<meta charset="utf-8"><title>Inline HTML tables and aliases</title>
+<style>
+ body {font:13px/1.5 system-ui;margin:18px;color:#334155;background:#f5f7fa}
+ section {padding:14px;margin:12px 0;border:1px solid #dbe2eb;background:white;border-radius:8px}
+ h1,h2 {font-size:15px;margin:0 0 8px} table {border-collapse:collapse;table-layout:fixed;width:230px} td {padding:0;border:1px solid #94a3b8}
+ #results {font:11px monospace;white-space:pre-wrap}
+</style>
+<section><h2>Linked slash aliases</h2><h1 id="aliases"><a href="#first">CSE 3712</a> / <a href="#second">EEE 4414</a></h1></section>
+<section><h2>Name already present</h2><h1 id="native">Fall 263 CSE 324/CSE 3712/EEE 4414 (G): Computer Networks Laboratory</h1></section>
+<section><h2>Different names</h2><p id="different">CSE 3712 / CSE 1000</p></section>
+<section><h2>Bounded HTML table</h2><table id="bounded"><tr><td>CSE 1001</td></tr></table></section>
+<section><h2>Sheet-style markup (excluded)</h2><div class="ritz"><table class="waffle"><tr><td id="sheet">CSE 3712 / EEE 4414</td></tr></table></div></section>
+<pre id="results">Running…</pre>
+<script>
+ const original = Object.fromEntries(['aliases','native','different','sheet'].map(id=>[id,document.getElementById(id).textContent]));
+ const fixtureCourses = {
+  'CSE 3712': {name:'Computer Networks Laboratory',credits:1,examDay:'Day 5',examSlot:'T1',prerequisites:['None']},
+  'EEE 4414': {name:'Computer Networks Laboratory',credits:2,examDay:'Day 6',examSlot:'T2',prerequisites:['None']},
+  'CSE 1000': {name:'Introduction',prerequisites:['None']},
+  'CSE 1001': {name:'Professional Software Design and Development with Advanced Collaborative Systems and Practical Engineering Applications for Modern Distributed Computing',prerequisites:['None']}
+ };
+ const originalCatalog = JSON.stringify(fixtureCourses);
+ window.chrome={runtime:{id:'fixture'},storage:{local:{get(keys,callback){callback({courses:fixtureCourses,mode:'inline',allowedSites:['localhost','127.0.0.1'],showExamInfo:true,showPrerequisites:true})}},onChanged:{addListener(fn){window.changeSettings=fn}}}};
+</script>
+<script src="../../content.js"></script>
+<script>
+ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ (async()=>{const checks=[];const check=(ok,msg)=>{if(!ok)throw Error(msg);checks.push(msg)};
+ try {
+  const aliases=document.getElementById('aliases');
+  check(aliases.querySelectorAll('.cce-inline-name').length===1,'Split linked aliases show one shared name');
+  check(aliases.textContent.includes('CSE 3712')&&aliases.textContent.includes('EEE 4414'),'Both original codes remain');
+  check(aliases.querySelectorAll('a').length===2&&aliases.querySelector('a').getAttribute('href')==='#first','Links remain intact');
+  const marker1=aliases.querySelectorAll('.cce-inline')[0];const marker2=aliases.querySelectorAll('.cce-inline')[1];
+  aliases.querySelectorAll('a')[0].focus();
+  const tooltip=document.querySelector('.cce-global-tooltip');
+  check(tooltip.textContent.includes('1 Cr')&&tooltip.textContent.includes('Day 5'),'First alias retains its own course details');
+  aliases.querySelectorAll('a')[1].focus();
+  check(tooltip.textContent.includes('2 Cr')&&tooltip.textContent.includes('Day 6'),'Second alias retains different course details');
+  document.activeElement.blur();document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));
+  const native=document.getElementById('native');
+  check(!native.querySelector('.cce-inline-name'),'Existing page name is not inserted again');
+  check(native.textContent.includes('CSE 324'),'Unknown original course code is preserved');
+  check((native.textContent.match(/Computer Networks Laboratory/g)||[]).length===1,'Native name remains once');
+  check(document.querySelectorAll('#different .cce-inline-name').length===2,'Different course names stay separate');
+  const table=document.getElementById('bounded');const wrap=table.querySelector('.cce-inline');const title=wrap.querySelector('.cce-inline-title');
+  check(wrap.dataset.cceBounded==='1','Ordinary HTML table gets a bounded title');
+  check(title.scrollHeight>title.clientHeight,'Long name is clamped rather than stretching the table');
+  check(title.clientHeight<=parseFloat(getComputedStyle(title).lineHeight)*2+1,'Name uses at most two lines');
+  check(table.getBoundingClientRect().width<=231,'Table width stays fixed');
+  wrap.focus();check(tooltip.textContent.includes('Modern Distributed Computing'),'Full clipped course name remains available');
+  wrap.blur();document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));
+  const sheet=document.getElementById('sheet');
+  check(!sheet.querySelector('[data-cce-bounded]'),'Sheet-style tables are excluded from bounding');
+  check(!sheet.querySelector('[data-cce-alias]'),'Sheet-style aliases are unchanged');
+  check(sheet.querySelectorAll('.cce-inline-name').length===2,'Existing sheet decoding is preserved');
+  changeSettings({showExamInfo:{newValue:false},showPrerequisites:{newValue:false}},'local');await pause(40);
+  check(aliases.querySelectorAll('.cce-inline-name').length===1,'Metadata changes retain shared naming');
+  check(wrap.dataset.cceInlineDetails==='1','Clipped table names retain full-details access after updates');
+  changeSettings({mode:{newValue:'tooltip'}},'local');await pause(40);
+  for(const id of Object.keys(original)) check(document.getElementById(id).textContent===original[id],id+': mode switch restores original text');
+  changeSettings({mode:{newValue:'inline'}},'local');await pause(40);
+  check(aliases.querySelectorAll('.cce-inline-name').length===1,'Returning to Inline retains one shared name');
+  check(JSON.stringify(fixtureCourses)===originalCatalog,'Catalog identities and values are unchanged');
+  document.getElementById('results').textContent=JSON.stringify({passed:true,checks});
+ }catch(error){document.getElementById('results').textContent=JSON.stringify({passed:false,error:error.message,checks});}})();
+</script>
