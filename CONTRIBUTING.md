@@ -171,3 +171,7 @@ If a check fails, review the GitHub Actions workflow log for details.
 - **Pull Request (PR)**: A proposal asking maintainers to merge your changes into the main project.
 
 Missing properties in a local override inherit catalog values. Explicit empty strings, empty prerequisite arrays, and `credits: null` clear those fields. Legacy string records change only the name; new exports and imports use objects. Exam day aliases are normalized before schedule comparisons. Unknown credits and unverified exam dates must never be guessed.
+
+Before committing catalog changes, run `node scripts/sync_catalog.js`, then `node scripts/validate_catalog.js` and `node tests/run_all.js`. The root catalog is the source of truth; keep its website copy synchronized.
+
+For a new repository or fork, enable GitHub Pages in Settings → Pages and select GitHub Actions as its source before running the deployment workflow. The default workflow token does not provision a new Pages site.

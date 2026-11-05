@@ -10,6 +10,9 @@ on:
       - 'docs/**'
       - 'courses.json'
       - '.github/workflows/deploy-pages.yml'
+      - 'course-data.js'
+      - 'scripts/sync_catalog.js'
+      - 'scripts/validate_catalog.js'
   workflow_dispatch:
 
 permissions:
@@ -37,20 +40,27 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Sync courses.json into docs/
+      - name: Prepare and validate public catalog
         run: |
-          echo "Ensuring docs/courses.json is strictly in sync with root courses.json..."
-          cp courses.json docs/courses.json
-          node -e "
-            const fs = require('fs');
-            const root = fs.readFileSync('courses.json', 'utf8');
-            const docs = fs.readFileSync('docs/courses.json', 'utf8');
-            if (root !== docs) {
-              console.error('FAIL: docs/courses.json out of sync with courses.json');
-              process.exit(1);
+          node scripts/sync_catalog.js
+          node scripts/validate_catalog.js
+
+      - name: Verify repository Pages configuration
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const { data } = await github.rest.repos.getPages(context.repo);
+              if (data.build_type !== 'workflow') {
+                core.setFailed(`Select GitHub Actions as the Pages source: https://github.com/${context.repo.owner}/${context.repo.repo}/settings/pages`);
+              }
+            } catch (error) {
+              if (error.status === 404) {
+                core.setFailed(`GitHub Pages is not enabled or is unavailable to this repository. Enable it and select GitHub Actions at https://github.com/${context.repo.owner}/${context.repo.repo}/settings/pages, then rerun this workflow.`);
+              } else {
+                throw error;
+              }
             }
-            console.log('OK: docs/courses.json synchronized successfully');
-          "
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
