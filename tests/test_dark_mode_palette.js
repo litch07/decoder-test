@@ -58,10 +58,10 @@ assert('HTML has dangerResetCard with .danger-card class',
 // ── 2. CSS Dark Palette & Media Query Architecture ────────────────────────
 assert('CSS has [data-theme="dark"] variable root', popupHtml.includes('data-theme') || popupCss.includes('[data-theme="dark"]'));
 assert('CSS defines OLED dark background --bg: #090d16', popupCss.includes('--bg: #090d16'));
-assert('CSS defines OLED dark surface --surface: #111827', popupCss.includes('--surface: #111827'));
-assert('CSS defines dark secondary surface --surface2: #162032', popupCss.includes('--surface2: #162032'));
-assert('CSS defines dark border color --border-color: #243048', popupCss.includes('--border-color: #243048'));
-assert('CSS defines dark high-contrast main text --text-main: #f9fafb', popupCss.includes('--text-main: #f9fafb'));
+assert('CSS defines OLED dark surface --surface: #141b27', popupCss.includes('--surface: #141b27'));
+assert('CSS defines dark secondary surface --surface2: #1c2534', popupCss.includes('--surface2: #1c2534'));
+assert('CSS defines dark border color --border-color: #303d50', popupCss.includes('--border-color: #303d50'));
+assert('CSS defines dark high-contrast main text --text-main: #e6ebf2', popupCss.includes('--text-main: #e6ebf2'));
 
 assert('CSS includes @media (prefers-color-scheme: dark) media query',
   popupCss.includes('@media (prefers-color-scheme: dark)'));

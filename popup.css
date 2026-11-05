@@ -753,7 +753,7 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 [data-theme="dark"] .welcome-card,
 :root:not([data-theme="light"]) .welcome-feature-card,
 :root:not([data-theme="light"]) .welcome-card {
-  background: #111827;
+  background: var(--surface);
   border-color: #1F2937;
 }
 
@@ -765,7 +765,7 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 [data-theme="dark"] .welcome-skip-btn:hover,
 :root:not([data-theme="light"]) .welcome-skip-btn:hover {
   background: #1F2937;
-  color: #F9FAFB;
+  color: var(--text-main);
 }
 
 /* ── Top Hero: Clickable Course Catalog Card (Release 3.2 Polish) ── */
@@ -883,8 +883,8 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* Dark Mode Overrides for Clickable Catalog Pill */
 [data-theme="dark"] .stat-pill.stat-pill-interactive,
 :root:not([data-theme="light"]) .stat-pill.stat-pill-interactive {
-  background: #111827;
-  border-color: #243048;
+  background: var(--surface);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .stat-pill.stat-pill-interactive:hover,
@@ -896,12 +896,12 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 
 [data-theme="dark"] .stat-label,
 :root:not([data-theme="light"]) .stat-label {
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .stat-sub,
 :root:not([data-theme="light"]) .stat-sub {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .card {
@@ -4695,8 +4695,8 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* Dark Mode Overrides */
 [data-theme="dark"] .report-card,
 :root:not([data-theme="light"]) .report-card {
-  background: #111827;
-  border-color: #243048;
+  background: var(--surface);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .report-card.is-user-added,
@@ -4707,15 +4707,15 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 
 [data-theme="dark"] .report-card.is-edited,
 :root:not([data-theme="light"]) .report-card.is-edited {
-  background: #162032;
+  background: var(--surface2);
   border-color: rgba(242, 101, 34, 0.3);
 }
 
 [data-theme="dark"] .btn-report-issue,
 :root:not([data-theme="light"]) .btn-report-issue {
-  background: #162032;
-  border-color: #243048;
-  color: #f9fafb;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .btn-report-issue:hover,
@@ -5964,14 +5964,14 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* ── Dark Palette Root Variables ── */
 [data-theme="dark"] {
   --bg: #090d16;
-  --surface: #111827;
-  --surface2: #162032;
+  --surface: #141b27;
+  --surface2: #1c2534;
   --accent: #F26522;
   --accent-hover: #ff7733;
   --accent-light: rgba(242, 101, 34, 0.18);
-  --text-main: #f9fafb;
-  --text-muted: #94a3b8;
-  --border-color: #243048;
+  --text-main: #e6ebf2;
+  --text-muted: #b0bdce;
+  --border-color: #303d50;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
 }
@@ -5979,14 +5979,14 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #090d16;
-    --surface: #111827;
-    --surface2: #162032;
+    --surface: #141b27;
+    --surface2: #1c2534;
     --accent: #F26522;
     --accent-hover: #ff7733;
     --accent-light: rgba(242, 101, 34, 0.18);
-    --text-main: #f9fafb;
-    --text-muted: #94a3b8;
-    --border-color: #243048;
+    --text-main: #e6ebf2;
+    --text-muted: #b0bdce;
+    --border-color: #303d50;
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
   }
@@ -5995,20 +5995,20 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* ── Executive Dark Header & Navigation ── */
 [data-theme="dark"] .header,
 :root:not([data-theme="light"]) .header {
-  background: #111827;
+  background: var(--surface);
   border-bottom: 2px solid var(--accent);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .header-title,
 :root:not([data-theme="light"]) .header-title {
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .header-subtitle,
 :root:not([data-theme="light"]) .header-subtitle {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .header-back,
@@ -6019,9 +6019,9 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 :root:not([data-theme="light"]) .header-btn,
 :root:not([data-theme="light"]) .header-export-btn,
 :root:not([data-theme="light"]) .header-trash-btn {
-  background: #162032;
-  border: 1px solid #243048;
-  color: #f1f5f9;
+  background: var(--surface2);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .header-back:hover,
@@ -6060,12 +6060,12 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 [data-theme="dark"] .switch-track,
 :root:not([data-theme="light"]) .switch-track {
   background: #1e293b;
-  border: 1px solid #243048;
+  border: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .switch-track::before,
 :root:not([data-theme="light"]) .switch-track::before {
-  background: #cbd5e1;
+  background: var(--text-muted);
 }
 
 [data-theme="dark"] .switch input:checked + .switch-track,
@@ -6105,9 +6105,9 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 :root:not([data-theme="light"]) select,
 :root:not([data-theme="light"]) .form-input,
 :root:not([data-theme="light"]) .json-textarea {
-  background: #151d2f !important;
-  border-color: #243048 !important;
-  color: #f9fafb !important;
+  background: var(--surface2) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
 }
 
 [data-theme="dark"] input::placeholder,
@@ -6120,14 +6120,14 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* ── Allowlist Items & Toolbar ── */
 [data-theme="dark"] .allowlist-item,
 :root:not([data-theme="light"]) .allowlist-item {
-  background: #151d2f;
-  border-color: #243048;
-  color: #f1f5f9;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .allowlist-item:hover,
 :root:not([data-theme="light"]) .allowlist-item:hover {
-  background: #1c273e;
+  background: var(--dark-hover);
 }
 
 [data-theme="dark"] .allowlist-item.is-selected,
@@ -6142,22 +6142,22 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 :root:not([data-theme="light"]) .domain-search-box,
 :root:not([data-theme="light"]) .domain-bulk-toolbar,
 :root:not([data-theme="light"]) .domains-count-badge {
-  background: #151d2f;
-  border-color: #243048;
-  color: #cbd5e1;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .domain-search-box:focus-within,
 :root:not([data-theme="light"]) .domain-search-box:focus-within {
-  background: #182235;
+  background: var(--surface2);
   border-color: var(--accent);
 }
 
 /* ── Sync Cards & Reminders ── */
 [data-theme="dark"] .sync-card,
 :root:not([data-theme="light"]) .sync-card {
-  background: #151d2f;
-  border-color: #243048;
+  background: var(--surface2);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .home-sync-alert,
@@ -6177,9 +6177,9 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 
 [data-theme="dark"] .sync-code-chip,
 :root:not([data-theme="light"]) .sync-code-chip {
-  background: #182235;
-  border-color: #243048;
-  color: #f1f5f9;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .sync-code-chip:hover,
@@ -6203,14 +6203,14 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* ── Home View Mode Buttons ── */
 [data-theme="dark"] .mode-btn,
 :root:not([data-theme="light"]) .mode-btn {
-  background: #151d2f;
-  border-color: #243048;
-  color: #cbd5e1;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .mode-btn:hover,
 :root:not([data-theme="light"]) .mode-btn:hover {
-  background: #1c273e;
+  background: var(--dark-hover);
 }
 
 [data-theme="dark"] .mode-option input:checked+.mode-btn,
@@ -6223,21 +6223,21 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* ── Course List View & Table ── */
 [data-theme="dark"] .courses-view .course-table-card,
 :root:not([data-theme="light"]) .courses-view .course-table-card {
-  background: #111827;
-  border-color: #243048;
+  background: var(--surface);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .course-grid-header,
 :root:not([data-theme="light"]) .course-grid-header {
-  background: #151d2f;
-  color: #94a3b8;
-  border-bottom: 1px solid #243048;
+  background: var(--surface2);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .course-grid-row,
 :root:not([data-theme="light"]) .course-grid-row {
   border-bottom: 1px solid #1e293b;
-  color: #f1f5f9;
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .course-grid-row:hover,
@@ -6253,15 +6253,15 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 
 [data-theme="dark"] .filter-btn,
 :root:not([data-theme="light"]) .filter-btn {
-  background: #151d2f;
-  border-color: #243048;
-  color: #94a3b8;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .filter-btn:hover:not(.active),
 :root:not([data-theme="light"]) .filter-btn:hover:not(.active) {
-  background: #1c273e;
-  color: #f9fafb;
+  background: var(--dark-hover);
+  color: var(--text-main);
   border-color: #334155;
 }
 
@@ -6274,9 +6274,9 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 
 [data-theme="dark"] .tab-btn,
 :root:not([data-theme="light"]) .tab-btn {
-  background: #151d2f;
-  border-color: #243048;
-  color: #94a3b8;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .tab-btn.active,
@@ -6287,21 +6287,21 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 
 [data-theme="dark"] .course-credit-chip,
 :root:not([data-theme="light"]) .course-credit-chip {
-  background: #182235;
-  color: #cbd5e1;
-  border-color: #243048;
+  background: var(--surface2);
+  color: var(--text-muted);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .details-view .header .origin-badge,
 :root:not([data-theme="light"]) .details-view .header .origin-badge {
-  background: #182235 !important;
+  background: var(--surface2) !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 [data-theme="dark"] .origin-badge.official,
 :root:not([data-theme="light"]) .origin-badge.official {
-  background: #182235;
-  color: #94a3b8;
+  background: var(--surface2);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .origin-badge.edited,
@@ -6319,8 +6319,8 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* ── Enrolled Summary & Clash Alert Cards ── */
 [data-theme="dark"] #enrolledSummaryCard,
 :root:not([data-theme="light"]) #enrolledSummaryCard {
-  background: #151d2f;
-  border-color: #243048;
+  background: var(--surface2);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .clash-alert-box,
@@ -6335,25 +6335,25 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* ── Prerequisite Tree & Luminous Glass Badges ── */
 [data-theme="dark"] .prereq-tree-card,
 :root:not([data-theme="light"]) .prereq-tree-card {
-  background: #151d2f;
-  border-color: #243048;
+  background: var(--surface2);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .prereq-tree-title,
 :root:not([data-theme="light"]) .prereq-tree-title {
-  color: #cbd5e1;
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .prereq-tree-count,
 :root:not([data-theme="light"]) .prereq-tree-count {
-  background: #182235;
-  color: #94a3b8;
+  background: var(--surface2);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .prereq-depth-label,
 :root:not([data-theme="light"]) .prereq-depth-label {
   background: #1e293b;
-  color: #94a3b8;
+  color: var(--text-muted);
   border-color: #2b3a58;
 }
 
@@ -6402,18 +6402,18 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* ── Import View Cards & Drop Zone ── */
 [data-theme="dark"] .file-drop-zone,
 :root:not([data-theme="light"]) .file-drop-zone {
-  background: #111827;
-  border-color: #243048;
-  color: #cbd5e1;
+  background: var(--surface);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .file-drop-zone:hover,
 [data-theme="dark"] .file-drop-zone.drag-active,
 :root:not([data-theme="light"]) .file-drop-zone:hover,
 :root:not([data-theme="light"]) .file-drop-zone.drag-active {
-  background: #162032;
+  background: var(--surface2);
   border-color: var(--accent);
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 /* ── Modals & Diffs ── */
@@ -6431,17 +6431,17 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 :root:not([data-theme="light"]) .export-modal-content,
 :root:not([data-theme="light"]) .preview-modal-content,
 :root:not([data-theme="light"]) .contrib-modal-content {
-  background: #111827;
-  border: 1px solid #243048;
-  color: #f9fafb;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   box-shadow: 0 20px 30px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] .diff-card,
 :root:not([data-theme="light"]) .diff-card {
-  background: #151d2f;
-  border-color: #243048;
-  color: #f1f5f9;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .diff-card.is-new,
@@ -6463,7 +6463,7 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 
 [data-theme="dark"] .diff-title,
 :root:not([data-theme="light"]) .diff-title {
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .import-msg.success,
@@ -6511,15 +6511,15 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 /* ── Footer & Contribution Elements ── */
 [data-theme="dark"] .footer,
 :root:not([data-theme="light"]) .footer {
-  background: #111827;
-  border-top: 1px solid #243048;
+  background: var(--surface);
+  border-top: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .footer-github-btn,
 :root:not([data-theme="light"]) .footer-github-btn {
-  background: #162032;
-  border: 1px solid #243048;
-  color: #94a3b8;
+  background: var(--surface2);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .footer-github-btn:hover,
@@ -6531,9 +6531,9 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 
 [data-theme="dark"] .contribution-btn,
 :root:not([data-theme="light"]) .contribution-btn {
-  background: #162032;
-  border: 1px solid #243048;
-  color: #f9fafb;
+  background: var(--surface2);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .contribution-btn:hover,
@@ -6545,7 +6545,7 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 
 [data-theme="dark"] .contribution-btn svg.github-mark,
 :root:not([data-theme="light"]) .contribution-btn svg.github-mark {
-  fill: #cbd5e1;
+  fill: var(--text-muted);
 }
 
 [data-theme="dark"] .contribution-btn:hover svg.github-mark,
@@ -6580,7 +6580,7 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
 :root:not([data-theme="light"]) .btn-modal-cancel:hover,
 :root:not([data-theme="light"]) .preview-modal-actions .btn-modal-cancel:hover {
   background: #1e293b !important;
-  color: #f9fafb !important;
+  color: var(--text-main) !important;
 }
 
 /* ── End Task 3.4 ────────────────────────────────────────────────────────── */
@@ -6895,8 +6895,8 @@ textarea:focus-visible,
 /* Dark mode for enrolled hub card */
 [data-theme="dark"] .enrolled-hub-card.enrolled-quick-card,
 :root:not([data-theme="light"]) .enrolled-hub-card.enrolled-quick-card {
-  background: #111827;
-  border-color: #243048;
+  background: var(--surface);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .enrolled-hub-card.enrolled-quick-card:hover,
@@ -6908,12 +6908,12 @@ textarea:focus-visible,
 
 [data-theme="dark"] .enrolled-hub-title,
 :root:not([data-theme="light"]) .enrolled-hub-title {
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .enrolled-hub-sub,
 :root:not([data-theme="light"]) .enrolled-hub-sub {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .enrolled-hub-card .clash-badge.warning,
@@ -7565,27 +7565,27 @@ textarea:focus-visible,
 }
 
 [data-theme="dark"] .mycourses-search-box {
-  background: #151d2f;
-  border-color: #243048;
+  background: var(--surface2);
+  border-color: var(--border-color);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .mycourses-search-box {
-    background: #151d2f;
-    border-color: #243048;
+    background: var(--surface2);
+    border-color: var(--border-color);
   }
 }
 
 [data-theme="dark"] .mycourses-suggestions-list {
-  background: #111827;
-  border-color: #243048;
+  background: var(--surface);
+  border-color: var(--border-color);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .mycourses-suggestions-list {
-    background: #111827;
-    border-color: #243048;
+    background: var(--surface);
+    border-color: var(--border-color);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
   }
 }
@@ -7603,14 +7603,14 @@ textarea:focus-visible,
 }
 
 [data-theme="dark"] .enrolled-course-card {
-  background: #111827;
-  border-color: #243048;
+  background: var(--surface);
+  border-color: var(--border-color);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .enrolled-course-card {
-    background: #111827;
-    border-color: #243048;
+    background: var(--surface);
+    border-color: var(--border-color);
   }
 }
 
@@ -7639,14 +7639,14 @@ textarea:focus-visible,
 }
 
 [data-theme="dark"] .mycourses-empty {
-  background: #111827;
-  border-color: #243048;
+  background: var(--surface);
+  border-color: var(--border-color);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .mycourses-empty {
-    background: #111827;
-    border-color: #243048;
+    background: var(--surface);
+    border-color: var(--border-color);
   }
 }
 
@@ -7935,25 +7935,25 @@ textarea:focus-visible,
 }
 
 [data-theme="dark"] .contrib-action-card {
-  background: #151d2f;
-  border-color: #243048;
+  background: var(--surface2);
+  border-color: var(--border-color);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .contrib-action-card {
-    background: #151d2f;
-    border-color: #243048;
+    background: var(--surface2);
+    border-color: var(--border-color);
   }
 }
 
 [data-theme="dark"] .contrib-action-card:hover {
-  background: #1c273e;
+  background: var(--dark-hover);
   border-color: var(--accent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .contrib-action-card:hover {
-    background: #1c273e;
+    background: var(--dark-hover);
     border-color: var(--accent);
   }
 }
@@ -7962,7 +7962,7 @@ textarea:focus-visible,
 :root:not([data-theme="light"]) .contrib-modal-header .preview-modal-close-btn:hover {
   background: var(--surface2) !important;
   border-color: var(--border-color) !important;
-  color: #f9fafb !important;
+  color: var(--text-main) !important;
 }
 
 [data-theme="dark"] .contrib-action-icon.settings,
@@ -8070,14 +8070,14 @@ textarea:focus-visible,
 [data-theme="dark"] .enrolled-course-card.has-same-day {
   border-left: 3.5px solid #f59e0b;
   border-color: rgba(245, 158, 11, 0.35);
-  background: #111827;
+  background: var(--surface);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .enrolled-course-card.has-same-day {
     border-left: 3.5px solid #f59e0b;
     border-color: rgba(245, 158, 11, 0.35);
-    background: #111827;
+    background: var(--surface);
   }
 }
 
@@ -8312,26 +8312,26 @@ textarea:focus-visible,
 /* Dark Mode Overrides */
 [data-theme="dark"] .import-hint,
 :root:not([data-theme="light"]) .import-hint {
-  background: #151d2f;
-  border-color: #243048;
-  color: #94a3b8;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .file-drop-zone.has-file,
 :root:not([data-theme="light"]) .file-drop-zone.has-file {
-  background: #111827;
-  border-color: #243048;
+  background: var(--surface);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .drop-zone-file-name,
 :root:not([data-theme="light"]) .drop-zone-file-name {
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .btn-card-preview,
 :root:not([data-theme="light"]) .btn-card-preview {
-  background: #162032;
-  border-color: #243048;
+  background: var(--surface2);
+  border-color: var(--border-color);
   color: #fb923c;
 }
 
@@ -8541,20 +8541,20 @@ textarea:focus-visible,
 
 [data-theme="dark"] .btn-contrib-dismiss,
 :root:not([data-theme="light"]) .btn-contrib-dismiss {
-  border-color: #243048;
-  color: #94a3b8;
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .btn-contrib-dismiss:hover,
 :root:not([data-theme="light"]) .btn-contrib-dismiss:hover {
   background: #1e293b;
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .routine-slot-badge.pending-slot,
 :root:not([data-theme="light"]) .routine-slot-badge.pending-slot {
   background: rgba(148, 163, 184, 0.12);
-  color: #94a3b8;
+  color: var(--text-muted);
   border-color: rgba(148, 163, 184, 0.3);
 }
 
@@ -8936,20 +8936,20 @@ textarea:focus-visible,
 /* Dark Mode Overrides for Add Course & Success Screen */
 [data-theme="dark"] .form-accordion,
 :root:not([data-theme="light"]) .form-accordion {
-  border-color: #243048;
+  border-color: var(--border-color);
   background: #141c2e;
 }
 
 [data-theme="dark"] .form-accordion-body,
 :root:not([data-theme="light"]) .form-accordion-body {
-  border-color: #243048;
-  background: #111827;
+  border-color: var(--border-color);
+  background: var(--surface);
 }
 
 [data-theme="dark"] .schedule-mode-selector,
 :root:not([data-theme="light"]) .schedule-mode-selector {
   background: #0d131f;
-  border-color: #243048;
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .schedule-radio-pill.active,
@@ -8960,15 +8960,15 @@ textarea:focus-visible,
 
 [data-theme="dark"] .added-course-preview,
 :root:not([data-theme="light"]) .added-course-preview {
-  background: #151d2f;
-  border-color: #243048;
+  background: var(--surface2);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .preview-meta-badge,
 :root:not([data-theme="light"]) .preview-meta-badge {
-  background: #111827;
-  border-color: #243048;
-  color: #94a3b8;
+  background: var(--surface);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .success-community-card,
@@ -8979,15 +8979,15 @@ textarea:focus-visible,
 
 [data-theme="dark"] .community-icon-box,
 :root:not([data-theme="light"]) .community-icon-box {
-  background: #111827;
+  background: var(--surface);
   color: #fb923c;
 }
 
 [data-theme="dark"] .btn-success-add-another,
 :root:not([data-theme="light"]) .btn-success-add-another {
-  background: #151d2f;
-  border-color: #243048;
-  color: #f9fafb;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .btn-success-add-another:hover,
@@ -8999,14 +8999,14 @@ textarea:focus-visible,
 
 [data-theme="dark"] .btn-success-view-catalog,
 :root:not([data-theme="light"]) .btn-success-view-catalog {
-  border-color: #243048;
-  color: #94a3b8;
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .btn-success-view-catalog:hover,
 :root:not([data-theme="light"]) .btn-success-view-catalog:hover {
-  background: #151d2f;
-  color: #f9fafb;
+  background: var(--surface2);
+  color: var(--text-main);
 }
 
 .btn-community-dismiss {
@@ -9029,7 +9029,7 @@ textarea:focus-visible,
 
 [data-theme="dark"] .btn-community-dismiss,
 :root:not([data-theme="light"]) .btn-community-dismiss {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .btn-community-dismiss:hover,
@@ -9178,9 +9178,9 @@ textarea:focus-visible,
 
 [data-theme="dark"] .btn-success-view-catalog,
 :root:not([data-theme="light"]) .btn-success-view-catalog {
-  background: #151d2f;
-  border-color: #243048;
-  color: #f9fafb;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .btn-success-view-catalog:hover,
@@ -9193,19 +9193,19 @@ textarea:focus-visible,
 /* ── Appearance & Theme Polish Overrides ────────────────────────────── */
 [data-theme="dark"] .theme-options-group,
 :root:not([data-theme="light"]) .theme-options-group {
-  background: #090d16;
-  border-color: #243048;
+  background: var(--surface2);
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] .theme-option-btn:hover:not(.active),
 :root:not([data-theme="light"]) .theme-option-btn:hover:not(.active) {
   background: rgba(255, 255, 255, 0.05);
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .theme-option-btn.active,
 :root:not([data-theme="light"]) .theme-option-btn.active {
-  background: #162032;
+  background: var(--surface2);
   border-color: rgba(242, 101, 34, 0.5);
   color: #fb923c;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
@@ -9270,9 +9270,9 @@ textarea:focus-visible,
 
 [data-theme="dark"] .drop-zone-file-remove,
 :root:not([data-theme="light"]) .drop-zone-file-remove {
-  background: #162032;
-  border-color: #243048;
-  color: #94a3b8;
+  background: var(--surface2);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .drop-zone-file-remove:hover,
@@ -9567,7 +9567,7 @@ textarea:focus-visible,
 [data-theme="dark"] .prereq-stat-chip.terminal,
 :root:not([data-theme="light"]) .prereq-stat-chip.terminal {
   background: rgba(148, 163, 184, 0.15);
-  color: #cbd5e1;
+  color: var(--text-muted);
   border-color: rgba(148, 163, 184, 0.3);
 }
 
@@ -10470,10 +10470,10 @@ textarea:focus-visible,
 #globalToast button { background: var(--surface2); color: var(--text-main); border-color: var(--border-color); }
 #globalToast button:hover { background: var(--accent-light); }
 #globalToast button:focus-visible { outline-color: var(--accent); }
-[data-theme="dark"] #globalToast { background: #162032; }
+[data-theme="dark"] #globalToast { background: var(--surface2); }
 [data-theme="dark"] #globalToast[data-type="success"] { border-color: #347766; }
 [data-theme="dark"] #globalToast[data-type="error"] { border-color: #a65360; }
-[data-theme="dark"] #globalToast .toast-icon { color: #cbd5e1; }
+[data-theme="dark"] #globalToast .toast-icon { color: var(--text-muted); }
 [data-theme="dark"] #globalToast[data-type="success"] .toast-icon { color: #6ee7b7; }
 [data-theme="dark"] #globalToast[data-type="error"] .toast-icon { color: #fda4af; }
 
@@ -10608,7 +10608,7 @@ button {
   --feedback-text: var(--text-main); --feedback-border: var(--border-color);
   --feedback-press-border: var(--accent);
 }
-[data-theme="dark"] button { --feedback-hover: #243048; --feedback-border: var(--border-color); }
+[data-theme="dark"] button { --feedback-hover: var(--border-color); --feedback-border: var(--border-color); }
 button:is(.btn-courses, .btn-save-details, .btn-import, .btn-github-submit, .btn-detail-contrib-github, .btn-welcome-dismiss, .export-download-btn, .btn-modal-confirm, .btn-enroll-toggle, .btn-suggestion-add, .trash-restore-button, .btn-trash-action.restore, #addSingleCourseBtn, #allowlistBtn, #syncBtn) {
   --feedback-hover: #b9430d; --feedback-press: #9a3412;
   --feedback-text: #fff; --feedback-border: #b9430d; --feedback-press-border: #9a3412;
@@ -10681,3 +10681,98 @@ svg[fill="none"][stroke="currentColor"] { fill: none !important; stroke: current
 .sync-icon, .action-icon-spinner { transform-origin: 50% 50%; transform-box: view-box; }
 .action-icon-spinner { animation: syncRotate .85s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .action-icon-spinner { animation: none; } }
+
+/* Unified dark surfaces: comfortable text, restrained accents, readable states. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --dark-hover: #263245;
+  --dark-input: #101722;
+  --accent: #f2a36b;
+  --accent-hover: #f7b688;
+  --accent-light: #30271f;
+  --success: #7acdb0;
+  --danger: #f1a2a9;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.14);
+  --shadow-md: 0 5px 16px rgba(0,0,0,.22);
+  --settings-danger: #f1a2a9;
+}
+:root[data-theme="dark"] .header { background: var(--surface); border-bottom: 1px solid var(--border-color); box-shadow: none; color: var(--text-main); }
+:root[data-theme="dark"] .header-text p { color: var(--text-muted); }
+:root[data-theme="dark"] .header :is(.header-back,.header-btn,.header-export-action) { background: var(--surface2); color: var(--text-main); border: 1px solid var(--border-color); box-shadow: none; }
+:root[data-theme="dark"] .header button { --feedback-hover: var(--dark-hover); --feedback-press: #334159; --feedback-text: var(--text-main); --feedback-border: #56657a; --feedback-press-border: var(--accent); }
+:root[data-theme="dark"] :is(.card,.details-card,.site-card,.home-catalog-card,.course-table-card,.enrolled-course-card,.settings-section,.trash-course-card,.catalog-report-row) { background: var(--surface); border-color: var(--border-color); box-shadow: none; }
+:root[data-theme="dark"] :is(input[type="text"],input[type="number"],input[type="date"],textarea,select,.form-input,.json-textarea) { background: var(--dark-input) !important; color: var(--text-main) !important; border-color: #3b4b62 !important; }
+:root[data-theme="dark"] :is(input,textarea)::placeholder { color: #91a1b8 !important; }
+:root[data-theme="dark"] :is(input,textarea,select):focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 1px !important; box-shadow: none !important; }
+:root[data-theme="dark"] :is(.filter-btn,.import-tab-btn,.theme-option-btn,.prereq-toggle-btn,.mode-btn) { background: var(--surface2); color: var(--text-muted); border-color: var(--border-color); box-shadow: none; }
+:root[data-theme="dark"] :is(.filter-btn.active,.import-tab-btn.active,.theme-option-btn.active,.prereq-toggle-btn.is-active) { background: var(--accent-light); color: #ffd2af; border-color: #98643e; box-shadow: none; }
+:root[data-theme="dark"] .main-view .mode-option .mode-btn { background: var(--surface2); }
+:root[data-theme="dark"] .main-view .mode-option input:checked + .mode-btn { background: var(--accent-light); color: #ffd2af; border-color: #98643e; }
+:root[data-theme="dark"] .course-grid-header { background: var(--surface2); color: var(--text-muted); border-color: var(--border-color); }
+:root[data-theme="dark"] .course-grid-row { background: var(--surface); border-color: #263245; }
+:root[data-theme="dark"] .course-grid-row:hover { background: var(--surface2); }
+:root[data-theme="dark"] :is(.course-row-name,.diff-new-title,.preview-course-name,.preview-name) { color: var(--text-main); }
+:root[data-theme="dark"] :is(.origin-badge,.origin-badge.user-added,.origin-badge.custom,.origin-badge.edited,.origin-badge.official,.course-credit-chip,.preview-credits,.preview-meta-badge,.diff-meta-chip) { background: var(--surface2); color: var(--text-muted); border-color: var(--border-color); box-shadow: none; }
+:root[data-theme="dark"] .details-view .header .origin-badge { background: var(--surface2) !important; color: var(--text-muted); }
+:root[data-theme="dark"] :is(.modal-content,.preview-modal-content,.export-modal-content,.contrib-modal-content) { background: #192230; border-color: #3b4b62; color: var(--text-main); box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+:root[data-theme="dark"] :is(.modal-overlay) { background: rgba(3,7,13,.68); }
+:root[data-theme="dark"] :is(.btn-modal-cancel,.preview-modal-close-btn,.export-modal-close-btn,.btn-detail-contrib-done,.btn-success-view-catalog,.btn-clear) { background: var(--surface2); color: var(--text-main); border: 1px solid var(--border-color); box-shadow: none; }
+:root[data-theme="dark"] button { --feedback-hover: var(--dark-hover); --feedback-border: #526178; --feedback-press: #334159; }
+:root[data-theme="dark"] button:is(.btn-courses,.btn-save-details,.btn-import,.btn-github-submit,.btn-detail-contrib-github,.btn-welcome-dismiss,.export-download-btn,.btn-modal-confirm,.btn-enroll-toggle,.btn-suggestion-add,#addSingleCourseBtn,#allowlistBtn) {
+  background: #38291f; color: #ffd2af; border: 1px solid #b88059; box-shadow: none;
+  --feedback-hover: #4a3222; --feedback-press: #593b27; --feedback-text: #ffe0c6; --feedback-border: #c38f69; --feedback-press-border: #d19d75;
+}
+:root[data-theme="dark"] button:is(.btn-del-details,.trash-delete-button,.btn-trash-action.empty,.btn-reset-danger,.btn-card-drop,.btn-clear-enrolled,.btn-bulk-remove-domains,.btn-enroll-toggle.is-enrolled) {
+  background: #2b2029; color: #f3b9c1; border-color: #80515b;
+  --feedback-hover: #452833; --feedback-press: #56313d; --feedback-text: #ffe1e6; --feedback-border: #ad7380; --feedback-press-border: #c18b96;
+}
+:root[data-theme="dark"] :is(#confirmModal[data-tone="danger"] #modalConfirmBtn,#importPreviewModal[data-review="reset"] #previewConfirmBtn) { background: #a23b49; color: #fff; border-color: #a23b49; --feedback-hover:#b84958; --feedback-press:#8c303d; --feedback-text:#fff; --feedback-border:#b84958; --feedback-press-border:#8c303d; }
+:root[data-theme="dark"] :is(.clash-badge.danger,.detail-clash-warning,.enrolled-card-clash-banner) { background: #30212c; color: #ffccd3; border-color: #794754; }
+:root[data-theme="dark"] .clash-badge.warning { background: #302a20; color: #f4d59c; border-color: #75603d; }
+:root[data-theme="dark"] :is(.diff-old-val) { background: #422a35; color: #ffd0d7; }
+:root[data-theme="dark"] :is(.diff-new-val) { background: #203b33; color: #b3e8d0; }
+:root[data-theme="dark"] :is(.summary-pill,.diff-badge,.sync-metric-chip) { background: var(--surface2); color: var(--text-muted); border-color: #46566d; }
+:root[data-theme="dark"] :is(.pill-new,.badge-new,.sync-metric-chip.add) { background: #203b33; color: #b3e8d0; border-color: #416b5b; }
+:root[data-theme="dark"] :is(.pill-update,.badge-update,.sync-metric-chip.update) { background: #302a20; color: #f4d59c; border-color: #75603d; }
+:root[data-theme="dark"] :is(.pill-invalid,.sync-metric-chip.remove) { background: #422a35; color: #ffd0d7; border-color: #794754; }
+:root[data-theme="dark"] :is(.detail-contrib-banner,.success-community-card) { background: var(--surface); border-color: #725139; box-shadow: none; }
+:root[data-theme="dark"] :is(.flow-anchor-card,.routine-source-note,.onboarding-planning-note) { background: var(--surface); border-color: var(--border-color); }
+:root[data-theme="dark"] #globalToast { background: #202b3b; color: var(--text-main); box-shadow: 0 5px 18px rgba(0,0,0,.3); }
+:root[data-theme="dark"] .footer { background: var(--surface); border-color: var(--border-color); }
+
+/* Semantic notices are readable without turning whole cards bright red/yellow. */
+:root[data-theme="dark"] .enrolled-hub-card .clash-badge.danger { background: #30212c; color: #ffccd3; border-color: #794754; font-weight: 500; }
+:root[data-theme="dark"] .enrolled-hub-card .clash-badge.warning { background: #302a20; color: #f4d59c; border-color: #75603d; font-weight: 500; }
+:root[data-theme="dark"] .clash-alert-box.has-clash { background: #251e28; border: 1px solid #794754; border-left: 3px solid #d58e9a; }
+:root[data-theme="dark"] .clash-alert-box.is-warning { background: #29251f; border: 1px solid #75603d; border-left: 3px solid #cfb077; }
+:root[data-theme="dark"] .clash-alert-box .clash-item.danger, :root[data-theme="dark"] .clash-alert-box.has-clash .clash-alert-title { color: #ffccd3; }
+:root[data-theme="dark"] .clash-alert-box .clash-item.warning, :root[data-theme="dark"] .clash-alert-box.is-warning .clash-alert-title { color: #f4d59c; }
+:root[data-theme="dark"] .clash-item { font-size: 11px; line-height: 1.55; font-weight: 400; }
+:root[data-theme="dark"] .clash-item strong { font-weight: 600; }
+:root[data-theme="dark"] .enrolled-course-card.is-clashing { background: var(--surface); border: 1px solid #794754; border-left: 3px solid #d58e9a; }
+:root[data-theme="dark"] .enrolled-course-card.has-same-day { background: var(--surface); border-color: #75603d; border-left-color: #cfb077; }
+:root[data-theme="dark"] .detail-clash-warning { font-weight: 400; }
+:root[data-theme="dark"] .detail-clash-warning.is-warning, :root[data-theme="dark"] .enrolled-card-sameday-banner { background: #302a20; color: #f4d59c; border-color: #75603d; }
+:root[data-theme="dark"] .flow-view .prereq-tree-card { background: var(--surface); border-color: var(--border-color); }
+:root[data-theme="dark"] .flow-view .prereq-tree-header { background: var(--surface); }
+:root[data-theme="dark"] .flow-view .unlock-course-card { background: var(--surface2); border-color: #3b4b62; }
+:root[data-theme="dark"] .unlock-card-cr { background: #203b33; color: #b3e8d0; }
+:root[data-theme="dark"] .mycourses-search-box { background: var(--dark-input); border-color: #3b4b62; box-shadow: none; }
+:root[data-theme="dark"] .mycourses-search-box:focus-within { background: var(--dark-input); border-color: var(--accent); box-shadow: none; }
+:root[data-theme="dark"] #myCoursesSearchInput:focus, :root[data-theme="dark"] #myCoursesSearchInput:focus-visible { outline: none !important; box-shadow: none !important; border: 0 !important; }
+:root[data-theme="dark"] .mycourses-search-box:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+:root[data-theme="dark"] .course-table-card.trash-mode { background: transparent; }
+
+/* Dark controls keep a stable icon treatment in every pointer state. */
+:root[data-theme="dark"] button:hover svg:not(.sync-icon):not(.action-icon-spinner),
+:root[data-theme="dark"] button:active svg:not(.sync-icon):not(.action-icon-spinner) { transform: none !important; }
+:root[data-theme="dark"] :is(.stat-pill .stat-pill-icon,.enrolled-hub-card .enrolled-hub-icon),
+:root[data-theme="dark"] :is(.stat-pill:hover .stat-pill-icon,.enrolled-hub-card:hover .enrolled-hub-icon) { background: var(--accent-light); color: var(--accent); transform: none; box-shadow: none; }
+:root[data-theme="dark"] button svg { transition: color 140ms ease; }
+:root[data-theme="dark"] .header button { --feedback-hover: #263245; --feedback-press: #303e53; --feedback-text: #e6ebf2; --feedback-border: #526178; --feedback-press-border: #70829a; }
+:root[data-theme="dark"] button:is(.trash-restore-button,.btn-trash-action.restore,#syncBtn) {
+  background: #38291f; color: #ffd2af; border: 1px solid #b88059;
+  --feedback-hover: #4a3222; --feedback-press: #593b27; --feedback-text: #ffe0c6; --feedback-border: #c38f69; --feedback-press-border: #d19d75;
+}
+:root[data-theme="dark"] :is(.contrib-action-icon,.community-icon-box,.detail-contrib-banner-icon) { background: var(--accent-light); color: var(--accent); box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { :root[data-theme="dark"] button svg { transition: none; } }
