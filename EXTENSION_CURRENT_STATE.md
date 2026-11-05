@@ -360,3 +360,26 @@ node tests/run_all.js
 - Dark mode retains OLED #090d16 and uses unified #141b27 cards, #1c2534 secondary surfaces, #101722 inputs, #e6ebf2 primary text and #b0bdce secondary text. Headers use quiet separators; primary actions have warm peach fills and dark text. Warnings, destructive actions and diff badges use restrained semantic colors. Legacy dark literals now use shared tokens. Browser review covered nine page states plus import/export/reset dialogs and a light-mode check; visible text samples on the nine page states met 4.5:1 contrast.
 
 - Dark buttons now use muted warm surfaces, pale readable labels and restrained borders instead of bright peach fills. Hover and press deepen the same palette. Destructive controls use subdued rose surfaces; final destructive confirmations remain emphasized. Icons no longer shift or switch to bright filled backgrounds on hover, while loading rotation remains available.
+
+
+### Website tooltip interaction
+- Highlight keeps a persistent background; Tooltip uses a subtle dotted underline. Both reveal the same course facts on hover or keyboard focus. Inline keeps its visible expansion and does not open the shared hover tooltip.
+- One tooltip per document uses safe DOM construction, an anchored pointer, viewport-aware placement, light/dark/system appearance, and reduced-motion support. Long prerequisite content scrolls within the available space.
+- Hover opens after 220 ms; a 140 ms leave delay allows moving onto the tooltip. Focus opens immediately. Escape, page scroll, resize, window blur, and local setting changes dismiss it.
+- HTML course markers are keyboard reachable without adding tab stops inside existing controls. Descriptions attach to the focused marker or its enclosing link and preserve existing `aria-describedby` references.
+- Production controller and positioning checks run within the content-script resilience suite (`tests/tooltip_interaction_checks.js`).
+
+
+### Course charts and inline routines
+- SVG axis labels retain short course codes and their original font weight. Tooltip-mode labels inherit their original fill; accent fills are applied only in Highlight mode, including truncated labels. Inline mode falls back to Highlight for these labels; Tooltip mode remains available. Removed native SVG titles are restored when changing modes or disabling decoding, including truncated labels.
+- Recognized Highcharts course charts show expanded details on hover. Click/tap pins a stable copy, preserving attendance figures while other points are hovered; the native hover surface is hidden while a copy is pinned. Clicking the same point releases the pin and restores normal hover behavior. Outside clicks, Escape, scroll, resize, or settings changes also release the pin. Unrecognized charts retain their native tooltips.
+- Chart details use a consistent system sans-serif font, a 14px semibold course name, aligned label/value columns, neutral attendance text, wrapped prerequisites, and themed surfaces with a subtle border and shadow. Native direct path/rect background variants are suppressed after the custom background exists, preventing overlapping boxes; a small gap separates course facts from attendance figures. Hover enrichment runs once per animation frame after the chart updates. Inline HTML routines use aligned Exam/Prerequisites rows, prerequisite codes, and keep short section suffixes on the course title line. Full prerequisite names remain in hover/chart details. Routine entries use a subtle left marker, stronger course codes, and evenly spaced table rows so the time remains aligned. Unknown routine metadata reads “Not listed in catalog” rather than repeating the field label.
+- Table wrapping is applied through CSS while inline markers exist; host cell styles and `nowrap` attributes are no longer overwritten. Original course text and section suffixes are restored on disabling decoding.
+- Controller, rendering, and truncated-label restoration regression checks run within the existing content-script resilience suite.
+
+
+### Bounded chart cards and attendance colors
+- Visible chart popups use the shared HTML tooltip surface, rather than a cloned SVG group. Course facts have a bounded scroll area; attendance rows remain in a separate footer. Both areas adapt to the viewport height without dropping prerequisite text or changing source attendance figures.
+- Attendance status labels and values use readable blue (Remaining), red (Absent), and green (Present), with separate dark-theme tokens. Other history rows retain neutral text. Source SVG tooltip content is hidden and used only to resolve course information and read the chart's existing history rows.
+- Hover opens the card; moving onto it permits reading/scrolling. Click pins it, another click releases the pin, and Escape/outside clicks dismiss it. Scrolls inside the card keep it open; page scrolling dismisses it.
+- Regression checks cover source history extraction, semantic status mapping, independent details/footer DOM, hover/pinning, and preserving exact attendance values. Long-list browser fixtures verify viewport bounds and footer visibility at normal and short window heights in both themes.

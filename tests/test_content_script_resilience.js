@@ -179,3 +179,5 @@ console.log("==================================================");
 console.log("  ALL RESILIENCE TESTS PASSED (5 / 5)            ");
 console.log("==================================================");
 
+
+require('./tooltip_interaction_checks');

@@ -32,6 +32,7 @@
   let enabled = false;
   let observer = null;
   let injectedStyles = false;
+  let themePreference = "system";
 
   // We tag processed elements so we don't end up checking them twice in a loop
   const PROCESSED_ATTR = "data-cce-done";
@@ -83,6 +84,7 @@
 
   // Builds the tooltip DOM inside `container` using safe DOM APIs (no innerHTML).
   function buildTooltipDom(data, container) {
+    const document = container.ownerDocument;
     const content = document.createElement("div");
     content.className = "cce-tooltip-content";
 
@@ -128,7 +130,7 @@
         row.className = "cce-detail-row";
         const label = document.createElement("span");
         label.className = "cce-detail-label";
-        label.textContent = "Prereq:";
+        label.textContent = "Prerequisites:";
         const text = document.createElement("span");
         text.className = "cce-detail-text";
         text.textContent = data.prereq;
@@ -164,27 +166,26 @@
 
     wrapEl.appendChild(titleSpan);
 
-    if (data.exam) {
-      wrapEl.appendChild(document.createElement("br"));
-      const row = document.createElement("span");
-      row.className = "cce-inline-row";
-      const label = document.createElement("span");
-      label.className = "cce-inline-label cce-inline-exam";
-      label.textContent = "Exam:";
-      row.appendChild(label);
-      row.appendChild(document.createTextNode(" " + data.exam));
-      wrapEl.appendChild(row);
+    if (wrapEl.dataset.cceSuffix) {
+      const section = document.createElement("span");
+      section.className = "cce-inline-section";
+      section.textContent = wrapEl.dataset.cceSuffix;
+      titleSpan.appendChild(section);
     }
-
-    if (data.prereq) {
-      wrapEl.appendChild(document.createElement("br"));
+    const rows = [["Exam", data.exam], ["Prerequisites", data.inlinePrereq || data.prereq]];
+    for (const [labelText, value] of rows) {
+      if (!value) continue;
       const row = document.createElement("span");
       row.className = "cce-inline-row";
       const label = document.createElement("span");
-      label.className = "cce-inline-label cce-inline-prereq";
-      label.textContent = "Prereq:";
+      label.className = "cce-inline-label";
+      label.textContent = labelText + ":";
+      const text = document.createElement("span");
+      text.className = "cce-inline-value";
+      text.textContent = value === "Prerequisites not listed" || value === "Schedule Pending / TBA"
+        ? "Not listed in catalog" : value;
       row.appendChild(label);
-      row.appendChild(document.createTextNode(" " + data.prereq));
+      row.appendChild(text);
       wrapEl.appendChild(row);
     }
   }
@@ -224,6 +225,10 @@
             decodedPrereqs.push(pCode);
           }
         }
+      }
+      data.inlinePrereq = (resolved.prerequisites || []).filter(code => code.toLowerCase() !== "none").join(", ");
+      if (resolved.prerequisiteNote) {
+        data.inlinePrereq += (data.inlinePrereq ? " · " : "") + resolved.prerequisiteNote;
       }
       let prereqText = decodedPrereqs.join(", ");
       if (resolved.prerequisiteNote) {
@@ -265,195 +270,36 @@
 
   function renderSvgTooltip(wrap, beforeText, matchText, afterText, data) {
     wrap.textContent = "";
-
-    // Line 1: Header line with course code in bold accent orange
-    const headerLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    headerLine.setAttribute("font-weight", "600");
-    headerLine.setAttribute("fill", "#0f172a");
-    headerLine.setAttribute("font-size", "12px");
-
-    if (beforeText) {
-      const beforeSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      beforeSpan.textContent = beforeText;
-      headerLine.appendChild(beforeSpan);
+    const doc = wrap.ownerDocument;
+    function span(text, kind, x, dy) {
+      const node = doc.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      node.setAttribute("class", "cce-chart-" + kind);
+      node.setAttribute("x", String(x));
+      if (dy !== undefined) node.setAttribute("dy", String(dy));
+      node.textContent = text;
+      return node;
     }
-
-    const codeSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    codeSpan.setAttribute("fill", "#e67e22");
-    codeSpan.setAttribute("font-weight", "700");
-    codeSpan.textContent = matchText;
-    headerLine.appendChild(codeSpan);
-
-    if (afterText) {
-      const afterSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      afterSpan.textContent = afterText;
-      headerLine.appendChild(afterSpan);
+    for (const [index, part] of splitTextToLines(beforeText + matchText + afterText, 38).entries()) {
+      wrap.appendChild(span(part + " ", "code", 8, index ? 16 : undefined));
     }
-
-    const remainingNameLines = [];
-
-    if (data.name) {
-      const prefixLength = (beforeText || "").length + (matchText || "").length + (afterText || "").length;
-      const maxLineChars = 38;
-      const words = ("(" + data.name + ")").split(" ");
-
-      let line1Name = "";
-      let wordIdx = 0;
-
-      // Fit initial word(s) on Line 1 alongside the course code
-      while (wordIdx < words.length) {
-        const word = words[wordIdx];
-        const testLen = prefixLength + (line1Name ? line1Name.length + 1 : 1) + word.length;
-        if (testLen <= maxLineChars || (!line1Name && words.length === 1 && testLen <= maxLineChars + 4)) {
-          line1Name = line1Name ? line1Name + " " + word : word;
-          wordIdx++;
-        } else {
-          break;
-        }
-      }
-
-      if (line1Name) {
-        const nameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-        nameSpan.setAttribute("fill", "#334155");
-        nameSpan.setAttribute("font-weight", "600");
-        nameSpan.textContent = " " + line1Name;
-        headerLine.appendChild(nameSpan);
-      }
-
-      // If the name is long, let remaining words wrap across lines needed for the name using the same threshold
-      if (wordIdx < words.length) {
-        let currentLine = "";
-        while (wordIdx < words.length) {
-          const word = words[wordIdx];
-          if (!currentLine) {
-            currentLine = word;
-          } else if ((currentLine + " " + word).length <= maxLineChars) {
-            currentLine += " " + word;
-          } else {
-            remainingNameLines.push(currentLine);
-            currentLine = word;
-          }
-          wordIdx++;
-        }
-        if (currentLine) {
-          remainingNameLines.push(currentLine);
-        }
-      }
+    for (const part of splitTextToLines(data.name, 32)) {
+      wrap.appendChild(span(part + " ", "name", 8, 20));
     }
-
-    wrap.appendChild(headerLine);
-
-    // Second line(s) for wrapped course name when needed
-    remainingNameLines.forEach((line) => {
-      const extraNameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      extraNameSpan.setAttribute("x", "8");
-      extraNameSpan.setAttribute("dy", "1.25em");
-      extraNameSpan.setAttribute("fill", "#334155");
-      extraNameSpan.setAttribute("font-weight", "600");
-      extraNameSpan.setAttribute("font-size", "11px");
-      extraNameSpan.textContent = line;
-      wrap.appendChild(extraNameSpan);
-    });
-
-    // Exam Info (if present)
-    if (data.exam) {
-      const examLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      examLine.setAttribute("x", "8");
-      examLine.setAttribute("dy", "1.4em");
-      examLine.setAttribute("font-size", "11px");
-
-      const examLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      examLabel.setAttribute("fill", "#e67e22");
-      examLabel.setAttribute("font-weight", "700");
-      examLabel.textContent = "Exam: ";
-      examLine.appendChild(examLabel);
-
-      const examText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      examText.setAttribute("fill", "#475569");
-      examText.setAttribute("font-weight", "normal");
-      examText.textContent = data.exam;
-      examLine.appendChild(examText);
-
-      wrap.appendChild(examLine);
+    let firstDetail = true;
+    for (const [label, value] of [["Credits", data.credits ? data.credits + " Cr" : ""],
+      ["Exam", data.exam], ["Prerequisites", data.prereq]]) {
+      if (!value) continue;
+      const parts = splitTextToLines(value, 24);
+      const row = span("", "row", 8, firstDetail ? 22 : 19);
+      row.appendChild(span(label + ": ", "label", 8));
+      row.appendChild(span(parts[0] + " ", "value", 96));
+      wrap.appendChild(row);
+      for (const part of parts.slice(1)) wrap.appendChild(span(part + " ", "value", 96, 17));
+      firstDetail = false;
     }
-
-    // Prerequisites (if present)
-    if (data.prereq) {
-      const prereqLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      prereqLine.setAttribute("x", "8");
-      prereqLine.setAttribute("dy", "1.35em");
-      prereqLine.setAttribute("font-size", "11px");
-
-      const prereqLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      prereqLabel.setAttribute("fill", "#d35400");
-      prereqLabel.setAttribute("font-weight", "700");
-      prereqLabel.textContent = "Prereq: ";
-      prereqLine.appendChild(prereqLabel);
-
-      const prereqText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      prereqText.setAttribute("fill", "#475569");
-      prereqText.setAttribute("font-weight", "normal");
-      prereqText.textContent = data.prereq;
-      prereqLine.appendChild(prereqText);
-
-      wrap.appendChild(prereqLine);
-    }
-  }
-
-  function renderSvgInline(wrap, matchText, data) {
-    wrap.textContent = "";
-
-    const codeLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    codeLine.setAttribute("fill", "#0f172a");
-    codeLine.setAttribute("font-weight", "600");
-    codeLine.textContent = matchText + " ";
-    wrap.appendChild(codeLine);
-
-    const nameLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    nameLine.setAttribute("fill", "#f26522");
-    nameLine.setAttribute("font-weight", "600");
-    nameLine.textContent = `(${data.name})`;
-    wrap.appendChild(nameLine);
-
-    if (data.exam) {
-      const examLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      examLine.setAttribute("x", "8");
-      examLine.setAttribute("dy", "1.4em");
-
-      const examLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      examLabel.setAttribute("fill", "#e67e22");
-      examLabel.setAttribute("font-weight", "600");
-      examLabel.textContent = "Exam: ";
-      examLine.appendChild(examLabel);
-
-      const examText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      examText.setAttribute("fill", "#475569");
-      examText.setAttribute("font-weight", "normal");
-      examText.textContent = data.exam;
-      examLine.appendChild(examText);
-
-      wrap.appendChild(examLine);
-    }
-
-    if (data.prereq) {
-      const prereqLine = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      prereqLine.setAttribute("x", "8");
-      prereqLine.setAttribute("dy", "1.4em");
-
-      const prereqLabel = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      prereqLabel.setAttribute("fill", "#d35400");
-      prereqLabel.setAttribute("font-weight", "600");
-      prereqLabel.textContent = "Prereq: ";
-      prereqLine.appendChild(prereqLabel);
-
-      const prereqText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      prereqText.setAttribute("fill", "#475569");
-      prereqText.setAttribute("font-weight", "normal");
-      prereqText.textContent = data.prereq;
-      prereqLine.appendChild(prereqText);
-
-      wrap.appendChild(prereqLine);
-    }
+    const spacer = span("\u200b", "spacer", 8, 10);
+    spacer.setAttribute("aria-hidden", "true");
+    wrap.appendChild(spacer);
   }
 
   function updateAllDecoratedElements() {
@@ -466,24 +312,14 @@
       const data = buildExtendedData(resolved);
       const matchText = wrap.dataset.cceMatch;
 
-      if (wrap.dataset.cceMatch !== undefined || wrap.classList.contains("cce-inline")) {
+      if (wrap.classList.contains("cce-inline")) {
         wrap.title = `${matchText}: ${data.name}${data.exam ? ' | Exam: ' + data.exam : ''}${data.prereq ? ' | Prereq: ' + data.prereq : ''}`;
       }
 
       if (wrap.classList.contains("cce-inline")) {
         buildInlineDom(matchText, data, wrap);
-        let cell = wrap.closest ? wrap.closest("td, th, [role='cell'], [role='gridcell'], .grid-cell") : null;
-        if (cell) {
-          cell.style.setProperty("white-space", "normal", "important");
-          cell.style.setProperty("overflow", "visible", "important");
-          cell.style.setProperty("word-break", "break-word", "important");
-          cell.style.setProperty("overflow-wrap", "break-word", "important");
-          cell.style.setProperty("height", "auto", "important");
-          cell.style.setProperty("max-height", "none", "important");
-          if (cell.hasAttribute("nowrap")) cell.removeAttribute("nowrap");
-        }
       } else if (wrap.tagName.toUpperCase() === "TSPAN" && !wrap.classList.contains("cce-highlight") && !wrap.classList.contains("cce-tooltip-wrap") && !wrap.dataset.cceName) {
-        renderSvgInline(wrap, matchText, data);
+        renderSvgTooltip(wrap, wrap.dataset.cceBefore || "", matchText, wrap.dataset.cceAfter || "", data);
       }
     });
   }
@@ -549,7 +385,7 @@
         position: relative;
         display: inline;
         cursor: help;
-        border-bottom: 1px dashed #ff8000;
+        border-bottom: 1px dotted #b96a30;
         color: inherit;
       }
       .cce-highlight {
@@ -562,110 +398,161 @@
         border-radius: 3px;
         font-weight: 500;
       }
+      svg .cce-highlight { font-weight: inherit; padding: 0; }
+      .cce-tooltip-wrap:hover, .cce-tooltip-wrap:focus-visible {
+        border-bottom-style: solid;
+      }
+      .cce-tooltip-wrap:focus-visible, .cce-highlight:focus-visible {
+        outline: 2px solid #bc713d;
+        outline-offset: 3px;
+        border-radius: 2px;
+      }
       .cce-global-tooltip {
+        all: initial;
+        --cce-tip-bg: #ffffff;
+        --cce-tip-text: #182334;
+        --cce-tip-muted: #526174;
+        --cce-tip-border: #d7dfe9;
+        --cce-tip-accent: #945021;
+        --cce-status-remaining: #245cb8;
+        --cce-status-absent: #b4233a;
+        --cce-status-present: #16744b;
         visibility: hidden;
         opacity: 0;
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        color: #1e293b;
-        font-size: 13px;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        padding: 10px 16px 12px;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        border-top: 3px solid #e67e22; /* University branding orange accent */
-        max-width: 360px;
-        width: max-content;
-        box-sizing: border-box;
-        text-align: center;
-        word-wrap: break-word;
         position: fixed;
         z-index: 2147483647;
-        transform: translateX(-50%) translateY(8px) scale(0.96);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-        transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
+        box-sizing: border-box;
+        width: max-content;
+        max-width: min(300px, calc(100vw - 24px));
+        padding: 12px 14px;
+        border: 1px solid var(--cce-tip-border);
+        border-radius: 9px;
+        background: var(--cce-tip-bg);
+        color: var(--cce-tip-text);
+        font: 13px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        text-align: left;
+        overflow-wrap: anywhere;
+        box-shadow: 0 3px 8px #0000000d, 0 8px 24px #00000014;
+        transition: opacity 120ms ease, visibility 120ms ease;
         pointer-events: none;
+      }
+      .cce-global-tooltip[data-theme="dark"] {
+        --cce-tip-bg: #1c2534;
+        --cce-tip-text: #e6ebf2;
+        --cce-tip-muted: #b0bdce;
+        --cce-tip-border: #45536a;
+        --cce-tip-accent: #edb48b;
+        --cce-status-remaining: #9fc2ff;
+        --cce-status-absent: #ffadb5;
+        --cce-status-present: #8dd8b0;
+      }
+      @media (prefers-color-scheme: dark) {
+        .cce-global-tooltip[data-theme="system"] {
+          --cce-tip-bg: #1c2534;
+          --cce-tip-text: #e6ebf2;
+          --cce-tip-muted: #b0bdce;
+          --cce-tip-border: #45536a;
+          --cce-tip-accent: #edb48b;
+        --cce-status-remaining: #9fc2ff;
+        --cce-status-absent: #ffadb5;
+        --cce-status-present: #8dd8b0;
+        }
       }
       .cce-global-tooltip.cce-visible {
         visibility: visible;
         opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
+        pointer-events: auto;
       }
-      .cce-tooltip-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
+      .cce-global-tooltip::after {
+        content: "";
+        position: absolute;
+        left: var(--cce-arrow-left, 50%);
+        width: 6px;
+        height: 6px;
+        background: var(--cce-tip-bg);
+        transform: translateX(-50%) rotate(45deg);
       }
-      .cce-tooltip-name {
-        font-weight: 600;
-        font-size: 1.05em;
-        line-height: 1.3;
-        color: #0f172a;
+      .cce-global-tooltip[data-placement="above"]::after {
+        bottom: -4px;
+        border-right: 1px solid var(--cce-tip-border);
+        border-bottom: 1px solid var(--cce-tip-border);
       }
-      .cce-tooltip-details {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        gap: 3px;
-        margin-top: 4px;
-        padding-top: 6px;
-        border-top: 1px solid #f1f5f9;
+      .cce-global-tooltip[data-placement="below"]::after {
+        top: -4px;
+        border-left: 1px solid var(--cce-tip-border);
+        border-top: 1px solid var(--cce-tip-border);
       }
+      .cce-tooltip-content { display: grid; gap: 9px; overflow-y: auto; }
+      .cce-tooltip-name { font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--cce-tip-text); }
+      .cce-tooltip-details { display: grid; gap: 6px; }
       .cce-detail-row {
-        font-size: 0.92em;
-        color: #475569;
-        text-align: center;
-        line-height: 1.35;
+        display: grid;
+        grid-template-columns: 84px minmax(0, 1fr);
+        align-items: baseline;
+        gap: 8px;
+        font-size: 12px;
+        line-height: 1.5;
       }
-      .cce-detail-label {
-        font-weight: 600;
-        color: #e67e22;
-        margin-right: 3px;
+      .cce-detail-label { font-weight: 500; color: var(--cce-tip-accent); }
+      .cce-detail-text { min-width: 0; font-weight: 400; color: var(--cce-tip-muted); }
+      @media (prefers-reduced-motion: reduce) {
+        .cce-global-tooltip { transition: none; }
       }
+      .cce-chart-popup { width: 300px; }
+      .cce-chart-popup .cce-tooltip-content, .cce-chart-history {
+        scrollbar-width: thin;
+        scrollbar-color: var(--cce-tip-border) var(--cce-tip-bg);
+      }
+      .cce-tooltip-code { font-size: 11px; color: var(--cce-tip-muted); }
+      .cce-chart-history {
+        display: grid;
+        gap: 6px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--cce-tip-border);
+        overflow-y: auto;
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+      .cce-chart-history-row { display: flex; justify-content: space-between; gap: 16px; color: var(--cce-tip-text); }
+      .cce-chart-history-row strong { font-weight: 600; white-space: nowrap; color: inherit; }
+      .cce-chart-history-row[data-status="remaining"] { color: var(--cce-status-remaining); }
+      .cce-chart-history-row[data-status="absent"] { color: var(--cce-status-absent); }
+      .cce-chart-history-row[data-status="present"] { color: var(--cce-status-present); }
       .cce-inline {
-        display: inline;
+        display: inline-flex;
+        flex-direction: column;
+        gap: 3px;
+        max-width: 100%;
+        min-width: 0;
+        vertical-align: top;
         white-space: normal !important;
-        word-break: break-word !important;
-        overflow-wrap: break-word !important;
-        line-height: 1.35;
-        cursor: help;
+        overflow-wrap: anywhere;
+        line-height: 1.45;
       }
-      .cce-inline-title {
-        font-weight: 600;
-        white-space: normal !important;
-        word-break: break-word !important;
-        overflow-wrap: break-word !important;
+      .cce-inline:has(.cce-inline-row) {
+        box-sizing: border-box;
+        border-left: 2px solid #94a3b880;
+        padding-left: 9px;
       }
-      .cce-inline-code {
-        font-weight: 600;
-      }
-      .cce-inline-name {
-        color: #f26522 !important;
-        font-weight: 600;
-        white-space: normal !important;
-        word-break: break-word !important;
-        overflow-wrap: break-word !important;
-      }
+      .cce-inline-title { font-weight: 600; margin-bottom: 3px; }
+      .cce-inline-code { font-weight: 700; }
+      .cce-inline-name { font-weight: 500; }
+      .cce-inline-section { font-weight: 400; }
       .cce-inline-row {
-        white-space: normal !important;
-        word-break: break-word !important;
-        overflow-wrap: break-word !important;
+        display: grid;
+        grid-template-columns: 84px minmax(0, 1fr);
+        gap: 8px;
+        font-size: 0.88em;
+        line-height: 1.45;
       }
-      .cce-inline-sep {
-        color: #cbd5e1;
-        margin: 0 4px;
-      }
-      .cce-inline-label {
-        font-weight: 600;
-      }
-      .cce-inline-exam {
-        color: #e67e22;
-      }
-      .cce-inline-prereq {
-        color: #d35400;
+      .cce-inline-label { font-weight: 500; }
+      .cce-inline-value { min-width: 0; font-weight: 400; }
+      tr:has(> td .cce-inline-row) > td {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        vertical-align: top;
+        border-bottom: 1px solid #94a3b840;
       }
       /* Prevent table cells, grid cells, and popup containers from clipping inline decoded courses */
       td:has(.cce-inline),
@@ -680,20 +567,56 @@
         height: auto !important;
         max-height: none !important;
       }
-      /* Highcharts chart tooltip and container overflow fixes */
-      .highcharts-container,
-      .highcharts-container svg,
-      svg.highcharts-root {
-        overflow: visible !important;
+      /* Hover uses the chart's own visibility; clicking holds a stable copy open. */
+      .highcharts-container[data-cce-course-chart] {
+        --cce-chart-bg: #ffffff;
+        --cce-chart-text: #182334;
+        --cce-chart-muted: #526174;
+        --cce-chart-border: #d7dfe9;
       }
-      .highcharts-tooltip .highcharts-label-box {
+      .highcharts-container[data-cce-theme="dark"] {
+        --cce-chart-bg: #1c2534;
+        --cce-chart-text: #e6ebf2;
+        --cce-chart-muted: #b0bdce;
+        --cce-chart-border: #45536a;
+      }
+      @media (prefers-color-scheme: dark) {
+        .highcharts-container[data-cce-theme="system"] {
+          --cce-chart-bg: #1c2534;
+          --cce-chart-text: #e6ebf2;
+          --cce-chart-muted: #b0bdce;
+          --cce-chart-border: #45536a;
+        }
+      }
+      [data-cce-course-chart] .highcharts-tooltip { visibility: hidden !important; pointer-events: none; }
+      [data-cce-course-chart]:has(.cce-pinned-chart-tooltip) .highcharts-tooltip { visibility: hidden !important; }
+      [data-cce-course-chart] :is(.highcharts-tooltip, .cce-pinned-chart-tooltip):has(.cce-custom-tooltip-group) > :is(path, rect) {
         display: none !important;
       }
-      .highcharts-tooltip {
-        pointer-events: none;
+      [data-cce-course-chart] .highcharts-point { cursor: pointer; }
+      .cce-pinned-chart-tooltip, .cce-custom-tooltip-group { pointer-events: none; }
+      [data-cce-course-chart] :is(.highcharts-tooltip, .cce-pinned-chart-tooltip) text {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+        font-size: 12px !important;
+        font-variant-numeric: tabular-nums;
+        fill: var(--cce-chart-text, #182334);
       }
-      .cce-custom-tooltip-group {
-        pointer-events: none;
+      [data-cce-course-chart] :is(.highcharts-tooltip, .cce-pinned-chart-tooltip) text tspan {
+        fill: var(--cce-chart-muted, #526174) !important;
+        font-size: 12px !important;
+        font-weight: 400 !important;
+      }
+      [data-cce-course-chart] :is(.highcharts-tooltip, .cce-pinned-chart-tooltip) text .cce-chart-code {
+        font-size: 11px !important;
+      }
+      [data-cce-course-chart] :is(.highcharts-tooltip, .cce-pinned-chart-tooltip) text .cce-chart-name {
+        fill: var(--cce-chart-text, #182334) !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+      }
+      [data-cce-course-chart] :is(.highcharts-tooltip, .cce-pinned-chart-tooltip) text .cce-chart-label {
+        font-size: 11px !important;
+        font-weight: 500 !important;
       }
     `;
     (document.head || document.documentElement).appendChild(style);
@@ -701,69 +624,244 @@
     attachTooltipListeners(document, window);
   }
 
-  function attachTooltipListeners(doc, win) {
-    if (!doc) return;
-    let globalTooltip = doc.querySelector(".cce-global-tooltip");
-    if (!globalTooltip) {
-      globalTooltip = doc.createElement("div");
-      globalTooltip.className = "cce-global-tooltip";
-      (doc.body || doc.documentElement).appendChild(globalTooltip);
+  function chartHistoryLines(root) {
+    const lines = [];
+    let current = "";
+    const flush = () => { if (current.trim()) lines.push(current.trim()); current = ""; };
+    function visit(node) {
+      if (node.nodeType === 3) { current += node.nodeValue; return; }
+      if (node.hasAttribute && node.hasAttribute("data-cce-key")) return;
+      if (node.hasAttribute && node.hasAttribute("x") && node.hasAttribute("dy")) flush();
+      for (const child of node.childNodes || []) visit(child);
     }
+    visit(root);
+    flush();
+    return lines;
+  }
 
-    doc.addEventListener("mouseover", (e) => {
-      const target = e.target.closest
-        ? e.target.closest(".cce-tooltip-wrap, .cce-highlight, .cce-inline")
-        : null;
-      if (target && target.dataset.cceKey) {
-        const resolved = resolve(target.dataset.cceKey);
-        if (!resolved) return;
-        const data = buildExtendedData(resolved);
-        globalTooltip.textContent = "";
-        buildTooltipDom(data, globalTooltip);
-        globalTooltip.classList.add("cce-visible");
-        const rect = target.getBoundingClientRect();
-        const tipRect = globalTooltip.getBoundingClientRect();
-        const tipWidth = tipRect.width || 280;
-        const tipHeight = tipRect.height || 100;
+  function buildChartTooltipDom(nativeTooltip, container) {
+    const marker = nativeTooltip.querySelector("[data-cce-key]");
+    const resolved = marker && resolve(marker.dataset.cceKey);
+    if (!resolved) return null;
+    const doc = container.ownerDocument;
+    container.textContent = "";
+    buildTooltipDom(buildExtendedData(resolved), container);
+    const details = container.firstChild;
+    const code = doc.createElement("div");
+    code.className = "cce-tooltip-code";
+    code.textContent = (marker.dataset.cceBefore || "") + marker.dataset.cceMatch + (marker.dataset.cceAfter || "");
+    details.insertBefore(code, details.firstChild);
+    const history = doc.createElement("div");
+    history.className = "cce-chart-history";
+    for (const line of chartHistoryLines(nativeTooltip.querySelector("text") || nativeTooltip)) {
+      const row = doc.createElement("div");
+      row.className = "cce-chart-history-row";
+      const status = line.match(/^(remaining|absent|present)\s*:/i);
+      row.dataset.status = status ? status[1].toLowerCase() : "other";
+      const colon = line.indexOf(":");
+      const label = doc.createElement("span");
+      label.textContent = colon < 0 ? line : line.slice(0, colon);
+      row.appendChild(label);
+      if (colon >= 0) {
+        const value = doc.createElement("strong");
+        value.textContent = line.slice(colon + 1).trim();
+        row.appendChild(value);
+      }
+      history.appendChild(row);
+    }
+    if (history.firstChild) container.appendChild(history);
+    return { details, history };
+  }
 
-        const winWidth = (win && win.innerWidth) ? win.innerWidth : (doc.documentElement.clientWidth || 800);
-        const winHeight = (win && win.innerHeight) ? win.innerHeight : (doc.documentElement.clientHeight || 600);
+  // Keep the tooltip inside the viewport and its pointer aligned with the course.
+  function tooltipPosition(rect, width, height, viewportWidth, viewportHeight) {
+    const margin = 12;
+    const gap = 9;
+    const center = rect.left + rect.width / 2;
+    const left = Math.max(margin, Math.min(center - width / 2, viewportWidth - width - margin));
+    const above = rect.top >= height + gap + margin || rect.top > viewportHeight - rect.bottom;
+    const top = Math.max(margin, Math.min(above ? rect.top - height - gap : rect.bottom + gap,
+      viewportHeight - height - margin));
+    return { left, top, placement: above ? "above" : "below",
+      arrow: Math.max(12, Math.min(width - 12, center - left)) };
+  }
 
-        let left = rect.left + rect.width / 2;
-        const halfW = tipWidth / 2;
-        if (left - halfW < 12) {
-          left = halfW + 12;
-        } else if (left + halfW > winWidth - 12) {
-          left = winWidth - halfW - 12;
-        }
-        globalTooltip.style.left = left + "px";
+  function attachTooltipListeners(doc, win) {
+    if (!doc || doc.querySelector(".cce-global-tooltip")) return;
+    const globalTooltip = doc.createElement("div");
+    globalTooltip.className = "cce-global-tooltip";
+    globalTooltip.id = "cce-course-tooltip";
+    globalTooltip.setAttribute("role", "tooltip");
+    globalTooltip.setAttribute("aria-hidden", "true");
+    (doc.body || doc.documentElement).appendChild(globalTooltip);
+    const selector = ".cce-tooltip-wrap, .cce-highlight";
+    let active = null;
+    let hovered = null;
+    let focused = null;
+    let focusOwner = null;
+    let descriptionTarget = null;
+    let showTimer;
+    let hideTimer;
+    let chartClickVersion = 0;
+    let activePoint = null;
+    let chartPoint = null;
+    const courseTarget = node => node && node.closest ? node.closest(selector) : null;
 
-        if (rect.top >= tipHeight + 16) {
-          globalTooltip.style.top = "auto";
-          globalTooltip.style.bottom = (winHeight - rect.top + 8) + "px";
-        } else {
-          globalTooltip.style.bottom = "auto";
-          globalTooltip.style.top = (rect.bottom + 8) + "px";
-        }
+    function hide() {
+      chartClickVersion++;
+      activePoint = null;
+      chartPoint = null;
+      globalTooltip.classList.remove("cce-chart-popup");
+      doc.querySelectorAll(".cce-pinned-chart-tooltip").forEach(popup => popup.remove());
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      globalTooltip.classList.remove("cce-visible");
+      globalTooltip.setAttribute("aria-hidden", "true");
+      if (descriptionTarget) {
+        const ids = (descriptionTarget.getAttribute("aria-describedby") || "").split(/\s+/)
+          .filter(id => id && id !== globalTooltip.id && id !== "cce-chart-details");
+        if (ids.length) descriptionTarget.setAttribute("aria-describedby", ids.join(" "));
+        else descriptionTarget.removeAttribute("aria-describedby");
+      }
+      active = null;
+      descriptionTarget = null;
+    }
+    function show(target) {
+      clearTimeout(hideTimer);
+      clearTimeout(showTimer);
+      hide();
+      const resolved = resolve(target.dataset.cceKey);
+      if (!enabled || !target.isConnected || !resolved) return;
+      active = target;
+      globalTooltip.textContent = "";
+      globalTooltip.dataset.theme = themePreference;
+      buildTooltipDom(buildExtendedData(resolved), globalTooltip);
+      const rect = target.getBoundingClientRect();
+      const height = Math.max(40, Math.max(rect.top, win.innerHeight - rect.bottom) - 47);
+      globalTooltip.firstChild.style.maxHeight = height + "px";
+      const tipRect = globalTooltip.getBoundingClientRect();
+      const position = tooltipPosition(rect, tipRect.width, tipRect.height,
+        win.innerWidth, win.innerHeight);
+      globalTooltip.style.left = position.left + "px";
+      globalTooltip.style.top = position.top + "px";
+      globalTooltip.style.setProperty("--cce-arrow-left", position.arrow + "px");
+      globalTooltip.dataset.placement = position.placement;
+      descriptionTarget = focused === target && focusOwner ? focusOwner : target;
+      const ids = new Set((descriptionTarget.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+      ids.add(globalTooltip.id);
+      descriptionTarget.setAttribute("aria-describedby", [...ids].join(" "));
+      globalTooltip.setAttribute("aria-hidden", "false");
+      globalTooltip.classList.add("cce-visible");
+    }
+    function scheduleHide() {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      if (activePoint) return;
+      hideTimer = setTimeout(() => {
+        if (focused) show(focused);
+        else hide();
+      }, 140);
+    }
+    doc.addEventListener("mouseover", e => {
+      if (globalTooltip.contains(e.target)) { clearTimeout(hideTimer); return; }
+      const target = courseTarget(e.target);
+      if (!target || target.contains(e.relatedTarget)) return;
+      hovered = target;
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      if (active && active !== target) hide();
+      showTimer = setTimeout(() => show(target), 220);
+    });
+    doc.addEventListener("mouseout", e => {
+      const target = courseTarget(e.target);
+      if (target && target.contains(e.relatedTarget)) return;
+      if (target) hovered = null;
+      if (globalTooltip.contains(e.relatedTarget)) { clearTimeout(showTimer); return; }
+      const point = e.target.closest ? e.target.closest(".highcharts-point, .highcharts-tracker, .highcharts-series") : null;
+      if (point && point.contains(e.relatedTarget)) return;
+      if (point && !activePoint) chartClickVersion++;
+      if (target || point || globalTooltip.contains(e.target)) scheduleHide();
+    });
+    doc.addEventListener("focusin", e => {
+      focused = courseTarget(e.target) || (e.target.querySelector && e.target.querySelector(selector));
+      focusOwner = focused ? e.target : null;
+      if (focused) show(focused);
+    });
+    doc.addEventListener("focusout", e => {
+      if (focused) {
+        focused = null;
+        focusOwner = null;
+        if (hovered) show(hovered);
+        else scheduleHide();
       }
     });
+    doc.addEventListener("keydown", e => { if (e.key === "Escape") hide(); });
+    doc.addEventListener("scroll", e => {
+      if (!globalTooltip.contains(e.target)) hide();
+    }, true);
+    doc.addEventListener("cce-dismiss-tooltip", hide);
+    win.addEventListener("resize", hide);
+    win.addEventListener("blur", hide);
 
-    doc.addEventListener("mouseout", (e) => {
-      if (e.target.closest && e.target.closest(".cce-tooltip-wrap, .cce-highlight, .cce-inline")) {
-        globalTooltip.classList.remove("cce-visible");
+    function showChart(point, chart, pin) {
+      clearTimeout(hideTimer);
+      clearTimeout(showTimer);
+      if (chartPoint === point && globalTooltip.classList.contains("cce-visible")) {
+        if (pin) activePoint = point;
+        return;
       }
-    });
-
-    doc.addEventListener("mousemove", (e) => {
-      if (!enabled) return;
-      const chartContainer = e.target.closest ? e.target.closest(".highcharts-container") : null;
-      if (chartContainer) {
-        const tg = chartContainer.querySelector(".highcharts-tooltip");
-        if (tg) {
-          adjustHighchartsTooltipBackground(tg);
-        }
-      }
+      const nativeTooltip = chart.querySelector(".highcharts-tooltip");
+      if (!nativeTooltip) return;
+      processNode(nativeTooltip);
+      hide();
+      const content = buildChartTooltipDom(nativeTooltip, globalTooltip);
+      if (!content) return;
+      chartPoint = point;
+      if (pin) activePoint = point;
+      globalTooltip.classList.add("cce-chart-popup");
+      globalTooltip.dataset.theme = themePreference;
+      content.history.style.maxHeight = Math.max(40, Math.floor(win.innerHeight * 0.35)) + "px";
+      const historyHeight = content.history.getBoundingClientRect().height;
+      content.details.style.maxHeight = Math.max(40, Math.min(280, win.innerHeight - historyHeight - 64)) + "px";
+      const bounds = globalTooltip.getBoundingClientRect();
+      const position = tooltipPosition(point.getBoundingClientRect(), bounds.width, bounds.height, win.innerWidth, win.innerHeight);
+      globalTooltip.style.left = position.left + "px";
+      globalTooltip.style.top = position.top + "px";
+      globalTooltip.style.setProperty("--cce-arrow-left", position.arrow + "px");
+      globalTooltip.dataset.placement = position.placement;
+      descriptionTarget = point;
+      const ids = new Set((point.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+      ids.add(globalTooltip.id);
+      point.setAttribute("aria-describedby", [...ids].join(" "));
+      globalTooltip.setAttribute("aria-hidden", "false");
+      globalTooltip.classList.add("cce-visible");
+    }
+    let chartHoverQueued = false;
+    doc.addEventListener("mousemove", e => {
+      const point = e.target.closest ? e.target.closest(".highcharts-point, .highcharts-tracker, .highcharts-series") : null;
+      const chart = point && point.closest(".highcharts-container[data-cce-course-chart]");
+      if (!enabled || !chart || activePoint || chartHoverQueued) return;
+      clearTimeout(hideTimer);
+      chartHoverQueued = true;
+      const version = chartClickVersion;
+      requestAnimationFrame(() => {
+        chartHoverQueued = false;
+        if (version !== chartClickVersion || !enabled || activePoint || !point.isConnected) return;
+        showChart(point, chart, false);
+      });
     }, { passive: true });
+
+    doc.addEventListener("click", e => {
+      if (globalTooltip.contains(e.target)) return;
+      const point = e.target.closest ? e.target.closest(".highcharts-point, .highcharts-tracker, .highcharts-series") : null;
+      const chart = point && point.closest(".highcharts-container[data-cce-course-chart]");
+      if (activePoint === point && point) { activePoint = null; return; }
+      if (!enabled || !chart) { hide(); return; }
+      const version = chartClickVersion;
+      setTimeout(() => {
+        if (version === chartClickVersion && enabled && point.isConnected) showChart(point, chart, true);
+      }, 0);
+    }, true);
   }
 
   function injectStylesIntoDoc(doc) {
@@ -823,6 +921,7 @@
 
   function shouldSkipElement(el) {
     if (!el || el.nodeType !== Node.ELEMENT_NODE) return false;
+    if (el.classList && (el.classList.contains("cce-global-tooltip") || el.classList.contains("cce-pinned-chart-tooltip"))) return true;
     if (SKIP_TAGS.has(el.tagName.toUpperCase())) return true;
     if (el.isContentEditable) return true;
     if (el.getAttribute && el.getAttribute("contenteditable") === "true") return true;
@@ -907,7 +1006,7 @@
       const tag = elForTitle.tagName && elForTitle.tagName.toUpperCase();
       if (tag === "SVG") break;
       if (tag === "TEXT" || tag === "G") {
-        const titleEl = elForTitle.querySelector("title");
+        const titleEl = elForTitle.querySelector(tag === "G" ? ":scope > title" : "title");
         if (titleEl) {
           titleElToRemove = titleEl;
           if (text.includes("…") || text.endsWith("...")) {
@@ -933,10 +1032,15 @@
       curr = curr.parentElement;
     }
 
-    // CSS tooltips don't work in SVGs, so we force highlight mode for charts
+    // Axis labels must keep their original dimensions, even in Inline mode.
     let effectiveMode = mode;
-    if (isSvg && !isTooltip) effectiveMode = "highlight";
+    if (isSvg && !isTooltip && mode === "inline") effectiveMode = "highlight";
     else if (isTooltip) effectiveMode = "inline";
+    const chart = textNode.parentElement.closest(".highcharts-container");
+    if (chart) {
+      chart.setAttribute("data-cce-course-chart", "1");
+      chart.setAttribute("data-cce-theme", themePreference);
+    }
 
     const frag = document.createDocumentFragment();
     let lastIndex = 0;
@@ -957,17 +1061,17 @@
         wrap.setAttribute(PROCESSED_ATTR, "1");
         wrap.dataset.cceKey = resolved.key;
         wrap.dataset.cceMatch = text;
-        wrap.classList.add("cce-highlight");
-                wrap.style.cursor = "help";
-        wrap.setAttribute("fill", "#ff8000");
-        wrap.setAttribute("font-weight", "bold");
+        wrap.classList.add(effectiveMode === "tooltip" ? "cce-tooltip-wrap" : "cce-highlight");
+        wrap.style.cursor = "help";
+        if (effectiveMode === "highlight") wrap.setAttribute("fill", "#b96a30");
+        wrap.setAttribute("tabindex", "0");
         wrap.textContent = text;
         frag.appendChild(wrap);
         break;
       }
 
       // Add the normal text before the matched course (for tooltips, beforeText is handled inside renderSvgTooltip)
-      if (!isTooltip && match.index > lastIndex) {
+      if ((!isTooltip || !isSvg) && match.index > lastIndex) {
         const interText = text.slice(lastIndex, match.index);
         if (effectiveMode === "inline" && lastMatchHadDetails) {
           frag.appendChild(document.createElement("br"));
@@ -990,25 +1094,25 @@
           wrap.setAttribute("font-weight", "bold");
           const beforeText = text.slice(lastIndex, match.index);
           const afterText = text.slice(match.index + match[0].length);
+          wrap.dataset.cceBefore = beforeText;
+          wrap.dataset.cceAfter = afterText;
+          wrap.dataset.cceOriginal = text;
           renderSvgTooltip(wrap, beforeText, match[0], afterText, data);
           frag.appendChild(wrap);
           lastIndex = text.length;
           break;
-        } else if (effectiveMode === "inline") {
-          wrap.setAttribute("font-weight", "bold");
-          renderSvgInline(wrap, match[0], data);
         } else {
           // Regular highlight in an SVG
           wrap.style.cursor = "help";
-                    wrap.setAttribute("fill", "#ff8000");
           if (effectiveMode === "highlight") {
+            wrap.setAttribute("fill", "#b96a30");
             wrap.classList.add("cce-highlight");
-            wrap.setAttribute("font-weight", "bold");
           } else {
             wrap.classList.add("cce-tooltip-wrap");
             wrap.setAttribute("text-decoration", "underline");
           }
           wrap.textContent = match[0];
+          wrap.setAttribute("tabindex", "0");
         }
 
         frag.appendChild(wrap);
@@ -1027,38 +1131,40 @@
                     wrap.textContent = match[0];
         } else {
           wrap.className = "cce-inline";
+          const suffix = text.slice(match.index + match[0].length).match(/^\s*\([A-Z0-9]{1,5}\)/);
+          if (suffix) {
+            wrap.dataset.cceSuffix = suffix[0];
+            wrap.dataset.cceOriginal = match[0] + suffix[0];
+          }
                     wrap.title = `${match[0]}: ${data.name}${data.exam ? ' | Exam: ' + data.exam : ''}${data.prereq ? ' | Prereq: ' + data.prereq : ''}`;
           buildInlineDom(match[0], data, wrap);
           lastMatchHadDetails = !!(data.exam || data.prereq);
+        }
+        if (effectiveMode !== "inline" && !textNode.parentElement.closest("a, button, input, select, textarea, [tabindex]")) {
+          wrap.setAttribute("tabindex", "0");
         }
         frag.appendChild(wrap);
       }
 
       lastIndex = match.index + match[0].length;
+      if (!isSvg && effectiveMode === "inline") {
+        const suffix = text.slice(lastIndex).match(/^\s*\([A-Z0-9]{1,5}\)/);
+        if (suffix) { lastIndex += suffix[0].length; courseRegex.lastIndex = lastIndex; }
+      }
     }
 
     if (!replaced) return null;
 
-    if (!isTooltip && !isHighchartsTruncated && lastIndex < text.length) {
+    if ((!isTooltip || !isSvg) && !isHighchartsTruncated && lastIndex < text.length) {
       frag.appendChild(document.createTextNode(text.slice(lastIndex)));
     }
 
-    // If inline courses were added inside a table cell, prevent clipping
-    if (replaced && effectiveMode === "inline") {
-      let cell = textNode.parentElement ? textNode.parentElement.closest("td, th, [role='cell'], [role='gridcell'], .grid-cell") : null;
-      if (cell) {
-        cell.style.setProperty("white-space", "normal", "important");
-        cell.style.setProperty("overflow", "visible", "important");
-        cell.style.setProperty("word-break", "break-word", "important");
-        cell.style.setProperty("overflow-wrap", "break-word", "important");
-        cell.style.setProperty("height", "auto", "important");
-        cell.style.setProperty("max-height", "none", "important");
-        if (cell.hasAttribute("nowrap")) cell.removeAttribute("nowrap");
-      }
-    }
-
     // Remove old <title> attributes so they don't block our custom tooltip
-    if (titleElToRemove) titleElToRemove.remove();
+    if (titleElToRemove) {
+      const marker = frag.querySelector("[data-cce-key]");
+      if (marker) marker.dataset.cceOriginalTitle = titleElToRemove.textContent;
+      titleElToRemove.remove();
+    }
     let pNode = textNode.parentElement;
     while (pNode && pNode !== document.documentElement) {
       if (pNode.hasAttribute && pNode.hasAttribute("title")) pNode.removeAttribute("title");
@@ -1116,21 +1222,9 @@
   // Highcharts draws its tooltips perfectly wrapped to the original short text.
   // Since we add the decoded course info, we stretch and reposition the background box manually!
   function adjustHighchartsTooltipBackground(tooltipGroup) {
-    if (!tooltipGroup) return;
+    if (!tooltipGroup || !tooltipGroup.querySelector("[data-cce-key]")) return;
 
     const svgEl = tooltipGroup.ownerSVGElement;
-    if (svgEl) {
-      svgEl.style.overflow = "visible";
-      let p = svgEl.parentElement;
-      while (p && p !== document.body) {
-        if (p.classList && p.classList.contains("highcharts-container")) {
-          p.style.overflow = "visible";
-          break;
-        }
-        p = p.parentElement;
-      }
-    }
-
     const origBox = tooltipGroup.querySelector(".highcharts-label-box");
     if (origBox) {
       origBox.style.display = "none";
@@ -1151,47 +1245,14 @@
         customBgGroup.setAttribute("class", "cce-custom-tooltip-group");
         customBgGroup.style.pointerEvents = "none";
 
-        let defs = svgEl ? svgEl.querySelector("defs") : null;
-        if (svgEl && !defs) {
-          defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-          svgEl.prepend(defs);
-        }
-
-        if (defs) {
-          let filter = defs.querySelector("#cce-shadow");
-          if (!filter) {
-            filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
-            filter.setAttribute("id", "cce-shadow");
-            filter.setAttribute("x", "-20%");
-            filter.setAttribute("y", "-20%");
-            filter.setAttribute("width", "140%");
-            filter.setAttribute("height", "140%");
-            const feDropShadow = document.createElementNS("http://www.w3.org/2000/svg", "feDropShadow");
-            feDropShadow.setAttribute("dx", "0");
-            feDropShadow.setAttribute("dy", "6");
-            feDropShadow.setAttribute("stdDeviation", "5");
-            feDropShadow.setAttribute("flood-color", "#000000");
-            feDropShadow.setAttribute("flood-opacity", "0.12");
-            filter.appendChild(feDropShadow);
-            defs.appendChild(filter);
-          }
-        }
-
         const customBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         customBg.setAttribute("class", "cce-custom-tooltip-bg");
-        customBg.setAttribute("fill", "rgba(255, 255, 255, 0.98)");
-        customBg.setAttribute("stroke", "#e2e8f0");
+        customBg.setAttribute("fill", "var(--cce-chart-bg, #ffffff)");
+        customBg.setAttribute("stroke", "var(--cce-chart-border, #d7dfe9)");
         customBg.setAttribute("stroke-width", "1");
         customBg.setAttribute("rx", "8");
-        customBg.setAttribute("filter", "url(#cce-shadow)");
+        customBg.style.filter = "drop-shadow(0 3px 4px rgb(0 0 0 / 0.10))";
         customBgGroup.appendChild(customBg);
-
-        const customTopBorder = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        customTopBorder.setAttribute("class", "cce-custom-tooltip-border");
-        customTopBorder.setAttribute("stroke", "#e67e22");
-        customTopBorder.setAttribute("stroke-width", "3");
-        customTopBorder.setAttribute("fill", "none");
-        customBgGroup.appendChild(customTopBorder);
 
         tooltipGroup.insertBefore(customBgGroup, tooltipGroup.firstChild);
       }
@@ -1200,7 +1261,7 @@
       const padY = 12;
       const boxX = bbox.x - padX;
       const boxY = bbox.y - padY;
-      const boxW = Math.max(160, bbox.width + (padX * 2));
+      const boxW = Math.max(240, bbox.width + (padX * 2));
       const boxH = bbox.height + (padY * 2);
 
       const customBg = customBgGroup.querySelector(".cce-custom-tooltip-bg");
@@ -1209,17 +1270,6 @@
         customBg.setAttribute("y", boxY);
         customBg.setAttribute("width", boxW);
         customBg.setAttribute("height", boxH);
-      }
-
-      const customTopBorder = customBgGroup.querySelector(".cce-custom-tooltip-border");
-      if (customTopBorder) {
-        const radius = 8;
-        customTopBorder.setAttribute("d", `
-          M ${boxX} ${boxY + radius} 
-          Q ${boxX} ${boxY} ${boxX + radius} ${boxY} 
-          L ${boxX + boxW - radius} ${boxY} 
-          Q ${boxX + boxW} ${boxY} ${boxX + boxW} ${boxY + radius}
-        `);
       }
 
       // Keep tooltip inside chart boundaries (prevent clipping on right or bottom edges)
@@ -1378,6 +1428,7 @@
   // Load everything up once we have our settings from storage
   function init(storageData) {
     if (!storageData || typeof storageData !== "object") return;
+    themePreference = storageData.themePreference || "system";
     courses = storageData.courses || {};
     mode = storageData.mode || "highlight";
     showExamInfo = storageData.showExamInfo || false;
@@ -1399,13 +1450,23 @@
   }
 
   function undecorateAll() {
+    document.dispatchEvent(new Event("cce-dismiss-tooltip"));
     document.querySelectorAll(`[${PROCESSED_ATTR}="1"]`).forEach(wrap => {
       if (wrap.parentNode) {
-        const textNode = document.createTextNode(wrap.dataset.cceMatch);
+        if (wrap.dataset.cceOriginalTitle && !wrap.parentNode.querySelector("title")) {
+          const title = wrap.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "title");
+          title.textContent = wrap.dataset.cceOriginalTitle;
+          wrap.parentNode.appendChild(title);
+        }
+        const textNode = document.createTextNode(wrap.dataset.cceOriginal || wrap.dataset.cceMatch);
         wrap.parentNode.replaceChild(textNode, wrap);
       }
     });
 
+    document.querySelectorAll("[data-cce-course-chart]").forEach(chart => {
+      chart.removeAttribute("data-cce-course-chart");
+      chart.removeAttribute("data-cce-theme");
+    });
     // Restore Highcharts backgrounds
     document.querySelectorAll(".cce-custom-tooltip-group").forEach(el => el.remove());
     document.querySelectorAll(".highcharts-label-box").forEach(el => {
@@ -1421,7 +1482,7 @@
   if (chrome?.storage?.local?.get) {
     try {
       chrome.storage.local.get(
-        ["courses", "mode", "allowedSites", "showExamInfo", "showPrerequisites"],
+        ["courses", "mode", "allowedSites", "showExamInfo", "showPrerequisites", "themePreference"],
         (data) => {
           if (chrome.runtime?.lastError || !chrome.runtime?.id) return;
           if (data) {
@@ -1439,6 +1500,11 @@
       chrome.storage.onChanged.addListener((changes, area) => {
         if (!chrome.runtime?.id) return;
         if (area === "local") {
+          document.dispatchEvent(new Event("cce-dismiss-tooltip"));
+          if (changes.themePreference !== undefined) {
+            themePreference = changes.themePreference.newValue || "system";
+            document.querySelectorAll("[data-cce-course-chart]").forEach(chart => chart.setAttribute("data-cce-theme", themePreference));
+          }
           let needsFullRedecoration = false;
           let needsDomUpdate = false;
 
