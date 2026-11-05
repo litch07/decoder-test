@@ -1,5 +1,7 @@
 // background.js — Sets things up when the extension installs and handles the course data
 
+importScripts("course-data.js");
+
 const COURSES_URL = chrome.runtime.getURL("courses.json");
 
 // Helper to defensively merge a single course entry, handling legacy string formats
@@ -92,20 +94,21 @@ async function loadAndStoreCourses() {
 }
 
 // Fetch the latest courses from the GitHub repo, validate format, and update remoteCourses
-async function syncCourses() {
+async function syncCourses(previewOnly = true, candidate = null, expectedRevision = null) {
   try {
-    const url = "https://raw.githubusercontent.com/litch07/uiu-course-decoder/main/courses.json";
-    const response = await fetch(url, { cache: "no-cache" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    const text = await response.text();
+    let text;
+    if (candidate === null) {
+      const response = await fetch("https://raw.githubusercontent.com/litch07/uiu-course-decoder/main/courses.json", { cache: "no-cache" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      text = await response.text();
+    } else { text = JSON.stringify(candidate); }
     const MAX_SYNC_BYTES = 2 * 1024 * 1024;
     if (new Blob([text]).size > MAX_SYNC_BYTES) {
       throw new Error("Remote catalog too large (exceeds 2 MB safety limit)");
     }
     let data;
     try {
-      data = JSON.parse(text);
+      data = CourseData.parse(text);
     } catch (e) {
       throw new Error("Invalid format: Not valid JSON");
     }
@@ -114,16 +117,12 @@ async function syncCourses() {
       throw new Error("Invalid format: Not a JSON object");
     }
 
-    // Basic validation of the format: values should be objects containing 'name'
-    for (const key of Object.keys(data)) {
-      const course = data[key];
-      if (typeof course !== 'object' || !course.name) {
-        throw new Error("Invalid format: Course missing 'name' or not an object");
-      }
-    }
+    data = CourseData.validateCatalog(data);
 
     // Read previous remoteCourses and bundled courses to compute diff
     const { remoteCourses: prevRemote } = await chrome.storage.local.get("remoteCourses");
+    const revision = JSON.stringify(prevRemote || {});
+    if (!previewOnly && (expectedRevision === null || expectedRevision !== revision)) throw new Error("Catalog changed since review. Check for updates again.");
     let bundled = {};
     try {
       const bRes = await fetch(COURSES_URL);
@@ -156,6 +155,7 @@ async function syncCourses() {
         const currNote = (typeof curr === "object" && curr !== null) ? (curr.prerequisiteNote || "") : "";
 
         const changedFields = [];
+        if (Number(prev?.credits || 0) !== Number(curr?.credits || 0)) changedFields.push("Credits");
         if (prevName !== currName) changedFields.push("Title");
         if (prevDay !== currDay || prevSlot !== currSlot) changedFields.push("Exam Schedule");
         if (prevPrereq !== currPrereq) changedFields.push("Prerequisites");
@@ -189,6 +189,8 @@ async function syncCourses() {
       total: Object.keys(data).length,
       timestamp
     };
+
+    if (previewOnly) return { success: true, catalog: data, baselineRevision: revision, stats: lastSyncResult };
 
     await chrome.storage.local.set({ 
       remoteCourses: data,
@@ -288,8 +290,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     loadAndStoreCourses().then(() => sendResponse({ ok: true }));
     return true;
   }
+  if (message.type === "APPLY_CATALOG_UPDATE") {
+    syncCourses(false, message.catalog, message.baselineRevision).then(sendResponse);
+    return true;
+  }
   if (message.type === "SYNC_COURSES") {
-    syncCourses().then(sendResponse);
+    syncCourses(true).then(sendResponse);
     return true;
   }
 });

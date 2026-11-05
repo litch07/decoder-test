@@ -41,7 +41,7 @@
   function buildRegex(courseMap) {
     const patterns = Object.keys(courseMap).map((code) => {
       const escaped = code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const flexible = escaped.replace(/\\ /g, "[\\s]*");
+      const flexible = escaped.replace(/\s+/g, "[\\s]*");
       return `(?<![\\w-])${flexible}(?![\\w-])`;
     });
     return new RegExp(patterns.join("|"), "gi");
@@ -219,7 +219,7 @@
           if (pCode.toLowerCase() === "none") continue;
           const pResolved = resolve(pCode);
           if (pResolved && pResolved.name) {
-            decodedPrereqs.push(pResolved.name);
+            decodedPrereqs.push(pResolved.name + " (" + pCode + ")");
           } else {
             decodedPrereqs.push(pCode);
           }
@@ -231,11 +231,11 @@
       }
 
       if (hasExplicitNone) {
-        data.prereq = "None (Direct Entry)";
+        data.prereq = "No prerequisites";
       } else if (prereqText) {
         data.prereq = prereqText;
       } else {
-        data.prereq = "Not Specified";
+        data.prereq = "Prerequisites not listed";
       }
     }
     return data;

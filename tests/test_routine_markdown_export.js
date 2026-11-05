@@ -43,8 +43,8 @@ console.log('\n── test_routine_markdown_export.js ────────�
 // ── 1. HTML Element presence & ICS hygiene ─────────────────────────────────
 assert('HTML has #exportRoutineMdBtn in header', popupHtml.includes('id="exportRoutineMdBtn"'));
 assert('HTML button has accessible title and aria-label',
-  popupHtml.includes('title="Export Enrolled Courses &amp; Routine (.md)"') &&
-  popupHtml.includes('aria-label="Export Enrolled Courses &amp; Routine"'));
+  popupHtml.includes('title="Download exam routine as Markdown (.md)"') &&
+  popupHtml.includes('aria-label="Export exam routine"'));
 assert('HTML has zero remnant #examExportModal (ICS cleanup)', !popupHtml.includes('id="examExportModal"'));
 assert('HTML has zero remnant #icsStartDateInput (ICS cleanup)', !popupHtml.includes('id="icsStartDateInput"'));
 assert('HTML has zero remnant #downloadIcsBtn (ICS cleanup)', !popupHtml.includes('id="downloadIcsBtn"'));

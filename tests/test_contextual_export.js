@@ -13,7 +13,7 @@ console.log("[TEST 1] UI Elements & Header Controls in popup.html");
 const popupHtml = fs.readFileSync(path.join(__dirname, "..", "popup.html"), "utf8");
 
 assert.ok(popupHtml.includes('id="exportCoursesBtn"'), "popup.html must contain exportCoursesBtn in header");
-assert.ok(popupHtml.includes('class="header-export-btn"'), "export button must have header-export-btn class");
+assert.ok(/class="[^"]*\bheader-export-btn\b[^"]*"/.test(popupHtml), "export button must have header-export-btn class");
 assert.ok(popupHtml.includes('id="exportModal"'), "popup.html must contain exportModal container");
 assert.ok(popupHtml.includes('id="exportModalCloseBtn"'), "export modal must contain exportModalCloseBtn");
 assert.ok(popupHtml.includes('id="exportModalCancelBtn"'), "export modal must contain exportModalCancelBtn");

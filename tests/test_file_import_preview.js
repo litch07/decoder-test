@@ -289,7 +289,7 @@ console.log("[TEST 8] Drop Zone File Info Display & Diff Meta Chips");
 assert.ok(popupJs.includes('els.dropZoneFileInfo.style.display = "flex"'), "showDropZoneFileInfo must set display flex on dropZoneFileInfo");
 assert.ok(popupJs.includes('diff-chips-row'), "popup.js must render diff-chips-row for course metadata");
 assert.ok(popupJs.includes('diff-meta-chip'), "popup.js must render diff-meta-chip badges for exam slot, prereqs, and notes");
-assert.ok(popupJs.includes('Confirm & Merge (" + totalChanges + ")'), "previewConfirmBtn must dynamically reflect change count");
+assert.ok(popupJs.includes('Apply changes (" + totalChanges + ")'), "previewConfirmBtn must dynamically reflect change count");
 console.log("  ✓ Drop zone file card state and diff meta chips verified\n");
 
 // --- TEST 9: Modal CSS Transitions & Frosted-Glass Overlay ---

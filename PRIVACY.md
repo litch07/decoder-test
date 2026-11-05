@@ -1,8 +1,8 @@
 # Privacy Policy — UIU Course Code Decoder
 
-**Effective Date:** November 2026  
-**Extension Version:** 2.0.0+  
-**Publisher & Maintainer:** Sadid Ahmed ([@litch07](https://github.com/litch07))  
+**Effective Date:** November 2026
+**Extension Version:** 2.0.0+
+**Publisher & Maintainer:** Sadid Ahmed ([@litch07](https://github.com/litch07))
 **Repository:** [https://github.com/litch07/uiu-course-decoder](https://github.com/litch07/uiu-course-decoder)
 
 ---
@@ -16,7 +16,7 @@ The extension is designed around one strict principle: **Zero Data Collection**.
 <p align="center">
   <img src="assets/architecture-diagram.png" alt="UIU Course Code Decoder Privacy & Offline Architecture" width="100%" />
 </p>
-<p align="center"><em>Security and privacy boundary: Local browser storage isolation with zero background network connectivity.</em></p>
+<p align="center"><em>Security and privacy boundary: Local browser storage isolation with no telemetry; catalog updates run only when requested.</em></p>
 
 ---
 
@@ -57,8 +57,8 @@ All extension preferences, allowed domains, and custom course entries reside exc
 
 The extension performs **zero periodic background network requests**. There is only **one optional, user-initiated outbound request**:
 
-- **"Sync Course Database"** button (located in the Settings panel):  
-  Downloads the latest community-verified course catalog directly from GitHub:
+- **"Update course catalog"** button (located in the Settings panel):
+  Downloads the latest shared course catalog directly from GitHub:
   ```
   https://raw.githubusercontent.com/litch07/uiu-course-decoder/main/courses.json
   ```

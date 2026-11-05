@@ -303,3 +303,56 @@ Run the entire automated test suite sequentially from the repository root:
 node tests/run_all.js
 ```
 **Expected Result**: All 24 test suites pass with zero failures.
+
+
+## Product quality and interface conventions (November 2026)
+
+- Headers use Course catalog, Course roadmap, Add courses, My courses & exams, and Settings. Secondary catalog actions share a keyboard-accessible native disclosure. The roadmap button has a title and counts on separate lines.
+- My Courses is a local personal planner, not UCAM registration. Display labels use Add/Remove, Catalog/Custom/Edited, and explicit missing-data states. No unknown credit value is replaced with three credits; totals state missing credit values.
+- Empty prerequisite data means prerequisites are not listed. Only an explicit None value means no prerequisite courses. No reverse dependencies means no next courses listed, not a capstone designation.
+- Course edits save directly after validation. Failed storage writes preserve the form and active catalog. Leaving a modified form prompts Keep editing or Discard changes. Reversible individual deletion offers Undo; individual restore has no extra confirmation. Permanent/bulk actions retain explicit confirmations.
+- Source and exam-term metadata are not invented. The planner/export explains the current metadata gap and directs students to UCAM for the latest routine. Last synced records a download, not verification.
+- Contributions open GitHub drafts for review and submission. They do not publish on click. Project links point to the same shared catalog repository.
+- Popup fonts are local/system fonts. Status messages have live-region semantics, errors persist, and the existing reduced-motion support is retained.
+- `tests/product_quality_checks.js` extends the prerequisite suite with production-code persistence, dirty-form, missing-credit, accessibility, and offline-style checks. The master runner remains 24 suites.
+
+- Export uses labelled header actions and a scope-selection dialog with a separate Download JSON action. All export scopes preserve known credits and prerequisite notes. Failed downloads retain the dialog and selection; feedback reports initiation, not file-save completion.
+- Course headers always display Catalog, Custom, or Edited in a stable nonshrinking badge. Legacy source-color overrides were removed for readable theme-adaptive labels.
+- Improve catalog replaces the generic information/contribution entry. Its dialog offers correction reporting and a contribution guide; custom backups are available only through Export.
+
+- Catalog search displays a matching-course count; quick-add search displays the full count of courses available to add before limiting suggestions to five. Both searches share case-insensitive matching, compact-code support (CSE3411), and deterministic ranking of exact codes, code prefixes, other code matches, then name matches.
+- Matching code/name text is marked using escaped literal patterns and safe DOM nodes. Result announcements are polite and debounced; quick-add clearly states when only the first five matches are shown. Current-results JSON export uses the same matching rules as the catalog.
+
+- Home presents Catalog, My courses & exams, current website, then Website display. Empty planners show an invitation instead of zero totals. The optional catalog update action is inside the Catalog card and reports last-sync age; the duplicated Settings notification dot and Home attribution footer are removed. Developer/repository links remain in Settings About.
+- Home website states distinguish enabled, disabled, and unsupported pages. All display switches have explicit labels. Empty, active, overdue-sync, and unsupported-page variants fit 360 × 500px, including simultaneous sync and exam notices.
+
+- Home retains the developer attribution and GitHub link in a compact footer, restored at the author’s request. Settings About retains the same project details.
+
+- Home uses the tagline Decode. Map. Plan.; Welcome expands it to Decode courses. Map prerequisites. Plan exams.
+- Home exam summaries display time conflicts and same-day exam counts independently. Conflict rows include day and slot; workload rows include counts for each affected day. Long summaries show two days plus the remaining-day count, while titles and accessible labels retain full detail. Cleared plans hide both rows.
+
+- Catalog reporting uses visible contextual actions and separate correction/missing-course choices. All popup paths and the public explorer use matching Markdown drafts with accurate unknown prerequisites, normalized day labels, official-source prompts and exam trimester/year. Opening GitHub never submits automatically.
+
+- Edited-course GitHub drafts compare saved local details with bundled + downloaded catalog data, listing only changed fields in a Markdown table. Repeated edits preserve the catalog baseline; unavailable baselines, removed values and no remaining differences are explicit. The edited-course action explains this comparison.
+
+- Details Save is disabled until meaningful form changes exist, disables again after save/revert, and permits retry after failure. Saving is tracked separately from unchanged state so Back remains available. Draft actions wait for local edits to be saved; add/edit/report buttons classify actual course origin consistently. Changes made during an in-flight save remain unsaved.
+
+- Settings uses five consistent sections: Appearance, Enabled websites, Catalog updates, About, then Reset catalog changes. Controls have readable labels, outlined icons, theme-aware native checkboxes and restrained destructive styling. Home’s update reminder opens the catalog section directly; update failures persist with an enabled retry action. Developer attribution remains in About and on Home.
+
+- Trash uses readable course cards with labelled Restore and Delete permanently actions, course-specific confirmation text, clear empty/search states, and code/name matching shared with Catalog. The three-line catalog menu has a steady glow and dot while Trash contains courses, a count inside its menu, and an accessible count label; all indicators clear automatically when Trash empties.
+
+- Temporary notifications use the available popup width with themed surfaces, outlined status icons, readable wrapping and a separate Undo action. Errors remain visible longer; expired actions are inert. Confirmation dialogs use semantic titles/descriptions, left-aligned copy, action-specific labels and destructive styling only for destructive actions, with cancel focused by default.
+
+- Catalog updates now fetch without storage writes, show a review of shared additions/changed fields/removals, and apply only after approval. Cancel preserves timestamps and data; unchanged catalogs need no dialog. Local overrides remain in use. Apply revalidates the reviewed payload and rejects stale shared-catalog revisions.
+
+- Reset opens one review listing catalog courses restored from Trash/exclusions and changed local fields discarded against merged catalog defaults. Custom courses and their deletion states are preserved. Cancel performs no reset writes; apply rechecks the reviewed state, stages storage before updating memory, and leaves a reset summary. With no work, Review reset is disabled with an explanatory hint.
+
+- First-run welcome uses a compact branded introduction, three task-focused rows, website-enabling guidance, local-planning/UCAM reminder and privacy note. Get started remains visible at 360×500; both dismissal controls preserve the one-time preference and return keyboard focus to Home.
+
+- Interaction polish standardizes short color/border feedback, focus rings, selected filter announcements and disabled/loading cursors. Enlarging hover effects are restrained; positional search controls keep their centering. Navigation and dialogs retain their short transitions, and reduced-motion preferences suppress transitions and animations throughout.
+
+- Buttons now share one hover/press feedback system with semantic primary, destructive and neutral colors. Selected controls retain their selection language; tabs and cards stay stationary. Disabled controls suppress hover responses, busy controls use a progress cursor, and reduced motion removes press movement while preserving feedback colors.
+
+- SVG audit corrected disconnected sync arrows, replaced shared action icons with consistent single-path outlines, and prevented legacy solid-fill rules from filling outline icons. Spinner rotation uses the view-box center and respects reduced motion. Browser checks found no invalid paths or incorrectly filled outline SVGs in the popup.
+
+- Data integrity fixes introduce course-data.js validation/parsing for ingress, including finite credits, canonical code collisions, reserved/invalid keys, duplicate JSON keys and prerequisite cycles. Name-only imports preview their effective merged result; complete objects can explicitly clear fields. Imports and adds stage storage before updating memory. Exam aliases and selection duplicates are normalized, unknown times do not clash, and website matching accepts compact/multiple-space codes. Both catalogs remove the CSE 4327 self-reference with an explicit verification note. No missing academic facts were guessed. CI additionally runs scripts/validate_catalog.js.

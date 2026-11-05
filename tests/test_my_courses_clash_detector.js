@@ -47,8 +47,8 @@ assert('HTML has dedicated .mycourses-view screen', popupHtml.includes('class="v
 assert('HTML has #myCoursesSearchInput for quick course lookup', popupHtml.includes('id="myCoursesSearchInput"'));
 
 assert('HTML has #enrolledSummaryCard', popupHtml.includes('id="enrolledSummaryCard"'));
-assert('HTML has #enrolledTotalCourses and #enrolledTotalCredits',
-  popupHtml.includes('id="enrolledTotalCourses"') && popupHtml.includes('id="enrolledTotalCredits"'));
+assert('Course and credit totals have one header location',
+  popupHtml.includes('id="myCoursesHeaderSubtitle"') && !popupHtml.includes('id="enrolledTotalCredits"'));
 assert('HTML has #clearEnrolledBtn', popupHtml.includes('id="clearEnrolledBtn"'));
 
 assert('HTML has #clashAlertBox and #clashAlertList',
@@ -333,7 +333,7 @@ assert('Enrolled course notice explains the existing schedule',
 const conflict = noticeRuntime.buildCourseExamNotice('CURRENT', ['THIRD', 'OTHER'], noticeCatalog);
 assert('Time-conflict warning distinguishes overlapping exams and gives an action',
   conflict.kind === 'danger' && conflict.text.includes('Database Management Systems (THIRD)') &&
-  !conflict.text.includes('Software Engineering') && conflict.text.includes('at the same time') && conflict.text.includes('advisor'));
+  !conflict.text.includes('Software Engineering') && conflict.text.includes('at the same time') && conflict.text.includes('Remove or replace conflicting courses in My Courses') && !conflict.text.includes('advisor'));
 assert('Missing exam times are stated without claiming a time conflict',
   noticeRuntime.buildCourseExamNotice('CURRENT', ['UNKNOWN'], noticeCatalog).text.includes('UNKNOWN — time not listed'));
 assert('In-class assessments do not generate exam warnings',

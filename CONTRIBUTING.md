@@ -11,14 +11,17 @@ Whether you want to fix an outdated course title, submit exam routine updates, o
 ### 1. Fast: Report an Issue via the Extension
 If you notice incorrect course information while using the extension, you do not need Git or GitHub experience:
 1. Open the extension popup in your browser.
-2. Select **Course Database** and click on the course in question.
-3. Scroll down in the Course Details view and click **Report Wrong Data**.
-4. A pre-filled GitHub issue will open with the course's exact details. Type what needs fixing and submit.
+2. Select **Course catalog** and click on the course in question.
+3. Scroll down in the Course Details view and click **Report incorrect details**.
+4. A pre-filled GitHub issue will open with the course's exact details. Review the details, describe the correction, and submit on GitHub. A GitHub account is required.
+5. To request a missing course, open **Improve catalog → Request a missing course**. Adding or editing a course locally does not submit it to GitHub.
+
+Include an official source and the trimester/year for exam routine changes. Remove student IDs and personal information from screenshots.
 
 <p align="center">
-  <img src="assets/report-issue-guide.png" alt="Report Wrong Data button inside Course Details view" width="60%" />
+  <img src="assets/report-issue-guide.png" alt="Report incorrect details button inside Course Details view" width="60%" />
 </p>
-<p align="center"><em>Clicking 'Report Wrong Data' opens an automated GitHub issue pre-filled with the course metadata.</em></p>
+<p align="center"><em>Clicking 'Report incorrect details' opens an GitHub draft pre-filled with the course metadata.</em></p>
 
 ---
 
@@ -38,10 +41,10 @@ The `courses.json` file is a JSON object where each key is an uppercase course c
 | Field | Type | Required? | Rules & Guidelines |
 |---|---|:---:|---|
 | `name` | `string` | **Yes** | Official course name, properly capitalized (e.g., `"Database Management Systems"`). |
-| `credits` | `number` | No | Academic credit hours (e.g., `3`, `1.5`, `1`, `2`, `4`). Defaults to `3.0` if omitted. |
+| `credits` | `number` | No | Academic credit hours (e.g., `3`, `1.5`, `1`, `2`, `4`). Displayed as not listed if omitted. |
 | `examDay` | `string` | No | Exam routine day: strictly `"Day 1"` through `"Day 7"` (or `"In-Class"` for lab/viva), or `""` if not scheduled. |
 | `examSlot` | `string` | No | Exam routine slot: strictly `"T1"` (09:00 AM – 11:00 AM), `"T2"` (11:30 AM – 01:30 PM), or `"T3"` (02:00 PM – 03:00 PM), or `""` if not scheduled. |
-| `prerequisites` | `Array<string>` | No | **Course codes only** (e.g., `["CSE 2213"]`). Use an empty array `[]` if none. **Never include credit counts or text notes here.** |
+| `prerequisites` | `Array<string>` | No | **Course codes only** (e.g., `["CSE 2213"]`). Use an empty array `[]` when prerequisites are unknown. Use `["None"]` only when no prerequisites have been confirmed. **Never include credit counts or text notes here.** |
 | `prerequisiteNote` | `string` | No | Non-course prerequisites or degree credit thresholds (e.g., `"MINIMUM 85 credits"`). Omit or set to `""` if none. |
 
 ### Formatting Rules
@@ -166,3 +169,5 @@ If a check fails, review the GitHub Actions workflow log for details.
 - **Branch**: An isolated workspace within your fork for a specific set of changes.
 - **Commit**: A saved revision with an explanatory message.
 - **Pull Request (PR)**: A proposal asking maintainers to merge your changes into the main project.
+
+Missing properties in a local override inherit catalog values. Explicit empty strings, empty prerequisite arrays, and `credits: null` clear those fields. Legacy string records change only the name; new exports and imports use objects. Exam day aliases are normalized before schedule comparisons. Unknown credits and unverified exam dates must never be guessed.

@@ -102,6 +102,9 @@ jobs:
             console.log('OK: docs/courses.json is synchronized with courses.json');
           "
 
+      - name: Validate shared runtime schema and prerequisite graph
+        run: node scripts/validate_catalog.js
+
       - name: Run test suite
         run: |
           echo "Running test suite..."

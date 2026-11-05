@@ -274,6 +274,7 @@ class TreeNode {
   constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.style = {}; this.classList = { toggle() {} }; }
   appendChild(node) { this.children.push(node); }
   setAttribute(key, value) { this.attributes[key] = value; }
+  getAttribute(key) { return this.attributes[key] ?? null; }
   addEventListener(event, handler) { this[event] = handler; }
   set textContent(value) { this.text = value; this.children = []; }
   get textContent() { return this.text || ''; }
@@ -412,6 +413,11 @@ navigation.exitCourseDetails();
 assert('A removed source course falls back safely to the catalog',
   classes.has('show-courses') && navigation.state().depth === 0);
 
-// ── Summary ────────────────────────────────────────────────────────────────
-console.log(`\n  Results: ${passed} passed, ${failed} failed`);
-if (failed > 0) process.exit(1);
+// Run asynchronous persistence checks before reporting the suite result.
+require('./product_quality_checks')(assert).then(() => {
+  console.log(`\n  Results: ${passed} passed, ${failed} failed`);
+  if (failed > 0) process.exitCode = 1;
+}).catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});

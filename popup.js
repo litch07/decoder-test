@@ -46,6 +46,7 @@
     exportModal: document.getElementById("exportModal"),
     exportModalCloseBtn: document.getElementById("exportModalCloseBtn"),
     exportModalCancelBtn: document.getElementById("exportModalCancelBtn"),
+    exportDownloadBtn: document.getElementById("exportDownloadBtn"),
     exportOptionsList: document.getElementById("exportOptionsList"),
     fileDropZone: document.getElementById("fileDropZone"),
     jsonFileInput: document.getElementById("jsonFileInput"),
@@ -65,7 +66,6 @@
     openContribModalBtn: document.getElementById("openContribModalBtn"),
     detailsInfoBtn: document.getElementById("detailsInfoBtn"),
     importInfoBtn: document.getElementById("importInfoBtn"),
-    contribExportCustomBtn: document.getElementById("contribExportCustomBtn"),
     contribReportIssueBtn: document.getElementById("contribReportIssueBtn"),
     importContribLink: document.getElementById("importContribLink"),
     previewSummaryRow: document.getElementById("previewSummaryRow"),
@@ -139,6 +139,8 @@
     homeEnrolledCount: document.getElementById("homeEnrolledCount"),
     homeEnrolledCredits: document.getElementById("homeEnrolledCredits"),
     homeClashBadge: document.getElementById("homeClashBadge"),
+    homeSameDayBadge: document.getElementById("homeSameDayBadge"),
+    homeExamSummary: document.getElementById("homeExamSummary"),
     homeEnrolledStatusHint: document.getElementById("homeEnrolledStatusHint"),
     mycoursesView: document.querySelector(".mycourses-view"),
     myCoursesBackBtn: document.getElementById("myCoursesBackBtn"),
@@ -230,6 +232,7 @@
 
   let currentEditingCode = null;
   let pendingAction = null;
+  let pendingDetailsNavigation = null;
   let lastAddedCourseForContrib = null;
   let pendingSaveVal = null;
   let pendingTarget = null;
@@ -239,42 +242,30 @@
 
   // Helper to create SVG icons safely
   function createIcon(type) {
+    const paths = {
+      default: "M3 12a9 9 0 0 1 15.36-6.36L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.36 6.36L3 16M3 21v-5h5",
+      spinner: "M21 12a9 9 0 1 1-9-9",
+      success: "M20 6 9 17l-5-5",
+      error: "M6 6l12 12M6 18 18 6",
+      restore: "M3 10a9 9 0 1 1 2 8M3 4v6h6",
+      delete: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7",
+      remove: "M6 6l12 12M6 18 18 6",
+      export: "M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4",
+      download: "M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"
+    };
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "1.8");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("class", "action-icon" + (type === "spinner" ? " action-icon-spinner" : ""));
+    const size = type === "export" || type === "download" ? "16" : "14";
+    svg.setAttribute("width", size); svg.setAttribute("height", size);
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-
-    if (type === 'default') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
-      path.setAttribute("d", "M12 2v4c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8V2zm1.88 3.88L17.76 9.76l-1.41 1.41L12.46 7.29 8.59 11.17l-1.41-1.41 5.29-5.29 1.41 1.41z");
-    } else if (type === 'spinner') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;animation:spin 1s linear infinite;");
-      path.setAttribute("d", "M12 4V2C6.48 2 2 6.48 2 12h2c0-4.41 3.59-8 8-8z");
-      if (!document.getElementById('spin-style')) {
-        const style = document.createElement('style');
-        style.id = 'spin-style';
-        style.textContent = "@keyframes spin{100%{transform:rotate(360deg);}}";
-        document.head.appendChild(style);
-      }
-    } else if (type === 'success') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
-      path.setAttribute("d", "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z");
-    } else if (type === 'error') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
-      path.setAttribute("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
-    } else if (type === 'restore') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
-      path.setAttribute("d", "M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.896 8.896 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z");
-    } else if (type === 'delete') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
-      path.setAttribute("d", "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z");
-    } else if (type === 'remove') {
-      svg.setAttribute("style", "width:13px;height:13px;fill:currentColor;");
-      path.setAttribute("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
-    } else if (type === 'export' || type === 'download') {
-      svg.setAttribute("style", "width:16px;height:16px;fill:currentColor;");
-      path.setAttribute("d", "M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z");
-    }
-
+    path.setAttribute("d", paths[type] || paths.default);
     svg.appendChild(path);
     return svg;
   }
@@ -317,13 +308,8 @@
     });
 
     if (els.themeStatusHint) {
-      if (currentThemePreference === "system") {
-        els.themeStatusHint.textContent = `System theme active (currently ${isSystemDark ? "Dark" : "Light"}). Adapts automatically.`;
-      } else if (currentThemePreference === "dark") {
-        els.themeStatusHint.textContent = "Dark theme active.";
-      } else {
-        els.themeStatusHint.textContent = "Light theme active.";
-      }
+      els.themeStatusHint.hidden = currentThemePreference !== "system";
+      els.themeStatusHint.textContent = `Follows your device: ${isSystemDark ? "Dark" : "Light"}.`;
     }
   }
 
@@ -402,7 +388,7 @@
     remoteCourses = stored.remoteCourses || {};
     lastSyncResult = stored.lastSyncResult || null;
     currentThemePreference = stored.themePreference || "system";
-    enrolledCourses = Array.isArray(stored.enrolledCourses) ? stored.enrolledCourses : [];
+    enrolledCourses = Array.isArray(stored.enrolledCourses) ? [...new Set(stored.enrolledCourses.filter(code => typeof code === "string"))] : [];
     applyTheme(currentThemePreference);
 
     try {
@@ -443,10 +429,10 @@
   }
 
   function formatTimeAgo(timestamp) {
-    if (!timestamp) return "Never synced";
+    if (!timestamp) return "Not updated yet";
     const rel = formatRelativeTime(timestamp);
     if (rel === "Just now") return "Just now";
-    return `Last synced: ${rel}`;
+    return `Last updated: ${rel}`;
   }
 
   function checkSyncReminder() {
@@ -454,10 +440,13 @@
     const isOverdue = !!(lastSyncedAt && (Date.now() - lastSyncedAt > SYNC_OVERDUE_MS));
     const banner = document.getElementById("syncReminderBanner");
     const homeAlert = document.getElementById("homeSyncAlert");
-    const badge = document.getElementById("settingsBadge");
+    const ageLabel = document.getElementById("homeSyncAge");
     if (banner) banner.style.display = isOverdue ? "flex" : "none";
     if (homeAlert) homeAlert.style.display = isOverdue ? "flex" : "none";
-    if (badge) badge.style.display = isOverdue ? "block" : "none";
+    if (ageLabel && isOverdue) {
+      const days = Math.floor((Date.now() - lastSyncedAt) / (24 * 60 * 60 * 1000));
+      ageLabel.textContent = "Last synced " + days + " days ago";
+    }
   }
 
   const UIU_PORTALS = [
@@ -544,7 +533,7 @@
   }
 
   function setupUI() {
-    els.currentSite.textContent = currentHost || "Unsupported page";
+    els.currentSite.textContent = currentHost || "Decoding unavailable on this page";
 
     // Disable the site toggle if we're on a non-web page (like chrome://)
     if (!currentHost) {
@@ -586,30 +575,28 @@
   function updateCourseCount() {
     const count = Object.keys(courses).length;
     els.courseCount.textContent = count.toLocaleString();
-    els.coursesPanelCount.textContent = `${count.toLocaleString()} courses loaded`;
+    els.coursesPanelCount.textContent = isTrashMode ? softDeletedCourses.length + (softDeletedCourses.length === 1 ? " course available to restore" : " courses available to restore") : `${count.toLocaleString()} courses available`;
 
+    updateTrashIndicator(softDeletedCourses.length);
+    updateResetAvailability();
+  }
+
+  function updateTrashIndicator(count) {
+    const menu = document.getElementById("catalogMenu");
+    const toggle = document.getElementById("catalogMenuToggle");
+    const description = count + (count === 1 ? " course in Trash" : " courses in Trash");
+    menu?.classList.toggle("has-trash", count > 0);
+    if (toggle) {
+      toggle.setAttribute("aria-label", count ? "More catalog options, " + description : "More catalog options");
+      toggle.title = count ? description : "More catalog options";
+    }
     if (els.trashBadge) {
-      if (softDeletedCourses.length > 0) {
-        els.trashBadge.style.display = "flex";
-        els.trashBadge.textContent = softDeletedCourses.length > 99 ? "99+" : softDeletedCourses.length;
-      } else {
-        els.trashBadge.style.display = "none";
-      }
+      els.trashBadge.style.display = count ? "inline-flex" : "none";
+      els.trashBadge.textContent = count > 99 ? "99+" : String(count);
     }
-
-    if (els.restoreAllBtn) {
-      if (softDeletedCourses.length > 0) {
-        els.restoreAllBtn.style.opacity = "1";
-        els.restoreAllBtn.style.cursor = "pointer";
-        els.emptyTrashBtn.style.opacity = "1";
-        els.emptyTrashBtn.style.cursor = "pointer";
-      } else {
-        els.restoreAllBtn.style.opacity = "0.5";
-        els.restoreAllBtn.style.cursor = "not-allowed";
-        els.emptyTrashBtn.style.opacity = "0.5";
-        els.emptyTrashBtn.style.cursor = "not-allowed";
-      }
-    }
+    if (els.viewTrashBtn) els.viewTrashBtn.setAttribute("aria-label", count ? "Trash, " + count + (count === 1 ? " course" : " courses") : "Trash, empty");
+    if (els.restoreAllBtn) els.restoreAllBtn.disabled = count === 0;
+    if (els.emptyTrashBtn) els.emptyTrashBtn.disabled = count === 0;
   }
 
   // Matches domains with wildcards. Duplicated from content.js so the popup
@@ -636,6 +623,16 @@
   }
 
   async function updateToggleAndStatus() {
+    els.siteToggle.setAttribute("aria-label", currentHost ? "Enable course decoding on " + currentHost : "Course decoding unavailable on this page");
+    if (!currentHost) {
+      els.siteToggle.checked = false;
+      els.siteToggle.disabled = true;
+      els.statusDot.className = "status-dot inactive";
+      els.statusText.textContent = "Open a website to enable decoding.";
+      els.statusText.style.color = "var(--text-muted)";
+      return;
+    }
+    els.siteToggle.disabled = false;
     let enabled = isHostAllowed(currentHost, allowedSites);
     if (enabled && currentHost) {
       try {
@@ -660,11 +657,11 @@
 
     if (enabled) {
       els.statusDot.className = "status-dot active";
-      els.statusText.textContent = "Active on this page";
+      els.statusText.textContent = "Enabled on this website";
       els.statusText.style.color = "var(--success)";
     } else {
       els.statusDot.className = "status-dot inactive";
-      els.statusText.textContent = "Paused on this site";
+      els.statusText.textContent = "Disabled on this website";
       els.statusText.style.color = "var(--text-muted)";
     }
   }
@@ -689,7 +686,7 @@
     // Update count badge
     if (els.domainsCountBadge) {
       if (!filterQuery) {
-        els.domainsCountBadge.textContent = totalCount + " domain" + (totalCount !== 1 ? "s" : "");
+        els.domainsCountBadge.textContent = totalCount + " website" + (totalCount !== 1 ? "s" : "");
       } else {
         const matching = allowedSites.filter(s => s.toLowerCase().includes(filterQuery)).length;
         els.domainsCountBadge.textContent = matching + " of " + totalCount;
@@ -716,7 +713,7 @@
       msg.style.textAlign = "center";
       msg.style.color = "var(--text-muted)";
       msg.style.fontSize = "0.72rem";
-      msg.textContent = "No domains allowed yet.";
+      msg.textContent = "No websites enabled. Add a website above to start decoding.";
       els.allowlistContainer.appendChild(msg);
 
       if (els.domainBulkToolbar) els.domainBulkToolbar.style.display = "none";
@@ -739,7 +736,7 @@
       emptyDiv.style.cssText = "padding:14px 6px; text-align:center; color:var(--text-muted); font-size:0.71rem; display:flex; flex-direction:column; align-items:center; gap:4px;";
 
       const emptyText = document.createElement("span");
-      emptyText.textContent = 'No domains match "' + domainSearchQuery + '"';
+      emptyText.textContent = 'No websites match "' + domainSearchQuery + '"';
       emptyDiv.appendChild(emptyText);
 
       const clearBtn = document.createElement("button");
@@ -810,7 +807,7 @@
         await chrome.storage.local.set({ allowedSites });
         renderAllowlist();
         await updateToggleAndStatus();
-        showToast("Removed " + site, "info");
+        showToast(site + " removed from enabled websites", "info");
       });
 
       // Tapping row toggles checkbox
@@ -847,7 +844,7 @@
     els.domainSelectAll.indeterminate = !allVisibleSelected && someVisibleSelected;
 
     if (els.domainSelectAllText) {
-      els.domainSelectAllText.textContent = allVisibleSelected ? "Deselect All" : "Select All";
+      els.domainSelectAllText.textContent = allVisibleSelected ? "Deselect all" : "Select all";
     }
 
     const selectedCount = selectedDomainSet.size;
@@ -859,24 +856,25 @@
     } else {
       els.bulkRemoveDomainsBtn.disabled = true;
       if (els.bulkRemoveDomainsBtnText) {
-        els.bulkRemoveDomainsBtnText.textContent = "Remove Selected";
+        els.bulkRemoveDomainsBtnText.textContent = "Remove selected";
       }
     }
   }
 
-    function setModalText(title, desc) {
+  function setModalText(title, desc) {
+    const labels = { "perm-delete": "Delete permanently", "empty-trash": "Delete permanently", "reset-defaults": "Reset changes", "restore-all": "Restore all", "bulk-remove-domains": "Remove websites", "clear-enrolled": "Remove all", "discard-changes": "Discard changes", "delete": "Move to Trash", "restore": "Restore" };
+    const destructive = ["perm-delete", "empty-trash", "reset-defaults", "discard-changes"].includes(pendingAction);
+    els.confirmModal?.setAttribute("data-tone", destructive ? "danger" : "default");
+    if (els.modalConfirmBtn) els.modalConfirmBtn.textContent = labels[pendingAction] || "Continue";
+    if (els.modalCancelBtn) els.modalCancelBtn.textContent = pendingAction === "discard-changes" ? "Keep editing" : "Cancel";
     if (!els.modalText) return;
     els.modalText.textContent = "";
-    const titleDiv = document.createElement("div");
-    titleDiv.style.cssText = "font-weight:700; font-size:0.86rem; color:var(--text-main); margin-bottom:4px;";
-    titleDiv.textContent = title;
-    els.modalText.appendChild(titleDiv);
-    if (desc) {
-      const descDiv = document.createElement("div");
-      descDiv.style.cssText = "font-size:0.72rem; color:var(--text-muted); line-height:1.4;";
-      descDiv.textContent = desc;
-      els.modalText.appendChild(descDiv);
-    }
+    const titleEl = document.createElement("h2");
+    titleEl.id = "modalTitle"; titleEl.className = "confirmation-title"; titleEl.textContent = title;
+    const description = document.createElement("p");
+    description.id = "modalDescription"; description.className = "confirmation-description";
+    description.textContent = desc || ""; description.hidden = !desc;
+    els.modalText.appendChild(titleEl); els.modalText.appendChild(description);
   }
 
   function normalizeCourseData(val) {
@@ -884,17 +882,20 @@
     if (typeof val === "string") {
       return { name: val.trim(), examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", credits: null };
     }
-    const name = (val.name || "").trim();
-    const examDay = (val.examDay || "").trim();
-    const examSlot = (val.examSlot || "").trim();
-    const prerequisiteNote = (val.prerequisiteNote || "").trim();
+    const name = typeof val.name === "string" ? val.name.trim() : "";
+    let examDay = typeof val.examDay === "string" ? val.examDay.trim() : "";
+    const dayMatch = examDay.match(/^(?:day\s*|d)?([1-9]\d*)$/i);
+    examDay = dayMatch ? "Day " + Number(dayMatch[1]) : /^in-class$/i.test(examDay) ? "In-Class" : "";
+    const rawSlot = typeof val.examSlot === "string" ? val.examSlot.trim().toUpperCase() : "";
+    const examSlot = /^T[123]$/.test(rawSlot) && examDay !== "In-Class" ? rawSlot : "";
+    const prerequisiteNote = typeof val.prerequisiteNote === "string" ? val.prerequisiteNote.trim() : "";
     const prerequisites = Array.isArray(val.prerequisites)
-      ? val.prerequisites.map(p => String(p).trim()).filter(Boolean).sort()
+      ? [...new Set(val.prerequisites.filter(p => typeof p === "string").map(p => /^none$/i.test(p.trim()) ? "None" : p.trim().toUpperCase().replace(/\s+/g, " ")).filter(Boolean))].sort()
       : [];
     let credits = null;
     if (val.credits !== undefined && val.credits !== null && val.credits !== "") {
-      const parsed = parseFloat(val.credits);
-      if (!isNaN(parsed) && parsed > 0) credits = parsed;
+      const parsed = Number(val.credits);
+      if (typeof val.credits !== "boolean" && Number.isFinite(parsed) && parsed > 0) credits = parsed;
     }
     return { name, examDay, examSlot, prerequisites, prerequisiteNote, credits };
   }
@@ -940,11 +941,11 @@
     const inUser = !!userCourses[code];
 
     if (!inBundled && !inRemote && inUser) {
-      return { class: "user-added", label: "User Added" };
+      return { class: "user-added", label: "Custom" };
     } else if ((inBundled || inRemote) && inUser) {
       return { class: "edited", label: "Edited" };
     } else {
-      return { class: "official", label: "Official" };
+      return { class: "official", label: "Catalog" };
     }
   }
 
@@ -960,6 +961,7 @@
     if (norm.prerequisiteNote) {
       out.prerequisiteNote = norm.prerequisiteNote;
     }
+    if (norm.credits !== null) out.credits = norm.credits;
     return out;
   }
 
@@ -972,16 +974,17 @@
   }
 
   function downloadJsonFile(filename, dataObj) {
+    let url;
+    let a;
     try {
       const jsonStr = JSON.stringify(dataObj, null, 2);
-      let url;
       try {
         const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
         url = URL.createObjectURL(blob);
       } catch (_) {
         url = "data:application/json;charset=utf-8," + encodeURIComponent(jsonStr);
       }
-      const a = document.createElement("a");
+      a = document.createElement("a");
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
@@ -994,140 +997,119 @@
           try { URL.revokeObjectURL(url); } catch (_) {}
         }
       }, 200);
-      showToast(`Exported ${filename}`, "success");
+      showToast(`Download started: ${filename}`, "success");
+      return true;
     } catch (err) {
+      if (a?.parentNode) a.parentNode.removeChild(a);
+      if (url?.startsWith("blob:")) { try { URL.revokeObjectURL(url); } catch (_) {} }
       console.error("Failed to export JSON file", err);
-      showToast("Export failed: " + (err.message || "Unknown error"), "danger");
+      showToast("Could not start the download. Try exporting again.", "error");
+      return false;
     }
   }
 
-  function triggerExportSuccessFeedback() {
-    if (!els.exportCoursesBtn) return;
-    const successIcon = createIcon('success');
-    successIcon.style.color = '#10b981';
-    els.exportCoursesBtn.textContent = "";
-    els.exportCoursesBtn.appendChild(successIcon);
-    els.exportCoursesBtn.classList.add("export-success");
-    els.exportCoursesBtn.title = "Export downloaded successfully!";
-
-    setTimeout(() => {
-      if (!els.exportCoursesBtn) return;
-      els.exportCoursesBtn.textContent = "";
-      els.exportCoursesBtn.appendChild(createIcon('export'));
-      els.exportCoursesBtn.classList.remove("export-success");
-      els.exportCoursesBtn.title = "Export Courses";
-    }, 1800);
+  function triggerExportSuccessFeedback(button = els.exportCoursesBtn) {
+    if (!button) return;
+    button.classList.add("export-success");
+    clearTimeout(button.exportFeedbackTimer);
+    button.exportFeedbackTimer = setTimeout(() => button.classList.remove("export-success"), 1200);
   }
 
-  function createExportOptionCard({ badge, title, countText, desc, isContextual, isDisabled, onClick }) {
-    const card = document.createElement("button");
-    card.type = "button";
-    card.className = "export-option-card" + (isContextual ? " contextual" : "") + (isDisabled ? " disabled" : "");
-    if (isDisabled) {
-      card.disabled = true;
-    }
-
-    const topRow = document.createElement("div");
+  function createExportOptionCard({ title, countText, desc, isDisabled, onClick, value }) {
+    const card = document.createElement("label");
+    card.className = "export-option-card" + (isDisabled ? " disabled" : "");
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "courseExportScope";
+    radio.value = value;
+    radio.disabled = !!isDisabled;
+    const copy = document.createElement("span");
+    copy.className = "export-option-copy";
+    const topRow = document.createElement("span");
     topRow.className = "export-option-top";
-
-    const titleEl = document.createElement("div");
+    const titleEl = document.createElement("span");
     titleEl.className = "export-option-title";
+    titleEl.id = "export-title-" + value;
     titleEl.textContent = title;
-
-    if (badge) {
-      const badgeEl = document.createElement("span");
-      badgeEl.className = "export-option-badge";
-      badgeEl.textContent = badge;
-      titleEl.appendChild(badgeEl);
-    }
-
-    const countEl = document.createElement("span");
-    countEl.className = "export-option-count";
-    countEl.textContent = countText;
-
+    const count = document.createElement("span");
+    count.className = "export-option-count";
+    count.id = "export-count-" + value;
+    count.textContent = countText;
     topRow.appendChild(titleEl);
-    topRow.appendChild(countEl);
-
-    const descEl = document.createElement("div");
-    descEl.className = "export-option-desc";
-    descEl.textContent = desc;
-
-    card.appendChild(topRow);
-    card.appendChild(descEl);
-
-    if (!isDisabled && typeof onClick === "function") {
-      card.addEventListener("click", () => {
-        onClick();
-        closeExportModal();
-        triggerExportSuccessFeedback();
-      });
+    topRow.appendChild(count);
+    const description = document.createElement("span");
+    description.className = "export-option-desc";
+    description.id = "export-desc-" + value;
+    description.textContent = desc;
+    radio.setAttribute("aria-labelledby", titleEl.id + " " + count.id);
+    radio.setAttribute("aria-describedby", description.id);
+    copy.appendChild(topRow);
+    copy.appendChild(description);
+    card.appendChild(radio);
+    card.appendChild(copy);
+    function select() {
+      renderExportOptions.downloadAction = onClick;
+      if (els.exportDownloadBtn) els.exportDownloadBtn.disabled = false;
     }
-
+    if (!isDisabled) {
+      radio.addEventListener("change", function() { if (radio.checked) select(); });
+      if (!renderExportOptions.downloadAction) { radio.checked = true; select(); }
+    }
     return card;
   }
 
   function renderExportOptions() {
     if (!els.exportOptionsList) return;
     els.exportOptionsList.textContent = "";
+    renderExportOptions.downloadAction = null;
+    if (els.exportDownloadBtn) els.exportDownloadBtn.disabled = true;
     const dateStr = getExportDateString();
 
     const lc = (searchQuery || "").toLowerCase().trim();
+    const queryLabel = (searchQuery || "").trim().length > 64 ? searchQuery.trim().slice(0, 64) + "…" : (searchQuery || "").trim();
     const isFiltered = currentFilter !== "all" || lc.length > 0;
 
     // 1. Contextual Option (Visible when a filter or search is active)
     if (isFiltered) {
-      const visibleEntries = Object.entries(courses).filter(([code, courseData]) => {
-        const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
-        if (lc && !String(code).toLowerCase().includes(lc) && !String(name).toLowerCase().includes(lc)) {
-          return false;
-        }
-        const inBundled = !!bundledCourses[code];
-        const inRemote = !!remoteCourses[code];
+      const visibleEntries = findCourseMatches(courses, searchQuery).filter(([code]) => {
+        const inCatalog = !!bundledCourses[code] || !!remoteCourses[code];
         const inUser = !!userCourses[code];
-        let origin = "";
-        if (!inBundled && !inRemote && inUser) origin = "user";
-        else if ((inBundled || inRemote) && inUser) origin = "edited";
-        else origin = "official";
-        if (currentFilter !== "all" && currentFilter !== origin) return false;
-        return true;
-      }).sort((a, b) => a[0].localeCompare(b[0]));
+        const origin = !inCatalog && inUser ? "user" : inCatalog && inUser ? "edited" : "official";
+        if (currentFilter === "enrolled") return enrolledCourses.includes(code);
+        return currentFilter === "all" || currentFilter === origin;
+      });
 
       let filterLabel = "";
-      if (currentFilter === "user") filterLabel = "User Added";
+      if (currentFilter === "user") filterLabel = "Custom";
       else if (currentFilter === "edited") filterLabel = "Edited";
-      else if (currentFilter === "official") filterLabel = "Official";
+      else if (currentFilter === "official") filterLabel = "Catalog";
 
-      let contextualTitle = "Current View";
       let contextualDesc = "Export only the courses currently matched and visible in your list.";
       let filenamePart = "filtered";
 
       if (currentFilter !== "all" && lc) {
-        contextualTitle = `Current View: "${lc}" in ${filterLabel}`;
-        contextualDesc = `Export ${visibleEntries.length} course${visibleEntries.length !== 1 ? 's' : ''} matching "${lc}" in ${filterLabel}.`;
-        filenamePart = `${currentFilter}-${lc.replace(/[^a-z0-9]/gi, "_")}`;
+        contextualDesc = `Matches “${queryLabel}” in ${filterLabel}.`;
+        filenamePart = `${currentFilter}-${lc.replace(/[^a-z0-9]/gi, "_").slice(0, 64)}`;
       } else if (lc) {
-        contextualTitle = `Search Results: "${lc}"`;
-        contextualDesc = `Export ${visibleEntries.length} course${visibleEntries.length !== 1 ? 's' : ''} matching search term "${lc}".`;
-        filenamePart = `search-${lc.replace(/[^a-z0-9]/gi, "_")}`;
+        contextualDesc = `Matches “${queryLabel}”.`;
+        filenamePart = `search-${lc.replace(/[^a-z0-9]/gi, "_").slice(0, 64)}`;
       } else if (currentFilter !== "all") {
-        contextualTitle = `Filter: ${filterLabel}`;
-        contextualDesc = `Export all ${visibleEntries.length} courses in the ${filterLabel} view.`;
+        contextualDesc = `${filterLabel} courses in your current filter.`;
         filenamePart = currentFilter;
       }
 
       const contextualCard = createExportOptionCard({
-        badge: "CURRENT VIEW",
-        title: contextualTitle,
+        value: "view",
+        title: "Current results",
         countText: `${visibleEntries.length} course${visibleEntries.length !== 1 ? 's' : ''}`,
-        desc: contextualDesc,
-        isContextual: true,
+        desc: visibleEntries.length ? contextualDesc : "No courses match the current search and filter.",
         isDisabled: visibleEntries.length === 0,
         onClick: () => {
           const payload = {};
           for (const [code, data] of visibleEntries) {
             payload[code] = formatCourseForExport(data);
           }
-          downloadJsonFile(`uiu-courses-${filenamePart}-${dateStr}.json`, payload);
+          return downloadJsonFile(`uiu-courses-${filenamePart}-${dateStr}.json`, payload);
         }
       });
       els.exportOptionsList.appendChild(contextualCard);
@@ -1136,17 +1118,17 @@
     // 2. Active Catalog (All Courses)
     const allEntries = Object.entries(courses).sort((a, b) => a[0].localeCompare(b[0]));
     const allCard = createExportOptionCard({
-      title: "Active Catalog (All Courses)",
+      value: "catalog",
+      title: "Full catalog",
       countText: `${allEntries.length} course${allEntries.length !== 1 ? 's' : ''}`,
-      desc: "Complete merged catalog including official baseline, remote sync updates, and your customizations.",
-      isContextual: false,
+      desc: "All active courses, including your changes. Excludes Trash.",
       isDisabled: allEntries.length === 0,
       onClick: () => {
         const payload = {};
         for (const [code, data] of allEntries) {
           payload[code] = formatCourseForExport(data);
         }
-        downloadJsonFile(`uiu-courses-catalog-${dateStr}.json`, payload);
+        return downloadJsonFile(`uiu-courses-catalog-${dateStr}.json`, payload);
       }
     });
     els.exportOptionsList.appendChild(allCard);
@@ -1156,12 +1138,12 @@
       .filter(([code]) => !softDeletedCourses.includes(code) && !hardDeletedCourses.includes(code))
       .sort((a, b) => a[0].localeCompare(b[0]));
     const customCard = createExportOptionCard({
-      title: "Custom Additions & Edits",
+      value: "custom",
+      title: "My additions & edits",
       countText: `${customEntries.length} course${customEntries.length !== 1 ? 's' : ''}`,
       desc: customEntries.length > 0
-        ? "Only courses you created or modified locally. Ideal for personal backups or sharing with classmates."
-        : "No custom courses or edits saved yet. Add courses to enable this export.",
-      isContextual: false,
+        ? "Courses you added or changed on this device."
+        : "No additions or edits to export yet.",
       isDisabled: customEntries.length === 0,
       onClick: () => {
         const payload = {};
@@ -1169,7 +1151,7 @@
           const finalData = courses[code] || data;
           payload[code] = formatCourseForExport(finalData);
         }
-        downloadJsonFile(`uiu-custom-courses-${dateStr}.json`, payload);
+        return downloadJsonFile(`uiu-custom-courses-${dateStr}.json`, payload);
       }
     });
     els.exportOptionsList.appendChild(customCard);
@@ -1193,11 +1175,11 @@
           const finalData = courses[code] || data;
           payload[code] = formatCourseForExport(finalData);
         }
-        downloadJsonFile(`uiu-custom-courses-${dateStr}.json`, payload);
-        showToast(`Exported ${customEntries.length} custom course(s) ready for contribution`, "success");
+        return downloadJsonFile(`uiu-custom-courses-${dateStr}.json`, payload);
+
       } else {
         openExportModal();
-        showToast("No custom edits found yet. Showing catalog export options...", "info");
+        showToast("No custom courses or edits to export.", "info");
       }
     } else {
       openExportModal();
@@ -1210,6 +1192,7 @@
   function openModalSafely(modalEl, initialFocusEl) {
     if (!modalEl) return;
     lastFocusedElementBeforeModal = document.activeElement;
+    if (modalEl === els.confirmModal && modalEl.getAttribute?.("data-tone") === "danger") initialFocusEl = els.modalCancelBtn;
     modalEl.classList.add("show");
     setTimeout(() => {
       if (initialFocusEl && typeof initialFocusEl.focus === "function") {
@@ -1265,9 +1248,19 @@
     return false;
   }
 
-  function openExportModal() {
+  function openContributionModal() {
+    openModalSafely(els.contributionModal, els.contribReportIssueBtn);
+  }
+
+  function closeContributionModal() {
+    closeModalSafely(els.contributionModal);
+  }
+
+  function openExportModal(event) {
+    const opener = event?.currentTarget || document.activeElement;
     renderExportOptions();
-    openModalSafely(els.exportModal, els.exportModalCloseBtn);
+    openModalSafely(els.exportModal, els.exportOptionsList?.querySelector("input:checked") || els.exportModalCloseBtn);
+    if (opener && opener !== document.body && typeof opener.focus === "function") lastFocusedElementBeforeModal = opener;
   }
 
   function closeExportModal() {
@@ -1275,6 +1268,8 @@
   }
 
   let pendingImportDiff = null;
+  let pendingCatalogUpdate = null;
+  let pendingCatalogReset = null;
 
   // ── PRE-COMMIT IMPORT DIFF & PREVIEW ──
   function computeImportDiff(parsedData, currentCourses) {
@@ -1283,12 +1278,19 @@
     const unchanged = [];
     const errors = [];
 
+    const seenCodes = new Set();
     for (const [k, v] of Object.entries(parsedData)) {
+      const validationError = CourseData.validate(k, v);
+      const normalizedCode = CourseData.code(k);
+      if (validationError || seenCodes.has(normalizedCode)) {
+        errors.push({ code: normalizedCode, reason: validationError || "Duplicate normalized course code" }); continue;
+      }
+      seenCodes.add(normalizedCode);
       if (typeof k !== "string" || !k.trim()) {
-        errors.push({ code: String(k), reason: "Empty or invalid course code" });
+        errors.push({ code: String(k), reason: "Enter a valid course code" });
         continue;
       }
-      const code = k.trim().toUpperCase();
+      const code = normalizedCode;
 
       let incoming;
       let isNameOnly = false;
@@ -1304,21 +1306,16 @@
             ? v.prerequisites.map(p => String(p).trim()).filter(Boolean).sort()
             : [],
           prerequisiteNote: typeof v.prerequisiteNote === "string" ? v.prerequisiteNote.trim() : "",
-          credits: (v.credits !== undefined && v.credits !== null && v.credits !== "" && !isNaN(parseFloat(v.credits)) && parseFloat(v.credits) > 0) ? parseFloat(v.credits) : null
+          credits: typeof v.credits === "number" ? v.credits : null
         };
-        const hasExamDay = !!incoming.examDay;
-        const hasExamSlot = !!incoming.examSlot;
-        const hasPrereqs = incoming.prerequisites.length > 0;
-        const hasPrereqNote = !!incoming.prerequisiteNote;
-        if (!hasExamDay && !hasExamSlot && !hasPrereqs && !hasPrereqNote) {
-          isNameOnly = true;
-        }
       } else {
-        errors.push({ code, reason: "Missing required course title or invalid format" });
+        errors.push({ code, reason: "Course name missing or course details invalid" });
         continue;
       }
 
-      const existing = currentCourses[code];
+      const existing = Object.hasOwn(currentCourses, code) ? currentCourses[code] : null;
+      if (isNameOnly && existing) incoming = normalizeCourseData(mergeCourseEntry(existing, incoming.name));
+      else incoming = normalizeCourseData(incoming);
       if (!existing) {
         toAdd.push({ code, incoming, isNameOnly });
       } else {
@@ -1330,13 +1327,16 @@
           if (normExisting.name !== incoming.name) {
             changes.push({ field: "Course Title", oldVal: normExisting.name || "—", newVal: incoming.name });
           }
+          if (normExisting.credits !== (incoming.credits ?? null)) {
+            changes.push({ field: "Credits", oldVal: normExisting.credits === null ? "Not listed" : String(normExisting.credits), newVal: incoming.credits == null ? "Not listed" : String(incoming.credits) });
+          }
           const oldExam = [normExisting.examDay, normExisting.examSlot].filter(Boolean).join(" / ") || "—";
           const newExam = [incoming.examDay, incoming.examSlot].filter(Boolean).join(" / ") || "—";
           if (oldExam !== newExam) {
             changes.push({ field: "Exam Routine", oldVal: oldExam, newVal: newExam });
           }
-          const oldPrereqs = normExisting.prerequisites.join(", ") || "None";
-          const newPrereqs = incoming.prerequisites.join(", ") || "None";
+          const oldPrereqs = normExisting.prerequisites.join(", ") || "Not listed";
+          const newPrereqs = incoming.prerequisites.join(", ") || "Not listed";
           if (oldPrereqs !== newPrereqs) {
             changes.push({ field: "Prerequisites", oldVal: oldPrereqs, newVal: newPrereqs });
           }
@@ -1348,6 +1348,10 @@
       }
     }
 
+    const prospective = { ...currentCourses };
+    for (const item of [...toAdd, ...toUpdate]) prospective[item.code] = item.incoming;
+    const cycle = CourseData.cycle(prospective);
+    if (cycle && (toAdd.length || toUpdate.length)) return { toAdd: [], toUpdate: [], unchanged, errors: [...errors, { code: cycle, reason: "Prerequisite cycle detected" }] };
     return { toAdd, toUpdate, unchanged, errors };
   }
 
@@ -1374,22 +1378,22 @@
     // Summary pills
     if (diff.toAdd.length > 0) {
       els.previewSummaryRow.appendChild(
-        createSummaryPill("pill-new", "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z", "+" + diff.toAdd.length + " New")
+        createSummaryPill("pill-new", "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z", diff.toAdd.length + " new")
       );
     }
     if (diff.toUpdate.length > 0) {
       els.previewSummaryRow.appendChild(
-        createSummaryPill("pill-update", "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z", "~" + diff.toUpdate.length + " Modified")
+        createSummaryPill("pill-update", "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z", diff.toUpdate.length + " changed")
       );
     }
     if (diff.unchanged.length > 0) {
       els.previewSummaryRow.appendChild(
-        createSummaryPill("pill-unchanged", "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z", "=" + diff.unchanged.length + " Identical")
+        createSummaryPill("pill-unchanged", "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z", diff.unchanged.length + " unchanged")
       );
     }
     if (diff.errors.length > 0) {
       els.previewSummaryRow.appendChild(
-        createSummaryPill("pill-invalid", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z", "!" + diff.errors.length + " Skipped")
+        createSummaryPill("pill-invalid", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z", diff.errors.length + " skipped")
       );
     }
 
@@ -1407,14 +1411,10 @@
 
       if (totalChanges > 0) {
         els.previewConfirmBtn.disabled = false;
-        els.previewConfirmBtn.style.opacity = "1";
-        els.previewConfirmBtn.style.cursor = "pointer";
-        els.previewConfirmBtn.appendChild(document.createTextNode("Confirm & Merge (" + totalChanges + ")"));
+        els.previewConfirmBtn.appendChild(document.createTextNode("Apply changes (" + totalChanges + ")"));
       } else {
         els.previewConfirmBtn.disabled = true;
-        els.previewConfirmBtn.style.opacity = "0.55";
-        els.previewConfirmBtn.style.cursor = "not-allowed";
-        els.previewConfirmBtn.appendChild(document.createTextNode("No Changes to Merge"));
+        els.previewConfirmBtn.appendChild(document.createTextNode("No changes to apply"));
       }
     }
 
@@ -1432,7 +1432,7 @@
 
       const badge = document.createElement("span");
       badge.className = "diff-badge badge-update";
-      badge.textContent = "~ UPDATE";
+      badge.textContent = "Existing course";
 
       header.appendChild(codeEl);
       header.appendChild(badge);
@@ -1454,7 +1454,7 @@
 
         const oldSpan = document.createElement("span");
         oldSpan.className = "diff-old-val";
-        oldSpan.textContent = ch.oldVal;
+        oldSpan.textContent = "Current: " + ch.oldVal;
 
         const arrow = document.createElement("span");
         arrow.className = "diff-arrow-icon";
@@ -1462,7 +1462,7 @@
 
         const newSpan = document.createElement("span");
         newSpan.className = "diff-new-val";
-        newSpan.textContent = ch.newVal;
+        newSpan.textContent = "Imported: " + ch.newVal;
 
         valWrapper.appendChild(oldSpan);
         valWrapper.appendChild(arrow);
@@ -1492,7 +1492,7 @@
 
       const badge = document.createElement("span");
       badge.className = "diff-badge badge-new";
-      badge.textContent = "+ NEW";
+      badge.textContent = "New course";
 
       header.appendChild(codeEl);
       header.appendChild(badge);
@@ -1540,6 +1540,13 @@
       els.previewDiffList.appendChild(card);
     });
 
+    for (const error of diff.errors) {
+      const card = document.createElement("div"); card.className = "diff-card";
+      const title = document.createElement("strong"); title.textContent = error.code + " — skipped";
+      const reason = document.createElement("p"); reason.className = "catalog-review-note"; reason.textContent = error.reason;
+      card.appendChild(title); card.appendChild(reason); els.previewDiffList.appendChild(card);
+    }
+
     if (totalChanges === 0) {
       const emptyBox = document.createElement("div");
       emptyBox.className = "preview-empty-state";
@@ -1553,11 +1560,11 @@
 
       const emptyTitle = document.createElement("div");
       emptyTitle.className = "preview-empty-title";
-      emptyTitle.textContent = "All Courses Up to Date";
+      emptyTitle.textContent = diff.errors.length ? "No valid changes to apply" : "No changes to apply";
 
       const emptySub = document.createElement("div");
       emptySub.className = "preview-empty-sub";
-      emptySub.textContent = "All " + diff.unchanged.length + " courses in this file already match your database identically.";
+      emptySub.textContent = diff.errors.length ? "Correct the skipped entries and review the file again." : "All " + diff.unchanged.length + " courses in this file already match your catalog.";
 
       emptyBox.appendChild(checkSvg);
       emptyBox.appendChild(emptyTitle);
@@ -1567,59 +1574,235 @@
   }
 
   function openImportPreviewModal(diff) {
+    pendingCatalogUpdate = null;
+    pendingCatalogReset = null;
+    els.importPreviewModal.removeAttribute("data-review");
     pendingImportDiff = diff;
+    document.getElementById("previewModalTitle").textContent = "Review import";
+    document.getElementById("previewModalDescription").textContent = "Review additions and changes to existing courses.";
     renderImportPreview(diff);
-    openModalSafely(els.importPreviewModal, els.previewConfirmBtn);
+    openModalSafely(els.importPreviewModal, els.previewCancelBtn);
   }
 
   function closeImportPreviewModal() {
+    if (els.previewConfirmBtn?.getAttribute("aria-busy") === "true") return;
+    const wasReset = !!pendingCatalogReset;
+    pendingCatalogUpdate = null;
+    pendingCatalogReset = null;
+    pendingImportDiff = null;
     closeModalSafely(els.importPreviewModal);
+    if (wasReset) {
+      const target = els.resetDefaultsBtn?.disabled ? document.getElementById("resetSettingsTitle") : els.resetDefaultsBtn;
+      target?.setAttribute("tabindex", "-1");
+      target?.focus({ preventScroll: true });
+      if (target === els.resetDefaultsBtn) target.removeAttribute("tabindex");
+    }
+  }
+
+  function reviewCatalogUpdate(response) {
+    const before = {}, after = {};
+    for (const code of new Set([...Object.keys(bundledCourses), ...Object.keys(remoteCourses)])) before[code] = getCatalogReportBaseline(code, bundledCourses, remoteCourses);
+    for (const code of new Set([...Object.keys(bundledCourses), ...Object.keys(response.catalog)])) after[code] = getCatalogReportBaseline(code, bundledCourses, response.catalog);
+    const diff = computeImportDiff(after, before);
+    const removed = Object.keys(before).filter(code => !after[code]);
+    if (!diff.toAdd.length && !diff.toUpdate.length && !removed.length) {
+      showToast("Your catalog is up to date", "success");
+      return;
+    }
+    openImportPreviewModal(diff);
+    pendingImportDiff = null;
+    pendingCatalogUpdate = response;
+    els.previewSummaryRow.querySelector(".pill-unchanged")?.remove();
+    if (removed.length) els.previewDiffList.querySelector(".preview-empty-state")?.remove();
+    document.getElementById("previewModalTitle").textContent = "Review catalog update";
+    document.getElementById("previewModalDescription").textContent = "Review shared catalog changes. Your custom courses and local edits stay saved.";
+    els.previewConfirmBtn.disabled = false;
+    els.previewConfirmBtn.textContent = "Apply update";
+    for (const card of els.previewDiffList.querySelectorAll(".diff-card")) {
+      const code = card.querySelector(".diff-card-code")?.textContent;
+      if (code && userCourses[code]) {
+        const note = document.createElement("p"); note.className = "catalog-review-note";
+        note.textContent = "Your local edits will remain in use."; card.appendChild(note);
+      }
+    }
+    if (removed.length) {
+      const pill = document.createElement("span"); pill.className = "summary-pill pill-invalid";
+      pill.textContent = removed.length + " removed"; els.previewSummaryRow.appendChild(pill);
+      for (const code of removed) {
+        const card = document.createElement("div"); card.className = "diff-card";
+        const title = document.createElement("strong"); title.textContent = code;
+        const note = document.createElement("p"); note.className = "catalog-review-note";
+        note.textContent = normalizeCourseData(before[code]).name + (userCourses[code] ? " — removed from the shared catalog; your local course stays saved." : " — removed from the shared catalog.");
+        card.appendChild(title); card.appendChild(note); els.previewDiffList.appendChild(card);
+      }
+    }
+  }
+
+  function buildCatalogResetPlan(bundled, remote, user, soft, hard) {
+    const baseline = {}, current = {};
+    const catalogCodes = new Set([...Object.keys(bundled), ...Object.keys(remote)]);
+    for (const code of catalogCodes) {
+      baseline[code] = getCatalogReportBaseline(code, bundled, remote);
+      current[code] = mergeCourseEntry(baseline[code], user[code]);
+    }
+    const diff = computeImportDiff(baseline, current);
+    const restoredCodes = [...new Set([...soft, ...hard])].filter(code => catalogCodes.has(code)).sort();
+    const revertedCodes = diff.toUpdate.map(item => item.code).sort();
+    const affected = [...new Set([...restoredCodes, ...revertedCodes])];
+    const nextUser = { ...user };
+    for (const code of affected) delete nextUser[code];
+    return { diff, restoredCodes, revertedCodes, count: affected.length,
+      nextUser, nextSoft: soft.filter(code => !catalogCodes.has(code)), nextHard: hard.filter(code => !catalogCodes.has(code)),
+      revision: JSON.stringify([bundled, remote, user, soft, hard]) };
+  }
+
+  function currentCatalogResetPlan() {
+    return buildCatalogResetPlan(bundledCourses, remoteCourses, userCourses, softDeletedCourses, hardDeletedCourses);
+  }
+
+  function updateResetAvailability() {
+    if (!els.resetDefaultsBtn) return;
+    const available = currentCatalogResetPlan().count > 0;
+    els.resetDefaultsBtn.disabled = !available;
+    els.resetDefaultsBtn.title = available ? "Review courses and edits affected by reset" : "No catalog changes to reset";
+    const hint = document.getElementById("resetAvailabilityHint");
+    if (hint) hint.hidden = available;
+  }
+
+  function reviewCatalogReset() {
+    const plan = currentCatalogResetPlan();
+    if (!plan.count) { updateResetAvailability(); return; }
+    openImportPreviewModal(plan.diff);
+    pendingImportDiff = null;
+    pendingCatalogReset = plan;
+    els.importPreviewModal.setAttribute("data-review", "reset");
+    document.getElementById("previewModalTitle").textContent = "Review catalog reset";
+    document.getElementById("previewModalDescription").textContent = "Review courses to restore and edits to discard. Custom courses will stay saved.";
+    els.previewSummaryRow.textContent = "";
+    for (const [count, label] of [[plan.restoredCodes.length, "to restore"], [plan.revertedCodes.length, "with edits to discard"]]) {
+      if (!count) continue;
+      const pill = document.createElement("span"); pill.className = "summary-pill";
+      pill.textContent = count + " " + label; els.previewSummaryRow.appendChild(pill);
+    }
+    els.previewDiffList.querySelector(".preview-empty-state")?.remove();
+    for (const old of els.previewDiffList.querySelectorAll(".diff-old-val")) old.textContent = old.textContent.replace(/^Current: /, "Your details: ");
+    for (const next of els.previewDiffList.querySelectorAll(".diff-new-val")) next.textContent = next.textContent.replace(/^Imported: /, "Catalog default: ");
+    for (const card of els.previewDiffList.querySelectorAll(".diff-card")) {
+      card.querySelector(".diff-badge").textContent = "Discard edits";
+      const code = card.querySelector(".diff-card-code").textContent;
+      if (plan.restoredCodes.includes(code)) {
+        const note = document.createElement("p"); note.className = "catalog-review-note";
+        note.textContent = "This course will also return to your catalog."; card.appendChild(note);
+      }
+    }
+    for (const code of plan.restoredCodes.filter(code => !plan.revertedCodes.includes(code))) {
+      const card = document.createElement("div"); card.className = "diff-card";
+      const title = document.createElement("strong"); title.textContent = code;
+      const note = document.createElement("p"); note.className = "catalog-review-note";
+      note.textContent = normalizeCourseData(getCatalogReportBaseline(code, bundledCourses, remoteCourses)).name + " — restore to catalog.";
+      card.appendChild(title); card.appendChild(note); els.previewDiffList.appendChild(card);
+    }
+    els.previewConfirmBtn.disabled = false;
+    els.previewConfirmBtn.textContent = "Reset changes";
+    els.previewCancelBtn.focus();
+  }
+
+  async function applyCatalogReset() {
+    const plan = pendingCatalogReset;
+    if (!plan || els.previewConfirmBtn.disabled) return;
+    els.previewConfirmBtn.disabled = true;
+    els.previewConfirmBtn.setAttribute("aria-busy", "true");
+    els.previewConfirmBtn.textContent = "Resetting…";
+    try {
+      await reloadLocalCoursesState();
+      if (currentCatalogResetPlan().revision !== plan.revision) throw new Error("Catalog changed since review. Review the reset again.");
+      await chrome.storage.local.set({ userCourses: plan.nextUser, softDeletedCourses: plan.nextSoft, hardDeletedCourses: plan.nextHard });
+      await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
+      await reloadLocalCoursesState();
+      renderResetResult({ totalChanges: plan.count, restoredCodes: plan.restoredCodes, revertedCodes: plan.revertedCodes, timestamp: Date.now() });
+      els.previewConfirmBtn.removeAttribute("aria-busy");
+      closeImportPreviewModal();
+      showToast("Catalog changes reset", "success");
+    } catch (error) {
+      showToast(error.message === "Catalog changed since review. Review the reset again." ? error.message : "Could not reset catalog changes. Try again.", "error");
+    } finally {
+      els.previewConfirmBtn.disabled = false;
+      els.previewConfirmBtn.removeAttribute("aria-busy");
+      els.previewConfirmBtn.textContent = "Reset changes";
+      updateResetAvailability();
+    }
+  }
+
+  async function applyCatalogUpdate() {
+    if (!pendingCatalogUpdate || els.previewConfirmBtn.disabled) return;
+    els.previewConfirmBtn.disabled = true;
+    els.previewConfirmBtn.setAttribute("aria-busy", "true");
+    els.previewConfirmBtn.textContent = "Applying…";
+    try {
+      const response = await chrome.runtime.sendMessage({ type: "APPLY_CATALOG_UPDATE", catalog: pendingCatalogUpdate.catalog, baselineRevision: pendingCatalogUpdate.baselineRevision });
+      if (!response?.success) throw new Error(response?.error || "Update failed");
+      lastSyncedAt = response.lastSyncedAt;
+      lastSyncResult = response.stats;
+      await reloadLocalCoursesState();
+      renderSyncResult(lastSyncResult);
+      checkSyncReminder();
+      pendingCatalogUpdate = null;
+      els.previewConfirmBtn.removeAttribute("aria-busy");
+      closeImportPreviewModal();
+      showToast("Catalog update applied", "success");
+    } catch (error) {
+      showToast(error.message === "Catalog changed since review. Check for updates again." ? error.message : "Could not apply the update. Try again.", "error");
+    } finally {
+      els.previewConfirmBtn.removeAttribute("aria-busy");
+      els.previewConfirmBtn.disabled = false;
+      els.previewConfirmBtn.textContent = pendingCatalogUpdate ? "Apply update" : "Apply changes";
+    }
   }
 
   async function executeCommitImportDiff(diff) {
     if (!diff) return;
 
+    const nextCourses = { ...courses }, nextUser = { ...userCourses };
+    let nextSoft = softDeletedCourses.slice(), nextHard = hardDeletedCourses.slice();
     let addedCount = 0;
     let updatedCount = 0;
     let nameOnlyCount = 0;
 
     for (const item of diff.toAdd) {
       const key = item.code;
-      const val = item.isNameOnly && typeof item.incoming === "object" && !item.incoming.examDay && !item.incoming.examSlot && item.incoming.prerequisites.length === 0 && !item.incoming.prerequisiteNote
-        ? item.incoming.name
-        : item.incoming;
+      const val = item.incoming;
 
-      if (softDeletedCourses.includes(key)) {
-        softDeletedCourses = softDeletedCourses.filter(c => c !== key);
+      if (nextSoft.includes(key)) {
+        nextSoft = nextSoft.filter(c => c !== key);
       }
-      if (hardDeletedCourses.includes(key)) {
-        hardDeletedCourses = hardDeletedCourses.filter(c => c !== key);
+      if (nextHard.includes(key)) {
+        nextHard = nextHard.filter(c => c !== key);
       }
-      courses[key] = val;
-      userCourses[key] = val;
+      nextCourses[key] = val;
+      nextUser[key] = val;
       addedCount++;
       if (item.isNameOnly) nameOnlyCount++;
     }
 
     for (const item of diff.toUpdate) {
       const key = item.code;
-      const val = item.isNameOnly && typeof item.incoming === "object" && !item.incoming.examDay && !item.incoming.examSlot && item.incoming.prerequisites.length === 0 && !item.incoming.prerequisiteNote
-        ? item.incoming.name
-        : item.incoming;
+      const val = item.incoming;
 
-      if (softDeletedCourses.includes(key)) {
-        softDeletedCourses = softDeletedCourses.filter(c => c !== key);
+      if (nextSoft.includes(key)) {
+        nextSoft = nextSoft.filter(c => c !== key);
       }
-      if (hardDeletedCourses.includes(key)) {
-        hardDeletedCourses = hardDeletedCourses.filter(c => c !== key);
+      if (nextHard.includes(key)) {
+        nextHard = nextHard.filter(c => c !== key);
       }
-      courses[key] = val;
-      userCourses[key] = val;
+      nextCourses[key] = val;
+      nextUser[key] = val;
       updatedCount++;
       if (item.isNameOnly) nameOnlyCount++;
     }
 
-    await chrome.storage.local.set({ courses, userCourses, softDeletedCourses, hardDeletedCourses });
+    await chrome.storage.local.set({ courses: nextCourses, userCourses: nextUser, softDeletedCourses: nextSoft, hardDeletedCourses: nextHard });
+    courses = nextCourses; userCourses = nextUser; softDeletedCourses = nextSoft; hardDeletedCourses = nextHard;
+
     updateCourseCount();
     renderCourseList(searchQuery);
     if (els.jsonInput) els.jsonInput.value = "";
@@ -1645,7 +1828,7 @@
     }
 
     showImportMsg("success", summaryText);
-    showToast(`Merged ${totalMerged} course${totalMerged !== 1 ? 's' : ''}`, "success");
+    showToast(`Import complete: ${totalMerged} course${totalMerged !== 1 ? 's' : ''}`, "success");
   }
 
   function triggerDropZoneError(msg) {
@@ -1729,7 +1912,7 @@
       errPath.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z");
       errSvg.appendChild(errPath);
       statusPill.appendChild(errSvg);
-      statusPill.appendChild(document.createTextNode("Syntax error"));
+      statusPill.appendChild(document.createTextNode("Invalid JSON"));
     } else if (courseCount !== undefined && courseCount > 0) {
       statusPill.className = "drop-status-pill success";
       const checkSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -1769,7 +1952,7 @@
       if (els.jsonInput) {
         els.jsonInput.value = "";
         updateJsonBadge();
-        showImportMsg("info", "File unloaded.");
+        showImportMsg("info", "File removed. Choose another JSON file to import.");
       }
     });
     mainRow.appendChild(removeBtn);
@@ -1799,7 +1982,7 @@
         e.stopPropagation();
         if (!pendingImportDiff && els.jsonInput?.value) {
           try {
-            const parsed = JSON.parse(els.jsonInput.value);
+            const parsed = CourseData.parse(els.jsonInput.value);
             pendingImportDiff = computeImportDiff(parsed, courses);
           } catch (err) {}
         }
@@ -1851,7 +2034,7 @@
         let courseCount = 0;
         let parseError = false;
         try {
-          const parsed = JSON.parse(content);
+          const parsed = CourseData.parse(content);
           if (typeof parsed === "object" && !Array.isArray(parsed) && parsed !== null) {
             courseCount = Object.keys(parsed).length;
             pendingImportDiff = computeImportDiff(parsed, courses);
@@ -1863,12 +2046,12 @@
           } else {
             parseError = true;
             showDropZoneFileInfo(file.name, file.size, 0, true);
-            showImportMsg("error", "JSON file must contain an object map of courses.");
+            showImportMsg("error", "The JSON file must list course codes with their course details. Check the sample format.");
           }
         } catch (err) {
           parseError = true;
           showDropZoneFileInfo(file.name, file.size, 0, true);
-          showImportMsg("error", "JSON syntax error in \"" + file.name + "\": " + err.message);
+          showImportMsg("error", "Could not import this file. Check its JSON format against the sample and try again.");
         }
       }
     };
@@ -1889,192 +2072,162 @@
   }
 
   function renderTrashList(filter = "") {
-    const lc = filter.toLowerCase().trim();
-    const entries = softDeletedCourses
-      .map(code => ({ code, data: getSoftDeletedCourseData(code) }))
-      .filter(({ code, data }) => {
-        const name = typeof data === "object" && data !== null ? (data.name || "") : (data || "");
-        return !lc || String(code).toLowerCase().includes(lc) || String(name).toLowerCase().includes(lc);
-      })
-      .sort((a, b) => a.code.localeCompare(b.code));
-
-    if (entries.length === 0) {
-      if (els.courseListHeader) els.courseListHeader.style.display = "none";
-      if (els.trashActionsRow && softDeletedCourses.length === 0) {
-        els.trashActionsRow.style.display = "none";
-      }
-
-      const emptyState = document.createElement("div");
-      emptyState.className = "empty-state";
-
-      const emptyIcon = document.createElement("div");
-      emptyIcon.className = "empty-icon";
-      emptyIcon.textContent = filter ? "🔍" : "🗑️";
-      emptyState.appendChild(emptyIcon);
-
-      const titleEl = document.createElement("div");
-      titleEl.className = "empty-title";
-
-      const subEl = document.createElement("div");
-      subEl.className = "empty-subtitle";
-
-      if (filter) {
-        titleEl.textContent = "No courses found";
-        subEl.textContent = `No courses in Trash matching "${filter}".`;
-        emptyState.appendChild(titleEl);
-        emptyState.appendChild(subEl);
-
-        const clearBtn = document.createElement("button");
-        clearBtn.type = "button";
-        clearBtn.className = "empty-clear-btn";
-        clearBtn.textContent = "Clear search";
-        clearBtn.addEventListener("click", () => {
-          if (els.courseSearch) {
-            els.courseSearch.value = "";
-            searchQuery = "";
-            if (els.searchClearBtn) els.searchClearBtn.style.display = "none";
-            renderTrashList("");
-            els.courseSearch.focus();
-          }
-        });
-        emptyState.appendChild(clearBtn);
-
-        const contribTip = document.createElement("div");
-        contribTip.className = "empty-contrib-tip";
-        contribTip.style.cssText = "margin-top: 8px; font-size: 0.65rem; color: var(--text-muted);";
-        const contribLink = document.createElement("a");
-        contribLink.href = "#";
-        contribLink.textContent = "Contribute to the catalog \u2192";
-        contribLink.style.cssText = "color: var(--accent); font-weight: 600; margin-left: 4px; cursor: pointer; text-decoration: none;";
-        contribLink.addEventListener("click", (e) => {
-          e.preventDefault();
-          openContributionModal();
-        });
-        contribTip.appendChild(document.createTextNode("Missing a course?"));
-        contribTip.appendChild(contribLink);
-        emptyState.appendChild(contribTip);
-      } else {
-        titleEl.textContent = "Trash is Empty";
-        subEl.textContent = "Courses you delete will appear here until permanently removed.";
-        emptyState.appendChild(titleEl);
-        emptyState.appendChild(subEl);
-      }
-
-      els.courseList.textContent = "";
-      els.courseList.appendChild(emptyState);
-      return;
-    }
-
+    const query = String(filter).trim();
+    const entries = softDeletedCourses.map(code => ({ code, data: getSoftDeletedCourseData(code) }))
+      .filter(({ code, data }) => Number.isFinite(courseSearchRank(code, data, query)))
+      .sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+    updateTrashIndicator(softDeletedCourses.length);
     if (els.courseTableCard) els.courseTableCard.classList.add("trash-mode");
-    if (els.courseListHeader) {
-      els.courseListHeader.style.display = "grid";
-      if (els.colHeaderAction) els.colHeaderAction.textContent = "Action";
+    if (els.courseListHeader) els.courseListHeader.style.display = "none";
+    if (els.trashActionsRow) els.trashActionsRow.style.display = softDeletedCourses.length && !query ? "flex" : "none";
+    const notice = document.getElementById("trashNotice");
+    if (notice) notice.style.display = entries.length && !query ? "block" : "none";
+    if (els.coursesPanelCount) els.coursesPanelCount.textContent = query
+      ? entries.length + (entries.length === 1 ? " match" : " matches") + " · " + softDeletedCourses.length + " in Trash"
+      : softDeletedCourses.length + (softDeletedCourses.length === 1 ? " course available to restore" : " courses available to restore");
+    if (els.courseSearch) {
+      els.courseSearch.placeholder = "Search Trash by code or name…";
+      els.courseSearch.setAttribute("aria-label", "Search Trash by course code or name");
     }
-    if (els.trashActionsRow && !filter) {
-      els.trashActionsRow.style.display = "flex";
-    }
-
-    const frag = document.createDocumentFragment();
-    entries.forEach(({ code, data }) => {
-      const row = document.createElement("div");
-      row.className = "course-grid-row";
-
-      const name = typeof data === "object" && data !== null ? (data.name || "") : (data || "Unknown Course");
-
-      const codeEl = document.createElement("div");
-      codeEl.className = "course-row-code";
-      codeEl.textContent = code;
-      codeEl.title = code;
-
-      const nameEl = document.createElement("div");
-      nameEl.className = "course-row-name";
-      nameEl.textContent = name;
-      nameEl.title = name;
-
-      const origin = getCourseOrigin(code);
-      const typeEl = document.createElement("div");
-      typeEl.className = "course-row-type";
-
-      const badge = document.createElement("span");
-      badge.className = `origin-badge ${origin.class}`;
-      badge.textContent = origin.label;
-      typeEl.appendChild(badge);
-
-      const actionCol = document.createElement("div");
-      actionCol.className = "trash-row-actions";
-
-      const restoreBtn = document.createElement("button");
-      restoreBtn.type = "button";
-      restoreBtn.className = "btn-trash-action-item restore";
-      restoreBtn.title = `Restore ${code} to catalog`;
-      restoreBtn.appendChild(createIcon('restore'));
-      restoreBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        pendingAction = "restore";
-        pendingTarget = code;
-        setModalText(`Restore ${code} to catalog?`, "This course will be returned to your active course database and decoder immediately.");
-        els.confirmModal.classList.add("show");
-      });
-
-      const permDelBtn = document.createElement("button");
-      permDelBtn.type = "button";
-      permDelBtn.className = "btn-trash-action-item delete";
-      permDelBtn.title = `Permanently delete ${code}`;
-      permDelBtn.appendChild(createIcon('delete'));
-      permDelBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        pendingAction = "perm-delete";
-        pendingTarget = code;
-        setModalText(`Permanently delete ${code}?`, "This course will be permanently removed from storage and cannot be restored.");
-        els.confirmModal.classList.add("show");
-      });
-
-      actionCol.appendChild(restoreBtn);
-      actionCol.appendChild(permDelBtn);
-
-      row.appendChild(codeEl);
-      row.appendChild(nameEl);
-      row.appendChild(typeEl);
-      row.appendChild(actionCol);
-      frag.appendChild(row);
-    });
-
+    if (els.backBtn) { els.backBtn.title = "Back to course catalog"; els.backBtn.setAttribute("aria-label", "Back to course catalog"); }
+    const icon = type => {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("fill", "none"); svg.setAttribute("stroke", "currentColor");
+      svg.setAttribute("stroke-width", "1.8"); svg.setAttribute("stroke-linecap", "round");
+      svg.setAttribute("stroke-linejoin", "round"); svg.setAttribute("aria-hidden", "true");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", type === "restore" ? "M3 10a9 9 0 1 1 2 8M3 4v6h6"
+        : type === "search" ? "M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0"
+        : "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7");
+      svg.appendChild(path); return svg;
+    };
     els.courseList.textContent = "";
-    els.courseList.appendChild(frag);
+    if (!entries.length) {
+      const empty = document.createElement("div"); empty.className = "empty-state trash-empty-state";
+      const image = document.createElement("div"); image.className = "trash-empty-icon"; image.appendChild(icon(query ? "search" : "delete"));
+      const title = document.createElement("div"); title.className = "empty-title"; title.textContent = query ? "No matching courses" : "Trash is empty";
+      const description = document.createElement("div"); description.className = "empty-subtitle";
+      description.textContent = query ? "Try another course code or name, or clear your search."
+        : "Courses moved to Trash stay here until you restore or permanently delete them.";
+      empty.appendChild(image); empty.appendChild(title); empty.appendChild(description);
+      if (query) {
+        const clear = document.createElement("button"); clear.type = "button"; clear.className = "empty-clear-btn"; clear.textContent = "Clear search";
+        clear.addEventListener("click", () => {
+          searchQuery = ""; els.courseSearch.value = "";
+          if (els.searchClearBtn) els.searchClearBtn.style.display = "none";
+          renderTrashList(); els.courseSearch.focus();
+        }); empty.appendChild(clear);
+      }
+      els.courseList.appendChild(empty); return;
+    }
+    const fragment = document.createDocumentFragment();
+    entries.forEach(({ code, data }) => {
+      const name = typeof data === "object" && data !== null ? data.name || "Course name not listed" : data || "Course name not listed";
+      const row = document.createElement("article"); row.className = "trash-course-card";
+      const header = document.createElement("div"); header.className = "trash-course-heading";
+      const codeEl = document.createElement("span"); codeEl.className = "trash-course-code"; codeEl.textContent = code;
+      const origin = getCourseOrigin(code);
+      const badge = document.createElement("span"); badge.className = "origin-badge " + origin.class; badge.textContent = origin.label;
+      header.appendChild(codeEl); header.appendChild(badge);
+      const nameEl = document.createElement("p"); nameEl.className = "trash-course-name"; nameEl.textContent = name;
+      const actions = document.createElement("div"); actions.className = "trash-course-actions";
+      const restore = document.createElement("button"); restore.type = "button"; restore.className = "trash-restore-button";
+      restore.appendChild(icon("restore")); restore.appendChild(document.createTextNode("Restore"));
+      restore.setAttribute("aria-label", "Restore " + code + " — " + name + " to the catalog");
+      restore.addEventListener("click", async () => {
+        restore.disabled = true;
+        try { await restoreCourseFromTrash(code); }
+        catch (_) { restore.disabled = false; showToast("Could not restore this course. Try again.", "error"); }
+      });
+      const remove = document.createElement("button"); remove.type = "button"; remove.className = "trash-delete-button";
+      remove.appendChild(icon("delete")); remove.appendChild(document.createTextNode("Delete permanently"));
+      remove.setAttribute("aria-label", "Permanently delete " + code + " — " + name);
+      remove.addEventListener("click", () => {
+        pendingAction = "perm-delete"; pendingTarget = code;
+        setModalText("Permanently delete " + code + "?", name + " will be removed from your catalog and Trash. You cannot undo this action.");
+        openModalSafely(els.confirmModal, els.modalConfirmBtn);
+      });
+      actions.appendChild(restore); actions.appendChild(remove);
+      row.appendChild(header); row.appendChild(nameEl); row.appendChild(actions); fragment.appendChild(row);
+    });
+    els.courseList.appendChild(fragment);
+  }
+
+  function courseSearchRank(code, data, query) {
+    const q = String(query || "").trim().toLowerCase();
+    if (!q) return 0;
+    const compactQuery = q.replace(/\s+/g, "");
+    const compactCode = String(code).toLowerCase().replace(/\s+/g, "");
+    const name = typeof data === "object" && data !== null ? (data.name || "") : (data || "");
+    if (compactCode === compactQuery) return 0;
+    if (compactCode.startsWith(compactQuery)) return 1;
+    if (compactCode.includes(compactQuery)) return 2;
+    return String(name).toLowerCase().includes(q) ? 3 : Infinity;
+  }
+
+  function findCourseMatches(catalog, query, excludedCodes = []) {
+    const excluded = new Set(excludedCodes);
+    return Object.entries(catalog).filter(([code, data]) =>
+      !excluded.has(code) && Number.isFinite(courseSearchRank(code, data, query))
+    ).sort((a, b) => courseSearchRank(a[0], a[1], query) - courseSearchRank(b[0], b[1], query) || a[0].localeCompare(b[0]));
+  }
+
+  function appendSearchHighlightedText(element, value, query, compactCode = false) {
+    const text = String(value || "");
+    const q = String(query || "").trim();
+    element.textContent = "";
+    const needle = compactCode ? q.replace(/\s+/g, "") : q;
+    if (!needle || needle.length > text.length) { element.textContent = text; return; }
+    const escape = part => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = compactCode ? Array.from(needle).map(escape).join("\\s*") : escape(needle);
+    const matches = text.matchAll(new RegExp(pattern, "gi"));
+    let offset = 0;
+    for (const match of matches) {
+      if (match.index > offset) element.appendChild(document.createTextNode(text.slice(offset, match.index)));
+      const mark = document.createElement("mark");
+      mark.className = "search-match";
+      mark.textContent = match[0];
+      element.appendChild(mark);
+      offset = match.index + match[0].length;
+    }
+    element.appendChild(document.createTextNode(text.slice(offset)));
+  }
+
+  function announceSearchMatches(message) {
+    clearTimeout(announceSearchMatches.timer);
+    announceSearchMatches.timer = setTimeout(() => {
+      const region = document.getElementById("searchAnnouncements");
+      if (region) region.textContent = message;
+    }, 250);
   }
 
   function renderCourseList(filter = "") {
+    els.filterBtns?.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.filter === currentFilter)));
+
+    const trashNotice = document.getElementById("trashNotice");
+    if (trashNotice) trashNotice.style.display = "none";
+    if (els.courseSearch) {
+      els.courseSearch.placeholder = "Search by course code or name…";
+      els.courseSearch.setAttribute("aria-label", "Search courses by code or name");
+    }
+    if (els.backBtn) { els.backBtn.title = "Back to home"; els.backBtn.setAttribute("aria-label", "Back to home"); }
     const lc = filter.toLowerCase().trim();
-    const entries = Object.entries(courses)
-      .filter(([code, courseData]) => {
-        const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
+    const entries = findCourseMatches(courses, filter).filter(([code]) => {
+      const inCatalog = !!bundledCourses[code] || !!remoteCourses[code];
+      const inUser = !!userCourses[code];
+      const origin = !inCatalog && inUser ? "user" : inCatalog && inUser ? "edited" : "official";
+      if (currentFilter === "enrolled") return enrolledCourses.includes(code);
+      return currentFilter === "all" || currentFilter === origin;
+    });
 
-        if (lc && !String(code).toLowerCase().includes(lc) && !String(name).toLowerCase().includes(lc)) {
-          return false;
-        }
-
-        const inBundled = !!bundledCourses[code];
-        const inRemote = !!remoteCourses[code];
-        const inUser = !!userCourses[code];
-
-        let origin = "";
-        if (!inBundled && !inRemote && inUser) {
-          origin = "user";
-        } else if ((inBundled || inRemote) && inUser) {
-          origin = "edited";
-        } else {
-          origin = "official";
-        }
-
-        if (currentFilter === "enrolled") {
-          if (enrolledCourses.indexOf(code) === -1) return false;
-        } else if (currentFilter !== "all" && currentFilter !== origin) {
-          return false;
-        }
-
-        return true;
-      })
-      .sort((a, b) => a[0].localeCompare(b[0]));
+    if (els.coursesPanelCount && !isTrashMode) {
+      els.coursesPanelCount.textContent = lc ?
+        entries.length + (entries.length === 1 ? " matching course" : " matching courses") :
+        currentFilter !== "all" ? entries.length + (entries.length === 1 ? " course in this filter" : " courses in this filter") :
+        Object.keys(courses).length + " courses available";
+      announceSearchMatches(lc ? els.coursesPanelCount.textContent : "");
+    }
 
     if (entries.length === 0) {
       const emptyState = document.createElement("div");
@@ -2089,15 +2242,15 @@
       const subEl = document.createElement("div");
       subEl.className = "empty-subtitle";
 
-      if (filter) {
+      if (lc) {
         emptyIcon.textContent = "🔍";
-        titleEl.textContent = "No courses found";
+        titleEl.textContent = "No matching courses";
 
         let filterCategory = "";
         if (currentFilter === "enrolled") filterCategory = " in My Courses";
         else if (currentFilter === "user") filterCategory = " in User Added";
         else if (currentFilter === "edited") filterCategory = " in Edited";
-        else if (currentFilter === "official") filterCategory = " in Official";
+        else if (currentFilter === "official") filterCategory = " in Catalog";
 
         subEl.textContent = `No results matching "${filter}"${filterCategory}.`;
         emptyState.appendChild(emptyIcon);
@@ -2121,20 +2274,20 @@
       } else {
         if (currentFilter === "enrolled") {
           emptyIcon.textContent = "★";
-          titleEl.textContent = "No Enrolled Courses";
-          subEl.textContent = "You haven't pinned any courses for this trimester yet. Click the star icon on any course to add it to My Courses.";
+          titleEl.textContent = "No courses added yet";
+          subEl.textContent = "Find a course and add it to My Courses to build your exam routine.";
         } else if (currentFilter === "user") {
           emptyIcon.textContent = "📂";
-          titleEl.textContent = "No User-Added Courses";
+          titleEl.textContent = "No custom courses";
           subEl.textContent = "You haven't added any custom courses yet. Click \"Add / Import Courses\" below to create one.";
         } else if (currentFilter === "edited") {
           emptyIcon.textContent = "📝";
           titleEl.textContent = "No Edited Courses";
-          subEl.textContent = "Official courses that you customize or modify will be tracked here.";
+          subEl.textContent = "Catalog courses you customize will appear here.";
         } else if (currentFilter === "official") {
           emptyIcon.textContent = "🏛️";
-          titleEl.textContent = "No Official Courses";
-          subEl.textContent = "Official catalog courses will appear here once loaded or synced.";
+          titleEl.textContent = "No catalog courses";
+          subEl.textContent = "Update the catalog in Settings or import courses to get started.";
         } else {
           emptyIcon.textContent = "📚";
           titleEl.textContent = "No Courses Available";
@@ -2167,12 +2320,12 @@
 
       const codeEl = document.createElement("div");
       codeEl.className = "course-row-code";
-      codeEl.textContent = code;
+      appendSearchHighlightedText(codeEl, code, filter, true);
       codeEl.title = code;
 
       const nameEl = document.createElement("div");
       nameEl.className = "course-row-name";
-      nameEl.textContent = name;
+      appendSearchHighlightedText(nameEl, name, filter);
       nameEl.title = name;
 
       const origin = getCourseOrigin(code);
@@ -2302,24 +2455,25 @@
     lines.push("# UIU Course Schedule & Exam Routine");
     lines.push("");
     lines.push("> **Generated:** " + dateStr + " at " + timeStr);
-    lines.push("> **Summary:** " + totalCourses + " Enrolled Course" + (totalCourses !== 1 ? "s" : "") + " • " + totalCredits.toFixed(1) + " Total Credits");
+    lines.push("> **Summary:** " + totalCourses + " selected course" + (totalCourses !== 1 ? "s" : "") + " • " + summarizeCourseCredits(enrolledList, catalog).label);
     lines.push("> **Exam Status:** " + clashStatus);
+    lines.push("> Recheck the latest exam dates and times in UCAM before finalizing your plan. Your selections are saved only on this device. You can remove or replace courses here without changing your UCAM registration.");
     lines.push("");
     lines.push("---");
     lines.push("");
-    lines.push("## 📚 Enrolled Courses");
+    lines.push("## My courses");
     lines.push("");
     lines.push("| Course Code | Course Title | Credits | Exam Day | Exam Slot | Scheduled Time | Prerequisites |");
     lines.push("|:---|:---|:---:|:---:|:---:|:---|:---|");
 
     if (totalCourses === 0) {
-      lines.push("| *(None)* | No courses currently enrolled | 0.0 Cr | — | — | — | — |");
+      lines.push("| — | No courses added | — | — | — | — | — |");
     } else {
       enrolledList.forEach(function(code) {
         var raw = catalog[code];
         var data = normalizeCourseData(raw);
         var title = (data.name || "Course").replace(/\|/g, "\\|");
-        var credits = (data.credits ? data.credits.toFixed(1) : "3.0") + " Cr";
+        var credits = data.credits !== null ? data.credits.toFixed(1) + " Cr" : "Not listed";
         var day = data.examDay || "TBA";
         var slot = data.examSlot || "TBA";
         var lowerDay = day.toLowerCase();
@@ -2336,7 +2490,7 @@
 
         var prereqs = (data.prerequisites && data.prerequisites.length > 0)
           ? data.prerequisites.join(", ")
-          : "None";
+          : "Not listed";
 
         lines.push("| **" + code + "** | " + title + " | " + credits + " | " + day + " | " + slot + " | " + timeText + " | " + prereqs + " |");
       });
@@ -2347,7 +2501,7 @@
     lines.push("");
     lines.push("## 🕒 UIU Exam Slot Timing Reference");
     lines.push("");
-    lines.push("| Slot | Official Time Window | Description |");
+    lines.push("| Slot | Reference time window | Description |");
     lines.push("|:---|:---|:---|");
     lines.push("| **T1** | `09:00 AM – 11:00 AM` | Morning Exam Slot |");
     lines.push("| **T2** | `11:30 AM – 01:30 PM` | Midday Exam Slot |");
@@ -2372,7 +2526,7 @@
           lines.push("- **" + c.day + ", Slot " + c.slot + timeStr + ":** " + c.courses.map(function(code) { return examCourseLabel(code, catalog); }).join("; "));
         });
         lines.push("");
-        lines.push("> **Action Required:** Please contact your department coordinator or advisor to resolve routine clashes.");
+        lines.push("> **Planning suggestion:** Remove or replace conflicting courses in My Courses, then check your plan again.");
         lines.push("");
       }
 
@@ -2392,7 +2546,7 @@
 
     lines.push("");
     lines.push("---");
-    lines.push("*Exported via [UIU Course Code Decoder](https://github.com/tajim004/uiu-course-code-decoder-extension)*");
+    lines.push("*Exported via [UIU Course Code Decoder](https://github.com/litch07/uiu-course-decoder)*");
     lines.push("");
 
     return lines.join("\n");
@@ -2425,8 +2579,11 @@
           try { URL.revokeObjectURL(url); } catch (_) {}
         }
       }, 2000);
+      return true;
     } catch (e) {
       console.error("Failed to download Markdown file", e);
+      showToast("Could not start the download. Try exporting again.", "error");
+      return false;
     }
   }
 
@@ -2452,7 +2609,8 @@
    * @returns {Array<{ day: string, count: number, courses: Array<{ code: string, slot: string, name: string }> }>}
    */
   function detectSameDayExams(enrolledList, catalog) {
-    var dayMap = {};
+    enrolledList = [...new Set(enrolledList)].filter(code => Object.hasOwn(catalog, code));
+    var dayMap = Object.create(null);
     var sameDays = [];
 
     for (var i = 0; i < enrolledList.length; i++) {
@@ -2474,7 +2632,7 @@
     }
 
     for (var d in dayMap) {
-      if (dayMap.hasOwnProperty(d) && dayMap[d].length > 1) {
+      if (Object.hasOwn(dayMap, d) && dayMap[d].length > 1) {
         sameDays.push({
           day: d,
           count: dayMap[d].length,
@@ -2486,7 +2644,8 @@
   }
 
   function detectExamClashes(enrolledList, catalog) {
-    var slotMap = {};
+    enrolledList = [...new Set(enrolledList)].filter(code => Object.hasOwn(catalog, code));
+    var slotMap = Object.create(null);
     var clashes = [];
 
     for (var i = 0; i < enrolledList.length; i++) {
@@ -2507,7 +2666,7 @@
     }
 
     for (var k in slotMap) {
-      if (slotMap.hasOwnProperty(k) && slotMap[k].length > 1) {
+      if (Object.hasOwn(slotMap, k) && slotMap[k].length > 1) {
         var parts = k.split("|");
         clashes.push({
           day: parts[0],
@@ -2526,6 +2685,7 @@
    * @returns {number}
    */
   function computeEnrolledCredits(enrolledList, catalog) {
+    enrolledList = [...new Set(enrolledList)];
     var total = 0;
     for (var i = 0; i < enrolledList.length; i++) {
       var code = enrolledList[i];
@@ -2541,6 +2701,12 @@
    * Synchronizes all "My Courses" UI elements across View 0 (Home),
    * View 1 (Course List), and View 3 (Course Details).
    */
+  function summarizeCourseCredits(list, catalog) {
+    var missing = list.filter(function(code) { return normalizeCourseData(catalog[code]).credits === null; }).length;
+    var total = computeEnrolledCredits(list, catalog);
+    return { total: total, missing: missing, label: total.toFixed(1) + (missing ? " known credits · " + missing + " missing" : " credits") };
+  }
+
   function examCourseLabel(code, catalog) {
     var name = normalizeCourseData(catalog[code]).name;
     return name ? name + " (" + code + ")" : code;
@@ -2572,7 +2738,7 @@
       return { kind: "danger", text: "Exam time conflict on " + day + ", " + examSlotLabel(slot) +
         ". This exam is scheduled at the same time as " + conflicts.map(function(other) {
           return examCourseLabel(other, catalog);
-        }).join("; ") + ". Contact your department or advisor to resolve the conflict." };
+        }).join("; ") + ". Remove or replace conflicting courses in My Courses, then check your plan again." };
     }
     var enrolled = enrolledList.indexOf(code) !== -1;
     return { kind: "warning", text: (enrolled ? "You have " : "Adding this course would give you ") +
@@ -2582,9 +2748,52 @@
       }).join("; ") + ". " + (enrolled ? "Plan your preparation for this day." : "Review the exam times before adding this course.") };
   }
 
+  function buildHomeExamSummary(clashes, sameDayExams) {
+    const compareDays = (a, b) => a.localeCompare(b, undefined, { numeric: true });
+    const byDay = new Map();
+    clashes.forEach(function(clash) {
+      if (!byDay.has(clash.day)) byDay.set(clash.day, new Set());
+      byDay.get(clash.day).add(clash.slot);
+    });
+    const conflictParts = Array.from(byDay).sort((a, b) => compareDays(a[0], b[0])).map(function([day, slots]) {
+      return day + " (" + Array.from(slots).sort(compareDays).join(", ") + ")";
+    });
+    const dailyParts = sameDayExams.slice().sort((a, b) => compareDays(a.day, b.day)).map(function(day) {
+      return day.count + " exams on " + day.day;
+    });
+    function compact(parts, prefix) {
+      if (!parts.length) return null;
+      return {
+        label: prefix + parts.slice(0, 2).join("; ") + (parts.length > 2 ? " · +" + (parts.length - 2) + (parts.length === 3 ? " more day" : " more days") : ""),
+        full: prefix + parts.join("; ")
+      };
+    }
+    return {
+      conflicts: compact(conflictParts, clashes.length === 1 ? "Time conflict: " : "Time conflicts: "),
+      sameDay: compact(dailyParts, "")
+    };
+  }
+
+  function updateHomeExamBadge(element, summary, kind) {
+    if (!element) return;
+    element.className = "clash-badge " + kind;
+    element.style.display = summary ? "flex" : "none";
+    element.textContent = summary ? summary.label : "";
+    if (summary) {
+      element.title = summary.full + ". Open My courses & exams to review your plan.";
+      element.setAttribute("aria-label", summary.full);
+    } else {
+      element.removeAttribute("title");
+      element.removeAttribute("aria-label");
+    }
+  }
+
   function updateEnrolledUI() {
     var totalEnrolled = enrolledCourses.length;
+    var planningNote = document.getElementById("routinePlanningNote");
+    if (planningNote) planningNote.hidden = totalEnrolled === 0;
     var totalCredits = computeEnrolledCredits(enrolledCourses, courses);
+    var creditSummary = summarizeCourseCredits(enrolledCourses, courses);
     var clashes = detectExamClashes(enrolledCourses, courses);
     var hasClashes = clashes.length > 0;
     var sameDayExams = detectSameDayExams(enrolledCourses, courses);
@@ -2593,40 +2802,28 @@
     // 1. View 0 (Home) Button
     if (els.homeEnrolledCard) {
       if (els.homeEnrolledCount) els.homeEnrolledCount.textContent = String(totalEnrolled);
-      if (els.homeEnrolledCredits) els.homeEnrolledCredits.textContent = totalCredits.toFixed(1) + " Cr";
+      if (els.homeEnrolledCredits) els.homeEnrolledCredits.textContent = totalEnrolled ? creditSummary.label : "Add courses to plan your exams";
+      const homeCountBadge = document.getElementById("homeEnrolledCountBadge");
+      if (homeCountBadge) homeCountBadge.style.display = totalEnrolled ? "inline-flex" : "none";
       if (els.homeEnrolledStatusHint) {
         if (totalEnrolled === 0) {
-          els.homeEnrolledStatusHint.textContent = "Plan exam routine";
+          els.homeEnrolledStatusHint.textContent = "Plan your exams";
         } else {
-          els.homeEnrolledStatusHint.textContent = totalEnrolled === 1 ? "1 course enrolled" : (totalEnrolled + " courses enrolled");
+          els.homeEnrolledStatusHint.textContent = totalEnrolled === 1 ? "1 course selected" : (totalEnrolled + " courses selected");
         }
       }
-      if (els.homeClashBadge) {
-        if (totalEnrolled === 0) {
-          els.homeClashBadge.style.display = "none";
-          els.homeClashBadge.className = "clash-badge ok";
-        } else if (hasClashes) {
-          els.homeClashBadge.style.display = "flex";
-          els.homeClashBadge.className = "clash-badge danger";
-          els.homeClashBadge.textContent = clashes.length + " exam time conflict" + (clashes.length > 1 ? "s" : "");
-        } else if (hasSameDay) {
-          els.homeClashBadge.style.display = "flex";
-          els.homeClashBadge.className = "clash-badge warning";
-          var daysCount = sameDayExams.length;
-          els.homeClashBadge.textContent = daysCount === 1 ? sameDayExams[0].count + " exams on " + sameDayExams[0].day : daysCount + " days with multiple exams";
-        } else {
-          els.homeClashBadge.style.display = "none";
-          els.homeClashBadge.className = "clash-badge ok";
-        }
-      }
+      const summary = buildHomeExamSummary(totalEnrolled ? clashes : [], totalEnrolled ? sameDayExams : []);
+      updateHomeExamBadge(els.homeClashBadge, summary.conflicts, "danger");
+      updateHomeExamBadge(els.homeSameDayBadge, summary.sameDay, "warning");
+      if (els.homeExamSummary) els.homeExamSummary.style.display = summary.conflicts || summary.sameDay ? "flex" : "none";
     }
 
     // 2. Dedicated My Courses View Header & Summary
     if (els.myCoursesHeaderSubtitle) {
-      els.myCoursesHeaderSubtitle.textContent = totalEnrolled + " enrolled • " + totalCredits.toFixed(1) + " credits";
+      els.myCoursesHeaderSubtitle.textContent = totalEnrolled + (totalEnrolled === 1 ? " course · " : " courses · ") + creditSummary.label;
     }
     if (els.enrolledTotalCourses) els.enrolledTotalCourses.textContent = String(totalEnrolled);
-    if (els.enrolledTotalCredits) els.enrolledTotalCredits.textContent = totalCredits.toFixed(1);
+    if (els.enrolledTotalCredits) els.enrolledTotalCredits.textContent = creditSummary.label;
     if (els.clearEnrolledBtn) els.clearEnrolledBtn.style.display = totalEnrolled > 0 ? "inline-flex" : "none";
 
     // 3. Clash & Same-Day Alert Box in My Courses (Sleek Executive Redesign)
@@ -2686,7 +2883,7 @@
             itemText.appendChild(dayLabel);
 
             var coursesSpan = document.createElement("span");
-            coursesSpan.textContent = c.courses.map(function(code) { return examCourseLabel(code, courses); }).join("; ") + ". These exams are scheduled at the same time. Contact your department or advisor.";
+            coursesSpan.textContent = c.courses.map(function(code) { return examCourseLabel(code, courses); }).join("; ") + ". These exams are scheduled at the same time. Remove or replace conflicting courses in My Courses, then check your plan again.";
             itemText.appendChild(coursesSpan);
 
             item.appendChild(bullet);
@@ -2758,7 +2955,7 @@
         enrolledCourses.forEach(function(code) {
           var cData = courses[code];
           var name = typeof cData === "object" && cData !== null ? (cData.name || "") : (cData || "");
-          var credits = typeof cData === "object" && cData !== null && cData.credits ? cData.credits : 3;
+          var credits = normalizeCourseData(cData).credits;
           var examDay = typeof cData === "object" && cData !== null && cData.examDay ? cData.examDay : "";
           var examSlot = typeof cData === "object" && cData !== null && cData.examSlot ? cData.examSlot : "";
 
@@ -2790,7 +2987,7 @@
 
           var crChip = document.createElement("span");
           crChip.className = "course-credit-chip";
-          crChip.textContent = credits.toFixed(1) + " Cr";
+          crChip.textContent = credits !== null ? credits.toFixed(1) + " Cr" : "Credits not listed";
 
           codeRow.appendChild(codeDiv);
           codeRow.appendChild(crChip);
@@ -2798,8 +2995,8 @@
           var dropBtn = document.createElement("button");
           dropBtn.type = "button";
           dropBtn.className = "btn-card-drop";
-          dropBtn.title = "Drop " + code + " from trimester";
-          dropBtn.setAttribute("aria-label", "Drop " + code);
+          dropBtn.title = "Remove " + code + " from trimester";
+          dropBtn.setAttribute("aria-label", "Remove " + code);
 
           var dropIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
           dropIcon.setAttribute("viewBox", "0 0 24 24");
@@ -2808,7 +3005,7 @@
           dropIcon.appendChild(dropPath);
 
           var dropLabel = document.createElement("span");
-          dropLabel.textContent = "Drop";
+          dropLabel.textContent = "Remove";
 
           dropBtn.appendChild(dropIcon);
           dropBtn.appendChild(dropLabel);
@@ -2911,7 +3108,7 @@
           var inspectBtn = document.createElement("button");
           inspectBtn.type = "button";
           inspectBtn.className = "btn-card-inspect";
-          inspectBtn.textContent = "View Details & Prereqs →";
+          inspectBtn.textContent = "View course details";
           inspectBtn.addEventListener("click", function(e) {
             e.stopPropagation();
             openCourseDetails(code, cData, "mycourses");
@@ -2935,18 +3132,18 @@
       if (els.detailsEnrollBtn) {
         els.detailsEnrollBtn.classList.toggle("is-enrolled", isEnrolledInDetails);
         if (els.detailsEnrollBtnText) {
-          els.detailsEnrollBtnText.textContent = isEnrolledInDetails ? "Enrolled" : "Enroll";
+          els.detailsEnrollBtnText.textContent = isEnrolledInDetails ? "Remove" : "Add";
         }
-        els.detailsEnrollBtn.title = isEnrolledInDetails ? "Drop " + currentEditingCode + " from routine" : "Add " + currentEditingCode + " to routine";
+        els.detailsEnrollBtn.title = isEnrolledInDetails ? "Remove " + currentEditingCode + " from routine" : "Add " + currentEditingCode + " to routine";
       }
 
       var statusTextEl = document.getElementById("detailEnrollStatusText");
       if (statusTextEl) {
-        statusTextEl.textContent = isEnrolledInDetails ? "Enrolled in Routine" : "Not in Trimester Routine";
+        statusTextEl.textContent = isEnrolledInDetails ? "In My Courses" : "Not in My Courses";
       }
       var hintEl = document.getElementById("detailEnrollHint");
       if (hintEl) {
-        hintEl.textContent = isEnrolledInDetails ? "Tap button to drop from routine" : "Add to track credits and detect exam clashes";
+        hintEl.textContent = isEnrolledInDetails ? "Remove it from your personal planner" : "Add to plan exams and check conflicts";
       }
       var indicatorEl = document.getElementById("detailEnrollIndicator");
       if (indicatorEl) {
@@ -3126,24 +3323,25 @@
 
     // ── Update Launcher Card on details-view ───────────────────────────────
     var roadmapSummary = totalChainCodes + (totalChainCodes === 1 ? " prerequisite" : " prerequisites") +
-      " · Opens " + unlocks.length + (unlocks.length === 1 ? " course" : " courses");
+      " · Required by " + unlocks.length + (unlocks.length === 1 ? " course" : " courses");
     if (els.roadmapButtonCounts) els.roadmapButtonCounts.textContent = roadmapSummary;
     if (els.btnOpenPrereqFlow) {
       els.btnOpenPrereqFlow.setAttribute("aria-label", "View course roadmap: " + roadmapSummary);
       els.btnOpenPrereqFlow.title = "View prerequisites and courses that require this course";
     }
     // ── Populate Flow View Header & Hero Card ─────────────────────────────
-    if (els.flowCourseCode) els.flowCourseCode.textContent = code;
+    if (els.flowCourseCode) els.flowCourseCode.textContent = "Course roadmap";
     var anchorCode = document.getElementById("flowAnchorCode");
     if (anchorCode) anchorCode.textContent = code;
     if (els.flowOriginBadge) {
       var origin = getCourseOrigin(code);
       els.flowOriginBadge.className = "origin-badge " + origin.class;
       els.flowOriginBadge.textContent = origin.label;
+      els.flowOriginBadge.setAttribute("aria-label", "Course type: " + origin.label);
     }
     var cData = normalizeCourseData(courses[code]);
     if (els.flowCourseSubtitle) {
-      els.flowCourseSubtitle.textContent = "Prerequisite roadmap";
+      els.flowCourseSubtitle.textContent = code + (cData.name ? " · " + cData.name : "");
     }
     if (els.flowHeroTitle) {
       els.flowHeroTitle.textContent = cData.name || code;
@@ -3190,7 +3388,7 @@
       emptyIcon.textContent = "✓";
       emptyState.appendChild(emptyIcon);
       var emptyTitle = document.createElement("strong");
-      emptyTitle.textContent = "No listed prerequisite courses";
+      emptyTitle.textContent = normalizeCourseData(courses[code]).prerequisites.some(function(p) { return p.toLowerCase() === "none"; }) ? "No prerequisites" : "Prerequisites not listed";
       emptyState.appendChild(emptyTitle);
       var emptyDesc = document.createElement("span");
       emptyDesc.textContent = "Check any additional enrollment requirements below.";
@@ -3254,7 +3452,7 @@
             return p && p.toUpperCase() !== "NONE";
           }) : [];
           requirements.textContent = !inCatalog ? "Not in catalog · requirements unknown" :
-            (requiredCodes.length ? "Requires: " + requiredCodes.join(" + ") : "No listed prerequisite courses");
+            (requiredCodes.length ? "Requires: " + requiredCodes.join(" + ") : "Prerequisites not listed");
           if (chain.directCodes.includes(prereqCode)) requirements.textContent += " · Required for " + code;
           if (pData && pData.prerequisiteNote) requirements.textContent += " · " + pData.prerequisiteNote;
           card.appendChild(requirements);
@@ -3281,10 +3479,10 @@
       termIcon.textContent = "🎓";
       emptyUnlocks.appendChild(termIcon);
       var termTitle = document.createElement("strong");
-      termTitle.textContent = "Specialized / Capstone Course";
+      termTitle.textContent = "No next courses listed";
       emptyUnlocks.appendChild(termTitle);
       var termDesc = document.createElement("span");
-      termDesc.textContent = "No subsequent courses list this as a prerequisite. Completes this curriculum branch.";
+      termDesc.textContent = "No courses in this catalog list this course as a prerequisite.";
       emptyUnlocks.appendChild(termDesc);
       unlocksBody.appendChild(emptyUnlocks);
     } else {
@@ -3378,7 +3576,7 @@
   }
 
   els.btnOpenPrereqFlow?.addEventListener("click", () => {
-    openPrereqFlowView(currentEditingCode);
+    requestDetailsNavigation(() => openPrereqFlowView(currentEditingCode));
   });
 
   els.flowBackBtn?.addEventListener("click", (e) => {
@@ -3390,7 +3588,124 @@
     openSettings("flow");
   });
 
-      // Context-aware Course Details Contribution & Error Reporting Card
+  // Pure report builder shared by all popup submission paths.
+  function buildCourseReport(kind, code = "", course = null, baseline = null) {
+    const addition = kind === "addition" || kind === "missing";
+    const proposed = kind === "update";
+    const record = typeof course === "string" ? { name: course } : (course || {});
+    // Keep course text on one Markdown line; do not let user input create sections.
+    const clean = value => String(value ?? "").replace(/[\r\n]+/g, " ")
+      .replace(/([\\`*_{}\[\]<>|])/g, "\\$1").trim();
+    const titleCode = String(code).replace(/[\r\n]+/g, " ").trim();
+    const titleName = String(record.name || "").replace(/[\r\n]+/g, " ").trim();
+    const prefix = addition ? "Course addition" : "Course correction";
+    const title = kind === "missing" ? "[Missing course] Enter course code and name"
+      : `[${prefix}] ${titleCode || "Enter course code"}${titleName ? " — " + titleName : ""}`;
+    let routine = "Not listed";
+    const day = String(record.examDay || "").trim();
+    const slot = String(record.examSlot || "").trim();
+    if (/^in-class$/i.test(day)) routine = "In-class evaluation";
+    else if (day || slot) {
+      const dayNumber = day.match(/^(?:day\s*|d)(\d+)$/i);
+      routine = [dayNumber ? "Day " + dayNumber[1] : day, slot].filter(Boolean).join(" · ");
+    }
+    const prereqs = Array.isArray(record.prerequisites) ? record.prerequisites.filter(Boolean) : [];
+    const prerequisiteText = prereqs.length ? prereqs.join(", ") : "Not listed";
+    const lines = [];
+    if (proposed) {
+      const asRecord = value => typeof value === "string" ? { name: value } : (value || {});
+      const fields = value => {
+        const item = asRecord(value);
+        const dayText = String(item.examDay || "").trim();
+        const dayMatch = dayText.match(/^(?:day\s*|d)?(\d+)$/i);
+        const dayValue = dayMatch ? "Day " + Number(dayMatch[1]) : /^in-class$/i.test(dayText) ? "In-class evaluation" : dayText;
+        const codes = Array.isArray(item.prerequisites) ? [...new Set(item.prerequisites.map(v => String(v).trim().toUpperCase()).filter(Boolean))].sort() : [];
+        const credits = Number(item.credits);
+        return [
+          ["Course name", String(item.name || "").trim()],
+          ["Credits", Number.isFinite(credits) && credits > 0 ? String(credits) : ""],
+          ["Exam day", dayValue],
+          ["Exam slot", /^in-class$/i.test(dayText) ? "" : String(item.examSlot || "").trim().toUpperCase()],
+          ["Prerequisites", codes.length === 1 && codes[0] === "NONE" ? "No prerequisites" : codes.join(", ")],
+          ["Prerequisite note", String(item.prerequisiteNote || "").trim()]
+        ];
+      };
+      const before = fields(baseline);
+      const after = fields(record);
+      const changes = after.filter((field, index) => baseline === null || field[1] !== before[index][1]);
+      lines.push("## Course", "", "- **Course code:** " + (clean(code) || "Enter course code"),
+        "- **Course name:** " + (clean(record.name) || "Not listed"), "", "## Proposed changes", "");
+      if (baseline === null) lines.push("Current catalog details are not available for comparison.", "");
+      if (changes.length) {
+        lines.push("| Field | Current catalog | Your proposed change |", "| --- | --- | --- |");
+        for (const [label, value] of changes) {
+          const previous = before.find(field => field[0] === label)[1];
+          lines.push("| " + label + " | " + (baseline === null ? "Not available" : clean(previous) || "Not listed")
+            + " | " + (clean(value) || "Not listed") + " |");
+        }
+      } else {
+        lines.push("Your saved details already match the current shared catalog. No field changes were found.");
+      }
+      lines.push("", "## Reason for change", "", "Explain why these changes are needed.");
+    } else {
+      lines.push("## Course details", "",
+        "- **Course code:** " + (clean(code) || "Enter course code"),
+        "- **Course name:** " + (clean(record.name) || "Enter course name"),
+        "- **Credits:** " + (clean(record.credits) || "Not listed"),
+        "- **Exam routine:** " + clean(routine),
+        "- **Prerequisites:** " + clean(prerequisiteText));
+      if (record.prerequisiteNote) lines.push("- **Prerequisite note:** " + clean(record.prerequisiteNote));
+      if (addition) lines.push("- **Department / program:** Enter department or program");
+      if (!addition) lines.push("", "## What needs changing?", "", "Describe the incorrect or missing information.",
+        "", "## Proposed correction", "", "Enter the correct details, if known.");
+    }
+    lines.push("", "## Source", "", "Add an official syllabus, routine, or UCAM reference. For exam updates, include the trimester/year and routine date.",
+      "", "Remove student IDs and other personal information from any screenshots before attaching them.",
+      "", "---", "Prepared with UIU Course Code Decoder for the community-maintained catalog.");
+    return { title, body: lines.join("\n"), labels: addition ? "course-addition" : "data-correction" };
+  }
+
+  // Resolve the shared catalog before local edits, following storage merge precedence.
+  function getCatalogReportBaseline(code, bundled, remote) {
+    const base = bundled[code];
+    const update = remote[code];
+    if (!base && !update) return null;
+    const record = typeof base === "string" ? { name: base } : (base || {});
+    return typeof update === "string" ? { ...record, name: update }
+      : { ...record, ...(update || {}) };
+  }
+
+  function openCourseReport(kind, code, course, button) {
+    const baseline = kind === "update" ? getCatalogReportBaseline(code, bundledCourses, remoteCourses) : null;
+    const report = buildCourseReport(kind, code, course, baseline);
+    const url = "https://github.com/litch07/uiu-course-decoder/issues/new?title=" + encodeURIComponent(report.title)
+      + "&body=" + encodeURIComponent(report.body) + "&labels=" + encodeURIComponent(report.labels);
+    const failed = () => showToast("Could not open GitHub. Try again.", "error");
+    try {
+      if (typeof chrome !== "undefined" && typeof chrome.tabs?.create === "function") {
+        chrome.tabs.create({ url }, () => { if (chrome.runtime.lastError) failed(); });
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    } catch (_) { failed(); return; }
+    if (button) {
+      const label = button.querySelector("span");
+      if (label) {
+        const original = label.textContent;
+        label.textContent = "Opening GitHub…";
+        button.disabled = true;
+        setTimeout(() => { label.textContent = original; button.disabled = false; }, 1500);
+      }
+    }
+  }
+
+  function courseReportKind(code) {
+    const origin = getCourseOrigin(code);
+    return origin.class === "user-added" || origin.class === "user" ? "addition"
+      : origin.class === "edited" ? "update" : "correction";
+  }
+
+  // Context-aware course reporting action
   function updateDetailReportCard(code, courseData) {
     if (!els.detailReportCard) return;
     const origin = getCourseOrigin(code);
@@ -3399,50 +3714,19 @@
 
     const titleEl = document.getElementById("detailReportTitle");
     const subTitleEl = document.getElementById("detailReportSubtitle");
-    const bodyEl = document.getElementById("detailReportBody");
-    const btnTextEl = document.getElementById("detailReportBtnText");
-    const footerHintEl = document.getElementById("detailReportFooterHint");
-    const iconPath = document.getElementById("detailReportIconPath");
-    const btnIconPath = document.getElementById("detailReportBtnIconPath");
     const reportBtn = els.reportIssueBtn;
 
-    const GITHUB_SVG = "M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z";
-    const SYNC_SVG = "M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z";
-    const ALERT_SVG = "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z";
-
-    if (isUserAdded) {
-      els.detailReportCard.classList.add("is-user-added");
-      els.detailReportCard.classList.remove("is-edited");
-      if (titleEl) titleEl.textContent = "Upload to Official Repository";
-      if (subTitleEl) subTitleEl.textContent = "Saved locally on this device";
-      if (bodyEl) bodyEl.textContent = "This course is stored only on your browser. Upload it to the community database so all UIU students can automatically decode it.";
-      if (btnTextEl) btnTextEl.textContent = "Submit Course to GitHub";
-      if (footerHintEl) footerHintEl.textContent = "Open-source community project";
-      if (reportBtn) reportBtn.title = "Submit this user-added course to the official repository via GitHub";
-      if (iconPath) iconPath.setAttribute("d", GITHUB_SVG);
-      if (btnIconPath) btnIconPath.setAttribute("d", GITHUB_SVG);
-    } else if (isEdited) {
-      els.detailReportCard.classList.add("is-edited");
-      els.detailReportCard.classList.remove("is-user-added");
-      if (titleEl) titleEl.textContent = "Propose Changes to Official Catalog";
-      if (subTitleEl) subTitleEl.textContent = "Modified locally on this device";
-      if (bodyEl) bodyEl.textContent = "You have customized this course's routine or prerequisites. Submit your updates so the central catalog stays accurate for everyone.";
-      if (btnTextEl) btnTextEl.textContent = "Propose Changes to GitHub";
-      if (footerHintEl) footerHintEl.textContent = "Verified via pull request";
-      if (reportBtn) reportBtn.title = "Propose your modifications to the official UIU catalog via GitHub";
-      if (iconPath) iconPath.setAttribute("d", SYNC_SVG);
-      if (btnIconPath) btnIconPath.setAttribute("d", SYNC_SVG);
-    } else {
-      els.detailReportCard.classList.remove("is-user-added", "is-edited");
-      if (titleEl) titleEl.textContent = "Notice an error with this course?";
-      if (subTitleEl) subTitleEl.textContent = "Official university catalog";
-      if (bodyEl) bodyEl.textContent = "If the course title, exam routine, credits, or prerequisites are outdated or missing, report it so we can update it for all UIU students.";
-      if (btnTextEl) btnTextEl.textContent = "Report Wrong Data on GitHub";
-      if (footerHintEl) footerHintEl.textContent = "Want to contribute missing courses?";
-      if (reportBtn) reportBtn.title = "Report incorrect course data via GitHub";
-      if (iconPath) iconPath.setAttribute("d", ALERT_SVG);
-      if (btnIconPath) btnIconPath.setAttribute("d", ALERT_SVG);
-    }
+    const action = isUserAdded ? "Suggest this course" : isEdited ? "Suggest this update" : "Report a course error";
+    els.detailReportCard.classList.toggle("is-user-added", isUserAdded);
+    els.detailReportCard.classList.toggle("is-edited", isEdited);
+    if (titleEl) titleEl.textContent = action;
+    if (subTitleEl) subTitleEl.textContent = isUserAdded ? "Propose adding this course to the shared catalog on GitHub"
+      : isEdited ? "Compare catalog details and your changes on GitHub"
+      : "Suggest corrections to course or exam details on GitHub";
+    if (reportBtn) reportBtn.title = isEdited ? "Open a GitHub draft comparing current catalog details with your saved changes" : action + " — opens a GitHub draft for you to review and submit";
+    if (reportBtn) reportBtn.disabled = detailsSaveInProgress() || detailsFormHasChanges();
+    if (subTitleEl && reportBtn?.disabled) subTitleEl.textContent = detailsSaveInProgress()
+      ? "Your changes are being saved" : "Save your changes before opening a GitHub draft";
   }
 
   function openCourseDetails(code, courseData, originView = "courses", restoringRoadmap = false) {
@@ -3483,6 +3767,7 @@
     if (badgeEl) {
       badgeEl.className = `origin-badge ${origin.class}`;
       badgeEl.textContent = origin.label;
+      badgeEl.setAttribute("aria-label", "Course type: " + origin.label);
     }
 
     const examDay = typeof courseData === "object" && courseData !== null ? (courseData.examDay || "") : "";
@@ -3530,6 +3815,53 @@
 
     // Task 3.2 — update enrolled status and clash warning
     updateEnrolledUI();
+    openCourseDetails.formSnapshot = detailsFormSnapshot();
+    updateDetailsSaveState();
+  }
+
+  function detailsFormSnapshot() {
+    const value = key => String(els[key]?.value || "").trim();
+    const credits = value("detailCredits");
+    const numericCredits = Number(credits);
+    const day = els.detailInClass?.checked ? "In-Class" : value("detailDay");
+    const prerequisites = els.detailNoPrereq?.checked ? ["NONE"]
+      : [...new Set(value("detailPrereq").split(",").map(code => code.trim().toUpperCase()).filter(Boolean))].sort();
+    return JSON.stringify([value("detailName"), day, els.detailInClass?.checked ? "" : value("detailSlot"),
+      prerequisites, value("detailPrereqNote"), credits && Number.isFinite(numericCredits) ? String(numericCredits) : credits]);
+  }
+
+  function detailsFormHasChanges() {
+    return !!openCourseDetails.formSnapshot && detailsFormSnapshot() !== openCourseDetails.formSnapshot;
+  }
+
+  function detailsSaveInProgress() {
+    return els.detailSaveBtn?.getAttribute("aria-busy") === "true";
+  }
+
+  function updateDetailsSaveState() {
+    if (!els.detailSaveBtn) return;
+    const busy = detailsSaveInProgress();
+    const changed = detailsFormHasChanges();
+    els.detailSaveBtn.disabled = busy || !changed;
+    els.detailSaveBtn.title = busy ? "Saving changes…" : changed ? "Save your changes on this device" : "No changes to save";
+    if (currentEditingCode) updateDetailReportCard(currentEditingCode, courses[currentEditingCode]);
+    if (els.detailSaveContribGithubBtn) els.detailSaveContribGithubBtn.disabled = busy || changed;
+  }
+
+  function requestDetailsNavigation(navigate) {
+    if (detailsSaveInProgress()) {
+      showToast("Saving changes. Please wait.", "info");
+      return;
+    }
+    if (detailsFormHasChanges()) {
+      pendingDetailsNavigation = navigate;
+      pendingAction = "discard-changes";
+      setModalText("Discard unsaved changes?", "Leave this course without saving your edits? Your saved course details will stay unchanged.");
+      if (els.modalCancelBtn) els.modalCancelBtn.textContent = "Keep editing";
+      openModalSafely(els.confirmModal, els.modalCancelBtn);
+      return;
+    }
+    navigate();
   }
 
   function exitCourseDetails() {
@@ -3564,55 +3896,75 @@
     }
   }
 
-  function commitCourseSave(code, newVal) {
-    (async () => {
-      const officialData = remoteCourses[code] || bundledCourses[code];
-      if (officialData && areCourseDataEqual(newVal, officialData)) {
-        delete userCourses[code];
-      } else {
-        userCourses[code] = newVal;
+  function commitCourseSave(code, newVal, savedSnapshot) {
+    return (async () => {
+      const catalogData = getCatalogReportBaseline(code, bundledCourses, remoteCourses);
+      const nextUserCourses = { ...userCourses };
+      if (catalogData && areCourseDataEqual(newVal, catalogData)) delete nextUserCourses[code];
+      else nextUserCourses[code] = newVal;
+      const nextSoftDeleted = softDeletedCourses.filter(c => c !== code);
+      const nextHardDeleted = hardDeletedCourses.filter(c => c !== code);
+      await chrome.storage.local.set({ userCourses: nextUserCourses, softDeletedCourses: nextSoftDeleted, hardDeletedCourses: nextHardDeleted });
+      userCourses = nextUserCourses;
+      softDeletedCourses = nextSoftDeleted;
+      hardDeletedCourses = nextHardDeleted;
+      // Rebuild using the same merge rules as the background worker.
+      let saved = bundledCourses[code];
+      if (remoteCourses[code]) saved = mergeCourseEntry(saved, remoteCourses[code]);
+      if (userCourses[code]) saved = mergeCourseEntry(saved, userCourses[code]);
+      courses[code] = saved;
+      try {
+        await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
+        await reloadLocalCoursesState();
+      } catch (error) {
+        console.warn("Course saved; active-page refresh could not finish", error);
       }
-      if (softDeletedCourses.includes(code)) {
-        softDeletedCourses = softDeletedCourses.filter(c => c !== code);
-      }
-      if (hardDeletedCourses.includes(code)) {
-        hardDeletedCourses = hardDeletedCourses.filter(c => c !== code);
-      }
-      await chrome.storage.local.set({ userCourses, softDeletedCourses, hardDeletedCourses });
-
-      // Trigger a reload so the background script applies this as an override
-      await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
-      await reloadLocalCoursesState();
-
       if (isTrashMode) renderTrashList(searchQuery);
       else renderCourseList(searchQuery);
-
-      // Update Course Details view in place
-      const origin = getCourseOrigin(code);
-      const badgeEl = document.getElementById("detailsOriginBadge");
-      if (badgeEl) {
-        badgeEl.className = `origin-badge ${origin.class}`;
-        badgeEl.textContent = origin.label;
+      if (currentEditingCode === code) {
+        const origin = getCourseOrigin(code);
+        const badge = document.getElementById("detailsOriginBadge");
+        if (badge) { badge.className = "origin-badge " + origin.class; badge.textContent = origin.label; badge.setAttribute("aria-label", "Course type: " + origin.label); }
+        if (els.detailsCourseSubtitle) els.detailsCourseSubtitle.textContent = normalizeCourseData(courses[code]).name || code;
+        renderPrereqTree(code);
+        updateDetailReportCard(code, newVal);
+        updateEnrolledUI();
+        openCourseDetails.formSnapshot = savedSnapshot || detailsFormSnapshot();
+        updateDetailsSaveState();
       }
-      if (els.detailsCourseSubtitle) {
-        els.detailsCourseSubtitle.textContent = newVal.name || "Course Information & Routine";
-      }
-
-      // Re-render prereq tree for updated course data
-      renderPrereqTree(code);
-      updateDetailReportCard(code, newVal);
-
-      // Show Post-Save Contribution Prompt Banner smoothly
-      if (els.detailSaveContribPrompt) {
-        els.detailSaveContribPrompt.style.display = "flex";
-        els.detailSaveContribPrompt.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-
-      showToast("Changes saved locally", "success");
+      showToast("Changes saved on this device", "success");
     })();
   }
 
+  async function restoreCourseFromTrash(code) {
+    if (!softDeletedCourses.includes(code)) return;
+    const next = softDeletedCourses.filter(c => c !== code);
+    await chrome.storage.local.set({ softDeletedCourses: next });
+    softDeletedCourses = next;
+    await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
+    await reloadLocalCoursesState();
+    updateCourseCount();
+    if (isTrashMode) renderTrashList(searchQuery); else renderCourseList(searchQuery);
+    showToast(code + " restored to the catalog", "success");
+  }
+
+  async function moveCourseToTrash(code) {
+    if (!softDeletedCourses.includes(code)) {
+      const next = softDeletedCourses.concat(code);
+      await chrome.storage.local.set({ softDeletedCourses: next });
+      softDeletedCourses = next;
+      await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
+      await reloadLocalCoursesState();
+    }
+    updateCourseCount();
+    if (isTrashMode) renderTrashList(searchQuery); else renderCourseList(searchQuery);
+    exitCourseDetails();
+    showToast(code + " moved to Trash", "info", { label: "Undo", run: () => restoreCourseFromTrash(code) });
+  }
+
   function renderMsgDom(container, type, text) {
+    container.setAttribute("role", type === "error" ? "alert" : "status");
+    container.setAttribute("aria-live", type === "error" ? "assertive" : "polite");
     container.textContent = "";
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "import-msg-icon");
@@ -3639,6 +3991,7 @@
     els.importMsg.className = `import-msg ${type}`;
     renderMsgDom(els.importMsg, type, text);
     els.importMsg.style.display = "flex";
+    if (type === "error") return;
     importMsgTimer = setTimeout(() => {
       if (els.importMsg) {
         els.importMsg.className = "import-msg";
@@ -3655,6 +4008,7 @@
     els.singleCourseMsg.className = `import-msg ${type}`;
     renderMsgDom(els.singleCourseMsg, type, text);
     els.singleCourseMsg.style.display = "flex";
+    if (type === "error") return;
     singleCourseMsgTimer = setTimeout(() => {
       if (els.singleCourseMsg) {
         els.singleCourseMsg.className = "import-msg";
@@ -3674,7 +4028,7 @@
       return;
     }
     try {
-      const parsed = JSON.parse(text);
+      const parsed = CourseData.parse(text);
       if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
         const count = Object.keys(parsed).length;
         badge.textContent = count === 1 ? "1 course detected" : `${count} courses detected`;
@@ -3689,64 +4043,64 @@
     }
   }
 
-  function showToast(message, type = "info") {
+  function showToast(message, type = "info", action = null) {
     let toast = document.getElementById("globalToast");
     if (!toast) {
       toast = document.createElement("div");
       toast.id = "globalToast";
-      toast.style.position = "fixed";
-      toast.style.bottom = "16px";
-      toast.style.left = "50%";
-      toast.style.transform = "translateX(-50%) translateY(100px)";
-      toast.style.padding = "8px 16px";
-      toast.style.borderRadius = "99px";
-      toast.style.fontSize = "0.72rem";
-      toast.style.fontWeight = "600";
-      toast.style.zIndex = "9999";
-      toast.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease";
+      toast.setAttribute("role", "status");
+      toast.setAttribute("aria-live", "polite");
+      toast.setAttribute("aria-atomic", "true");
+      toast.addEventListener("focusin", () => clearTimeout(toast._timeout));
+      toast.addEventListener("focusout", () => {
+        toast._timeout = setTimeout(() => { toast.style.opacity = "0"; toast.inert = true; toast.style.pointerEvents = "none"; toast.style.transform = "translateX(-50%) translateY(16px)"; }, 4500);
+      });
       toast.style.opacity = "0";
-      toast.style.pointerEvents = "none";
-      toast.style.whiteSpace = "nowrap";
-      toast.style.display = "flex";
-      toast.style.alignItems = "center";
-      toast.style.gap = "8px";
-      toast.style.boxShadow = "0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.1)";
+      toast.style.transform = "translateX(-50%) translateY(16px)";
       document.body.appendChild(toast);
     }
 
-    let badgeHtml = "";
-    if (type === "success") {
-      toast.style.background = "#0f172a";
-      toast.style.color = "#ffffff";
-      toast.style.border = "1px solid rgba(16, 185, 129, 0.35)";
-      badgeHtml = '<span style="display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#10b981;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;">✓</span>';
-    } else if (type === "error") {
-      toast.style.background = "#0f172a";
-      toast.style.color = "#ffffff";
-      toast.style.border = "1px solid rgba(239, 68, 68, 0.35)";
-      badgeHtml = '<span style="display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;">✕</span>';
-    } else {
-      toast.style.background = "#0f172a";
-      toast.style.color = "#ffffff";
-      toast.style.border = "1px solid rgba(255, 255, 255, 0.15)";
-      badgeHtml = '<span style="display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#64748b;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;">ℹ</span>';
-    }
-
+    toast.inert = false;
+    toast.setAttribute("data-type", type);
     toast.textContent = "";
-    const badgeSpan = document.createElement("span");
-    badgeSpan.style.cssText = `display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;background:${type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#64748b')};`;
-    badgeSpan.textContent = type === 'success' ? '✓' : (type === 'error' ? '✕' : 'ℹ');
+    const badgeSpan = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    badgeSpan.setAttribute("class", "toast-icon");
+    badgeSpan.setAttribute("viewBox", "0 0 24 24");
+    badgeSpan.setAttribute("fill", "none");
+    badgeSpan.setAttribute("stroke", "currentColor");
+    badgeSpan.setAttribute("stroke-width", "1.8");
+    badgeSpan.setAttribute("stroke-linecap", "round");
+    badgeSpan.setAttribute("stroke-linejoin", "round");
+    badgeSpan.setAttribute("aria-hidden", "true");
+    const badgePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    badgePath.setAttribute("d", type === "success" ? "M20 6 9 17l-5-5" : type === "error"
+      ? "M12 3 2 21h20L12 3zM12 9v5m0 3h.01" : "M12 8h.01M11 12h1v4m9-4a9 9 0 1 1-18 0 9 9 0 0 1 18 0");
+    badgeSpan.appendChild(badgePath);
     toast.appendChild(badgeSpan);
     const msgSpan = document.createElement("span");
+    msgSpan.className = "toast-message";
     msgSpan.textContent = message;
     toast.appendChild(msgSpan);
+    toast.style.pointerEvents = action ? "auto" : "none";
+    if (action) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = action.label;
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        try { await action.run(); } catch (_) { showToast("Could not restore the course. Open Trash and try again.", "error"); }
+      });
+      toast.appendChild(button);
+    }
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%) translateY(0)";
     clearTimeout(toast._timeout);
     toast._timeout = setTimeout(() => {
       toast.style.opacity = "0";
-      toast.style.transform = "translateX(-50%) translateY(100px)";
-    }, 2800);
+      toast.inert = true;
+      toast.style.pointerEvents = "none";
+      toast.style.transform = "translateX(-50%) translateY(16px)";
+    }, action ? 9000 : type === "error" ? 6500 : 4500);
   }
 
   function renderDiffChip(code, detailsMap, type) {
@@ -3881,7 +4235,7 @@
         if (code && courses && courses[code]) {
           openCourseDetails(code, courses[code], "settings");
         } else if (code) {
-          showToast(`Course ${code} is not in active catalog`, "info");
+          showToast(`${code} is no longer in your catalog`, "info");
         }
       });
     });
@@ -3921,10 +4275,10 @@
 
     if (!hasChanges) {
       if (dot) dot.className = "sync-card-dot";
-      els.syncResultTitle.textContent = "Database is up to date";
+      els.syncResultTitle.textContent = "Catalog is up to date";
       if (desc) {
         desc.style.display = "block";
-        desc.textContent = "Your local catalog matches the latest official GitHub repository.";
+        desc.textContent = "Your catalog matches the latest downloaded catalog. This does not verify the current exam routine.";
       }
       if (els.syncResultBadges) {
         els.syncResultBadges.style.display = "none";
@@ -3936,10 +4290,10 @@
       }
     } else {
       if (dot) dot.className = "sync-card-dot has-updates";
-      els.syncResultTitle.textContent = "Sync Complete";
+      els.syncResultTitle.textContent = "Catalog updated";
       if (desc) {
         desc.style.display = "block";
-        desc.textContent = "Successfully applied changes from the repository:";
+        desc.textContent = "Changes applied to your local catalog:";
       }
 
       if (els.syncResultBadges) {
@@ -4023,7 +4377,7 @@
       if (els.resetResultTitle) els.resetResultTitle.textContent = "Catalog is already at default";
       if (desc) {
         desc.style.display = "block";
-        desc.textContent = "No deleted courses or local modifications found. All official courses and schedules match standard defaults.";
+        desc.textContent = "No catalog changes to reset.";
       }
       if (els.resetResultBadges) {
         els.resetResultBadges.style.display = "none";
@@ -4038,7 +4392,7 @@
       if (els.resetResultTitle) els.resetResultTitle.textContent = "Catalog Reset Complete";
       if (desc) {
         desc.style.display = "block";
-        desc.textContent = "Successfully restored official course mappings and discarded local modifications:";
+        desc.textContent = "Catalog courses restored and local changes removed:";
       }
 
       if (els.resetResultBadges) {
@@ -4080,17 +4434,33 @@
   }
 
   function attachEventListeners() {
+    const catalogMenu = document.getElementById("catalogMenu");
+    catalogMenu?.addEventListener("click", function(event) {
+      if (event.target.closest("button")) {
+        catalogMenu.open = false;
+        catalogMenu.querySelector("summary")?.focus({ preventScroll: true });
+      }
+    }, true);
+    document.addEventListener("click", function(event) {
+      if (catalogMenu?.open && !catalogMenu.contains(event.target)) catalogMenu.open = false;
+    });
     // Export Course Catalog modal controls
     els.exportCoursesBtn?.addEventListener("click", openExportModal);
     els.exportModalCloseBtn?.addEventListener("click", closeExportModal);
     els.exportModalCancelBtn?.addEventListener("click", closeExportModal);
-
-    const openContributionModal = () => {
-      openModalSafely(els.contributionModal, els.contribModalCloseBtn);
-    };
-    const closeContributionModal = () => {
-      closeModalSafely(els.contributionModal);
-    };
+    els.exportDownloadBtn?.addEventListener("click", () => {
+      if (!renderExportOptions.downloadAction || els.exportDownloadBtn.disabled) return;
+      els.exportDownloadBtn.disabled = true;
+      try {
+        if (renderExportOptions.downloadAction()) {
+          closeExportModal();
+          triggerExportSuccessFeedback();
+        }
+      } catch (error) {
+        console.error("Could not prepare course export", error);
+        showToast("Could not prepare the export. Try again.", "error");
+      } finally { els.exportDownloadBtn.disabled = false; }
+    });
 
     els.openContribModalBtn?.addEventListener("click", openContributionModal);
     els.detailsInfoBtn?.addEventListener("click", openContributionModal);
@@ -4108,83 +4478,21 @@
         els.viewWrapper.classList.remove("show-welcome");
       }
       chrome.storage.local.set({ welcomeDismissed: true });
+      els.openCoursesBtn?.focus({ preventScroll: true });
     };
 
     els.welcomeDismissBtn?.addEventListener("click", dismissWelcomeCard);
     els.welcomeActionBtn?.addEventListener("click", dismissWelcomeCard);
 
-    els.contribExportCustomBtn?.addEventListener("click", () => {
-      closeContributionModal();
-      exportCoursesContextual("custom");
-    });
-
     els.contribReportIssueBtn?.addEventListener("click", () => {
       closeContributionModal();
-
-      let title = "";
-      let body = "";
-
-      if (currentEditingCode && els.viewWrapper.classList.contains("show-details")) {
-        const courseData = courses[currentEditingCode];
-        const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
-        const examDay = typeof courseData === "object" && courseData !== null ? (courseData.examDay || "") : "";
-        const examSlot = typeof courseData === "object" && courseData !== null ? (courseData.examSlot || "") : "";
-        const prereqs = typeof courseData === "object" && courseData !== null && Array.isArray(courseData.prerequisites)
-          ? courseData.prerequisites.join(", ")
-          : "";
-        const note = typeof courseData === "object" && courseData !== null ? (courseData.prerequisiteNote || "") : "";
-        const credits = typeof courseData === "object" && courseData !== null && courseData.credits ? courseData.credits : "";
-
-        title = encodeURIComponent(`[Data Correction] ${currentEditingCode} - ${name || "Course Details"}`);
-        let courseDetailsMd = `### 📚 Course Information\n` +
-          `- **Course Code:** \`${currentEditingCode}\` — ${name || "Untitled"}\n` +
-          `- **Credits:** ${credits ? credits + " Cr" : "—"}\n` +
-          `- **Exam Routine:** Day ${examDay || "—"}, Slot ${examSlot || "—"}\n` +
-          `- **Prerequisites:** ${prereqs || "None"}\n`;
-        if (note) {
-          courseDetailsMd += `- **Prerequisite Note:** ${note}\n`;
-        }
-
-        body = encodeURIComponent(
-          courseDetailsMd +
-          `\n---\n\n` +
-          `### ✏️ What is missing or needs fixing?\n` +
-          `*(Describe what is missing or incorrect, e.g. wrong course name, missing prerequisite, outdated exam slot)*\n\n\n\n` +
-          `### 💡 Correct Information (if known)\n` +
-          `*(Provide the correct details from UCAM, official routine, or syllabus)*\n\n\n\n` +
-          `---\n` +
-          `*Submitted via UIU Course Code Decoder extension. Thanks for keeping the catalog accurate!*`
-        );
-      } else {
-        title = encodeURIComponent(`[Missing Course] New Course or Department Curriculum Report`);
-        body = encodeURIComponent(
-          `### 📋 Missing Course Information\n\n` +
-          `- **Course Code:** \n` +
-          `- **Course Title:** \n` +
-          `- **Department / Program:** (e.g. BSCSE, BSSE, BBA, BSCIVIL, BSDS, MS)\n` +
-          `- **Credit Hours:** (e.g. 3.0, 1.5, 4.0)\n\n` +
-          `---\n\n` +
-          `### ⏰ Exam Routine (if scheduled)\n` +
-          `- **Exam Day:** (e.g. D1, D4, or Unscheduled)\n` +
-          `- **Exam Slot:** (e.g. T1: 09:00–11:00, T2: 11:30–13:30, T3: 14:30–16:30)\n\n` +
-          `---\n\n` +
-          `### 🔗 Prerequisites\n` +
-          `- **Prerequisite Courses:** (e.g. CSE 1111, MATH 1151, or None)\n` +
-          `- **Prerequisite Note:** (e.g. Minimum 70 completed credits)\n\n` +
-          `---\n\n` +
-          `### 📌 Source / Evidence\n` +
-          `*(e.g. UCAM course registration screenshot, official university routine PDF, syllabus link)*\n\n\n\n` +
-          `---\n` +
-          `*Submitted via UIU Course Code Decoder extension. Thank you for contributing to UIU's community catalog!*`
-        );
-      }
-
-      const issueUrl = `https://github.com/litch07/uiu-course-decoder/issues/new?title=${title}&body=${body}&labels=data-correction,course-addition`;
-      try {
-        chrome.tabs.create({ url: issueUrl });
-      } catch (_) {
-        window.open(issueUrl, "_blank", "noopener,noreferrer");
-      }
+      const code = els.viewWrapper.classList.contains("show-details") ? currentEditingCode : "";
+      if (code) els.reportIssueBtn?.click();
+      else openCourseReport("correction");
+    });
+    document.getElementById("contribMissingCourseBtn")?.addEventListener("click", () => {
+      closeContributionModal();
+      openCourseReport("missing");
     });
     els.exportModal?.addEventListener("click", (e) => {
       if (e.target === els.exportModal) {
@@ -4195,7 +4503,7 @@
     // Task 3.3: Course Routine Markdown (.md) Export Event Listener
     els.exportRoutineMdBtn?.addEventListener("click", () => {
       if (enrolledCourses.length === 0) {
-        showToast("No enrolled courses to export. Add courses first.", "info");
+        showToast("Add courses to My Courses before exporting.", "info");
         return;
       }
       var now = new Date();
@@ -4203,11 +4511,19 @@
       var dateStr = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
       var mdContent = generateRoutineMarkdown(enrolledCourses, courses);
       var filename = "uiu-course-routine-" + dateStr + ".md";
-      downloadMarkdownFile(filename, mdContent);
-      showToast("Downloaded course routine as Markdown (.md)", "success");
+      if (downloadMarkdownFile(filename, mdContent)) {
+        showToast("Exam routine download started (.md)", "success");
+        triggerExportSuccessFeedback(els.exportRoutineMdBtn);
+      }
     });
 
     document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && catalogMenu?.open) {
+        e.preventDefault();
+        catalogMenu.open = false;
+        catalogMenu.querySelector("summary")?.focus();
+        return;
+      }
       // Focus trapping inside active modals (Task 3.5)
       if (e.key === "Tab") {
         if (els.confirmModal?.classList.contains("show")) {
@@ -4231,6 +4547,8 @@
           closeModalSafely(els.confirmModal);
           pendingAction = null;
           pendingSaveVal = null;
+          pendingDetailsNavigation = null;
+          if (els.modalCancelBtn) els.modalCancelBtn.textContent = "Cancel";
         } else if (els.viewWrapper.classList.contains("show-flow")) {
           els.flowBackBtn?.click();
         } else if (els.viewWrapper.classList.contains("show-details")) {
@@ -4319,98 +4637,17 @@
     });
 
 
-    // Report Wrong Data button in Course Details view
+    // Contextual catalog reporting; opening a draft does not submit it.
     els.reportIssueBtn?.addEventListener("click", () => {
       if (!currentEditingCode) return;
-      const courseData = courses[currentEditingCode];
-      const name = typeof courseData === "object" && courseData !== null ? (courseData.name || "") : (courseData || "");
-      const examDay = typeof courseData === "object" && courseData !== null ? (courseData.examDay || "") : "";
-      const examSlot = typeof courseData === "object" && courseData !== null ? (courseData.examSlot || "") : "";
-      const prereqs = typeof courseData === "object" && courseData !== null && Array.isArray(courseData.prerequisites)
-        ? courseData.prerequisites.join(", ")
-        : "";
-      const note = typeof courseData === "object" && courseData !== null ? (courseData.prerequisiteNote || "") : "";
-      const credits = typeof courseData === "object" && courseData !== null && courseData.credits ? courseData.credits : "";
-      const origin = getCourseOrigin(currentEditingCode);
-      const isUserAdded = origin.class === "user-added" || origin.class === "user";
-      const isEdited = origin.class === "edited";
-      const lowerDay = (examDay || "").trim().toLowerCase();
-
-      let title = "";
-      let body = "";
-      let labels = "data-correction";
-
-      if (isUserAdded) {
-        title = encodeURIComponent(`[Course Addition] ${currentEditingCode} - ${name || "New Course"}`);
-        labels = "course-addition,community-contribution";
-        let routineDisplay = "Schedule Pending / TBA";
-        if (lowerDay === "in-class") routineDisplay = "In-Class Evaluation (No central routine exam)";
-        else if (examDay && examSlot) routineDisplay = `Day ${examDay}, Slot ${examSlot}`;
-        else if (examDay) routineDisplay = `Day ${examDay}`;
-
-        let md = `### 🚀 New Course Submission for Official Catalog\n` +
-          `The following course was created locally and is submitted for inclusion in the official UIU extension database:\n\n` +
-          `- **Course Code:** \`${currentEditingCode}\`\n` +
-          `- **Course Title:** ${name || "Untitled"}\n` +
-          `- **Credits:** ${credits ? credits + " Cr" : "3.0 Cr"}\n` +
-          `- **Exam Routine:** ${routineDisplay}\n` +
-          `- **Prerequisites:** ${prereqs || "None (Direct entry)"}\n`;
-        if (note) md += `- **Prerequisite Note:** ${note}\n`;
-        md += `\n---\n\n` +
-          `### 📋 Course Department / Source\n` +
-          `*(Please mention department, faculty syllabus, or UCAM portal notice)*\n\n\n` +
-          `*Submitted via UIU Course Code Decoder extension. Thank you for contributing to UIU's community catalog!*`;
-        body = encodeURIComponent(md);
-      } else if (isEdited) {
-        title = encodeURIComponent(`[Catalog Correction] ${currentEditingCode} - Proposed Updates`);
-        labels = "data-correction,community-update";
-        let routineDisplay = "Schedule Pending / TBA";
-        if (lowerDay === "in-class") routineDisplay = "In-Class Evaluation";
-        else if (examDay && examSlot) routineDisplay = `Day ${examDay}, Slot ${examSlot}`;
-        else if (examDay) routineDisplay = `Day ${examDay}`;
-
-        let md = `### 📝 Proposed Course Update for Official Catalog\n` +
-          `The following local corrections are proposed for \`${currentEditingCode}\`:\n\n` +
-          `- **Course Code:** \`${currentEditingCode}\`\n` +
-          `- **Updated Title:** ${name || "Untitled"}\n` +
-          `- **Updated Credits:** ${credits ? credits + " Cr" : "3.0 Cr"}\n` +
-          `- **Updated Routine:** ${routineDisplay}\n` +
-          `- **Updated Prerequisites:** ${prereqs || "None"}\n`;
-        if (note) md += `- **Prerequisite Note:** ${note}\n`;
-        md += `\n---\n\n` +
-          `### 🔄 Reason for Change / Verification\n` +
-          `*(Describe why this update is needed, e.g. routine updated for current trimester, prerequisite change, etc.)*\n\n\n` +
-          `*Thanks for helping keep the UIU course catalog accurate for everyone!*`;
-        body = encodeURIComponent(md);
-      } else {
-        title = encodeURIComponent(`[Data Correction] ${currentEditingCode} - ${name || "Course Details"}`);
-        labels = "data-correction";
-        let md = `### 📋 Course Information\n` +
-          `- **Course:** \`${currentEditingCode}\` - ${name || "Untitled"}\n` +
-          `- **Exam Routine:** Day ${examDay || "-"}, Slot ${examSlot || "-"}\n` +
-          `- **Prerequisites:** ${prereqs || "None"}\n`;
-        if (note) md += `- **Prerequisite Note:** ${note}\n`;
-        md += `\n---\n\n` +
-          `### ❓ What needs fixing?\n` +
-          `*(Describe what is incorrect, e.g. wrong course name, missing prerequisite, outdated exam slot)*\n\n\n\n` +
-          `### 💡 Correct Information (if known)\n` +
-          `*(Provide the updated course details or official source)*\n\n\n` +
-          `*Thanks for helping keep the UIU course catalog accurate for everyone!*`;
-        body = encodeURIComponent(md);
-      }
-
-      const issueUrl = `https://github.com/litch07/uiu-course-decoder/issues/new?title=${title}&body=${body}&labels=${labels}`;
-      try {
-        chrome.tabs.create({ url: issueUrl });
-      } catch (_) {
-        window.open(issueUrl, "_blank", "noopener,noreferrer");
-      }
+      const kind = courseReportKind(currentEditingCode);
+      openCourseReport(kind, currentEditingCode, courses[currentEditingCode]);
     });
 
     // Panel sliding animations
     els.openCoursesBtn?.addEventListener("click", () => {
       isTrashMode = false;
-      els.coursesPanelTitle.textContent = "Course Catalog";
+      els.coursesPanelTitle.textContent = "Course catalog";
       updateCourseCount();
       updateEnrolledUI();
       updateSearchClearBtn();
@@ -4457,7 +4694,7 @@
     els.clearEnrolledBtn?.addEventListener("click", () => {
       if (enrolledCourses.length === 0) return;
       pendingAction = "clear-enrolled";
-      setModalText("Drop all courses?", `Are you sure you want to remove all ${enrolledCourses.length} courses from your trimester routine?`);
+      setModalText("Clear your course plan?", `Remove ${enrolledCourses.length} course${enrolledCourses.length === 1 ? "" : "s"} from My Courses. You can add them again. Your UCAM registration will not change.`);
       openModalSafely(els.confirmModal, els.modalConfirmBtn);
     });
 
@@ -4473,35 +4710,29 @@
 
         if (!q) {
           els.myCoursesSuggestionsList.style.display = "none";
+          announceSearchMatches("");
           if (els.myCoursesSearchClearBtn) els.myCoursesSearchClearBtn.style.display = "none";
           return;
         }
 
         if (els.myCoursesSearchClearBtn) els.myCoursesSearchClearBtn.style.display = "block";
 
-        const matchedCodes = Object.keys(courses).filter(code => {
-          if (enrolledCourses.indexOf(code) !== -1) return false;
-          const cData = courses[code];
-          const name = typeof cData === "object" && cData !== null ? (cData.name || "") : (cData || "");
-          return code.toLowerCase().includes(q) || name.toLowerCase().includes(q);
-        }).slice(0, 5);
-
-        if (matchedCodes.length === 0) {
-          els.myCoursesSuggestionsList.style.display = "flex";
-          const emptyItem = document.createElement("div");
-          emptyItem.style.padding = "6px 8px";
-          emptyItem.style.fontSize = "0.68rem";
-          emptyItem.style.color = "var(--text-muted)";
-          emptyItem.textContent = `No un-enrolled courses matching "${query}".`;
-          els.myCoursesSuggestionsList.appendChild(emptyItem);
-          return;
-        }
-
+        const matches = findCourseMatches(courses, query, enrolledCourses);
+        const count = matches.length;
+        const summary = count === 0 ? "No courses available to add" :
+          count + (count === 1 ? " course available to add" : " courses available to add") + (count > 5 ? " · Showing first 5" : "");
+        const status = document.createElement("p");
+        status.className = "suggestion-results-summary";
+        status.textContent = summary;
+        els.myCoursesSuggestionsList.appendChild(status);
+        announceSearchMatches(summary);
         els.myCoursesSuggestionsList.style.display = "flex";
-        matchedCodes.forEach(code => {
+        if (!count) return;
+
+        matches.slice(0, 5).forEach(([code]) => {
           const cData = courses[code];
           const name = typeof cData === "object" && cData !== null ? (cData.name || "") : (cData || "");
-          const credits = typeof cData === "object" && cData !== null && cData.credits ? cData.credits : 3;
+          const credits = normalizeCourseData(cData).credits;
           const examDay = typeof cData === "object" && cData !== null && cData.examDay ? cData.examDay : "";
           const examSlot = typeof cData === "object" && cData !== null && cData.examSlot ? cData.examSlot : "";
 
@@ -4516,7 +4747,7 @@
 
           const codeSpan = document.createElement("span");
           codeSpan.className = "suggestion-code";
-          codeSpan.textContent = code;
+          appendSearchHighlightedText(codeSpan, code, query, true);
           codeRow.appendChild(codeSpan);
 
           if (examDay || examSlot) {
@@ -4529,7 +4760,7 @@
 
           const titleDiv = document.createElement("div");
           titleDiv.className = "suggestion-title";
-          titleDiv.textContent = name;
+          appendSearchHighlightedText(titleDiv, name, query);
           titleDiv.title = name;
 
           info.appendChild(codeRow);
@@ -4541,7 +4772,7 @@
           const crSpan = document.createElement("span");
           crSpan.className = "course-credit-chip";
           crSpan.style.fontSize = "0.58rem";
-          crSpan.textContent = credits.toFixed(1) + " Cr";
+          crSpan.textContent = credits !== null ? credits.toFixed(1) + " Cr" : "Credits not listed";
           chipsDiv.appendChild(crSpan);
 
           const addBtn = document.createElement("button");
@@ -4603,7 +4834,7 @@
 
     let settingsOriginView = "home";
 
-    function openSettings(fromView = null) {
+    function openSettings(fromView = null, sectionId = null) {
       if (fromView) {
         settingsOriginView = fromView;
       } else if (els.viewWrapper.classList.contains("show-flow")) {
@@ -4621,12 +4852,15 @@
       }
       els.viewWrapper.classList.remove("show-courses", "show-details", "show-import", "show-mycourses", "show-flow");
       els.viewWrapper.classList.add("show-settings");
+      const settingsBody = document.querySelector(".settings-view .body");
+      const section = sectionId ? document.getElementById(sectionId) : null;
+      if (settingsBody) settingsBody.scrollTop = section ? section.offsetTop - settingsBody.offsetTop : 0;
     }
     els.openSettingsBtn?.addEventListener("click", () => openSettings("home"));
     els.coursesSettingsBtn?.addEventListener("click", () => openSettings("courses"));
     els.importSettingsBtn?.addEventListener("click", () => openSettings("import"));
-    els.detailsSettingsBtn?.addEventListener("click", () => openSettings("details"));
-    document.getElementById("homeSyncAlert")?.addEventListener("click", () => openSettings("home"));
+    els.detailsSettingsBtn?.addEventListener("click", () => requestDetailsNavigation(() => openSettings("details")));
+    document.getElementById("homeSyncAlert")?.addEventListener("click", () => openSettings("home", "catalogSettingsCard"));
 
     els.settingsBackBtn?.addEventListener("click", () => {
       els.viewWrapper.classList.remove("show-settings");
@@ -4657,7 +4891,7 @@
       if (els.singleCourseSection) els.singleCourseSection.style.display = "flex";
       if (els.bulkImportSection) els.bulkImportSection.style.display = "none";
       const subtitle = document.getElementById("importViewSubtitle");
-      if (subtitle) subtitle.textContent = "Add a single course to catalog";
+      if (subtitle) subtitle.textContent = "";
       setTimeout(() => {
         els.singleCourseCode?.focus({ preventScroll: true });
       }, 350);
@@ -4671,7 +4905,7 @@
       if (els.singleCourseSection) els.singleCourseSection.style.display = "none";
       if (els.bulkImportSection) els.bulkImportSection.style.display = "flex";
       const subtitle = document.getElementById("importViewSubtitle");
-      if (subtitle) subtitle.textContent = "Batch upload courses via JSON";
+      if (subtitle) subtitle.textContent = "";
       updateJsonBadge();
       if (showMessage) {
         showImportMsg("info", "Click 'Copy' to copy the 2-course JSON template.");
@@ -4703,8 +4937,11 @@
     els.viewTrashBtn?.addEventListener("click", () => {
       isTrashMode = !isTrashMode;
       if (isTrashMode) {
-        els.coursesPanelTitle.textContent = "Trash Bin";
-        els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
+        searchQuery = "";
+        if (els.courseSearch) els.courseSearch.value = "";
+        if (els.searchClearBtn) els.searchClearBtn.style.display = "none";
+        els.coursesPanelTitle.textContent = "Trash";
+        els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''} available to restore`;
         if (els.exportCoursesBtn) els.exportCoursesBtn.style.display = "none";
         els.viewTrashBtn.style.display = "none";
         els.courseFilterRow.style.display = "none";
@@ -4716,7 +4953,7 @@
         els.openImportBtn.style.display = "none";
         renderTrashList(searchQuery);
       } else {
-        els.coursesPanelTitle.textContent = "Course Catalog";
+        els.coursesPanelTitle.textContent = "Course catalog";
         updateCourseCount();
         if (els.exportCoursesBtn) els.exportCoursesBtn.style.display = "grid";
         els.viewTrashBtn.style.display = "grid";
@@ -4730,7 +4967,7 @@
     els.backBtn?.addEventListener("click", () => {
       if (isTrashMode) {
         isTrashMode = false;
-        els.coursesPanelTitle.textContent = "Course Catalog";
+        els.coursesPanelTitle.textContent = "Course catalog";
         updateCourseCount();
         if (els.exportCoursesBtn) els.exportCoursesBtn.style.display = "grid";
         els.viewTrashBtn.style.display = "grid";
@@ -4747,41 +4984,29 @@
       if (softDeletedCourses.length === 0) return;
       pendingAction = "restore-all";
       const count = softDeletedCourses.length;
-      setModalText(`Restore ${count === 1 ? 'course' : `all ${count} courses`}?`, `${count === 1 ? 'This course' : 'All courses in Trash'} will be returned to your active course catalog.`);
-      els.confirmModal.classList.add("show");
+      setModalText(`Restore ${count === 1 ? '1 course' : `all ${count} courses`}?`, `${count === 1 ? 'This course will' : 'These courses will'} return to your catalog and become available for decoding.`);
+      openModalSafely(els.confirmModal, els.modalConfirmBtn);
     });
 
     els.emptyTrashBtn?.addEventListener("click", () => {
       if (softDeletedCourses.length === 0) return;
       pendingAction = "empty-trash";
       const count = softDeletedCourses.length;
-      setModalText(`Permanently delete ${count === 1 ? 'course' : `all ${count} courses`}?`, `${count === 1 ? 'This course' : 'All courses in Trash'} will be permanently removed from storage and cannot be restored.`);
-      els.confirmModal.classList.add("show");
+      setModalText(`Permanently delete ${count === 1 ? '1 course' : `all ${count} courses`}?`, `${count === 1 ? 'This course' : 'These courses'} will be removed from your catalog and Trash. You cannot undo this action.`);
+      openModalSafely(els.confirmModal, els.modalConfirmBtn);
     });
 
     els.detailsBackBtn?.addEventListener("click", () => {
-      exitCourseDetails();
+      requestDetailsNavigation(() => exitCourseDetails());
     });
 
     
     // Post-Save Contribution Prompt Banner Event Listeners
     els.detailSaveContribGithubBtn?.addEventListener("click", () => {
       if (!currentEditingCode) return;
-      if (els.reportIssueBtn) {
-        els.reportIssueBtn.click();
-      }
-      const labelSpan = els.detailSaveContribGithubBtn.querySelector("span");
-      if (labelSpan) {
-        labelSpan.textContent = "Opening GitHub...";
-        setTimeout(() => {
-          if (labelSpan) labelSpan.textContent = "Submit to GitHub";
-        }, 3000);
-      } else {
-        els.detailSaveContribGithubBtn.textContent = "Opening GitHub...";
-        setTimeout(() => {
-          els.detailSaveContribGithubBtn.textContent = "Submit to GitHub";
-        }, 3000);
-      }
+      const kind = courseReportKind(currentEditingCode);
+      openCourseReport(kind, currentEditingCode, courses[currentEditingCode], els.detailSaveContribGithubBtn);
+
     });
 
     els.detailSaveContribDoneBtn?.addEventListener("click", () => {
@@ -4793,15 +5018,23 @@
       if (els.detailSaveContribPrompt) els.detailSaveContribPrompt.style.display = "none";
     });
 
-    els.detailSaveBtn?.addEventListener("click", () => {
-      if (!currentEditingCode) return;
+    els.detailSaveBtn?.addEventListener("click", async () => {
+      if (!currentEditingCode || detailsSaveInProgress() || !detailsFormHasChanges()) return;
 
       const newName = els.detailName.value.trim();
       if (!newName) {
         els.detailName.style.borderColor = "var(--danger)";
+        els.detailName.setAttribute("aria-invalid", "true");
+        els.detailName.focus();
+        showToast("Enter a course name before saving.", "error");
         return;
       }
 
+      els.detailName.removeAttribute("aria-invalid");
+      if (els.detailCredits && !els.detailCredits.checkValidity()) {
+        els.detailCredits.reportValidity();
+        return;
+      }
       const isDetailInClass = !!els.detailInClass?.checked;
       const isDetailNoPrereq = !!els.detailNoPrereq?.checked;
 
@@ -4820,44 +5053,34 @@
       const newCreditsRaw = els.detailCredits ? els.detailCredits.value.trim() : "";
       let newCredits = null;
       if (newCreditsRaw) {
-        const parsed = parseFloat(newCreditsRaw);
-        if (!isNaN(parsed) && parsed > 0) newCredits = parsed;
+        const parsed = Number(newCreditsRaw);
+        if (Number.isFinite(parsed) && parsed > 0) newCredits = parsed;
       }
 
-      let newVal;
-      if (newDay || newSlot || newPrereqs.length > 0 || newPrereqNote || newCredits !== null) {
-        newVal = {
-          name: newName,
-          examDay: newDay,
-          examSlot: newSlot,
-          prerequisites: newPrereqs,
-          prerequisiteNote: newPrereqNote
-        };
-        if (newCredits !== null) newVal.credits = newCredits;
-      } else {
-        newVal = newName;
-      }
-
+      const newVal = { name: newName, examDay: newDay, examSlot: newSlot, prerequisites: newPrereqs, prerequisiteNote: newPrereqNote, credits: newCredits };
+      const validationError = CourseData.validate(currentEditingCode, newVal);
+      if (validationError) { showToast(validationError, "error"); return; }
+      if (CourseData.cycle({ ...courses, [currentEditingCode]: newVal })) { showToast("These prerequisites create a cycle.", "error"); return; }
       // If the values do not differ from the course's current state, do not mark as edited
       const currentData = courses[currentEditingCode];
       if (areCourseDataEqual(newVal, currentData)) {
-        showToast("No changes made to course details.", "info");
-        exitCourseDetails();
+        openCourseDetails.formSnapshot = detailsFormSnapshot();
+        updateDetailsSaveState();
         return;
       }
 
-      pendingSaveVal = newVal;
-      pendingAction = "save";
-      setModalText(`Save Changes to ${currentEditingCode}?`, "Updated course title, prerequisites, and exam schedules will be stored locally on this device and applied immediately across all active pages.");
-      els.confirmModal.classList.add("show");
+      const savedSnapshot = detailsFormSnapshot();
+      els.detailSaveBtn.setAttribute("aria-busy", "true");
+      updateDetailsSaveState();
+      try { await commitCourseSave(currentEditingCode, newVal, savedSnapshot); }
+      catch (error) { console.error("Could not save course", error); showToast("Could not save changes. Your edits are still here. Try again.", "error"); }
+      finally { els.detailSaveBtn.removeAttribute("aria-busy"); updateDetailsSaveState(); }
     });
 
-    els.detailDelBtn?.addEventListener("click", () => {
+    els.detailDelBtn?.addEventListener("click", async () => {
       if (!currentEditingCode || els.detailDelBtn.disabled) return;
 
-      pendingAction = "delete";
-      setModalText(`Move ${currentEditingCode} to Trash?`, "This course will be excluded from active decoding. You can review or restore it from the Trash Bin at any time.");
-      els.confirmModal.classList.add("show");
+      requestDetailsNavigation(() => moveCourseToTrash(currentEditingCode).catch(() => showToast("Could not move this course to Trash. Try again.", "error")));
     });
 
     els.detailsEnrollBtn?.addEventListener("click", () => {
@@ -4871,53 +5094,26 @@
     });
 
     els.modalCancelBtn?.addEventListener("click", () => {
-      els.confirmModal.classList.remove("show");
+      closeModalSafely(els.confirmModal);
       pendingAction = null;
       pendingSaveVal = null;
+      pendingDetailsNavigation = null;
+      if (els.modalCancelBtn) els.modalCancelBtn.textContent = "Cancel";
     });
 
     els.modalConfirmBtn?.addEventListener("click", async () => {
-      els.confirmModal.classList.remove("show");
+      closeModalSafely(els.confirmModal);
+      if (els.modalCancelBtn) els.modalCancelBtn.textContent = "Cancel";
+      if (pendingAction === "discard-changes") {
+        const navigate = pendingDetailsNavigation;
+        pendingDetailsNavigation = null;
+        pendingAction = null;
+        openCourseDetails(currentEditingCode, courses[currentEditingCode], detailsOriginView, true);
+        if (navigate) navigate();
+        return;
+      }
 
-      if (pendingAction === "save" && currentEditingCode) {
-        commitCourseSave(currentEditingCode, pendingSaveVal);
-      } else if (pendingAction === "delete" && currentEditingCode) {
-        let changed = false;
-        const target = currentEditingCode;
-
-        if (!softDeletedCourses.includes(target)) {
-          softDeletedCourses.push(target);
-          await chrome.storage.local.set({ softDeletedCourses });
-          changed = true;
-        }
-
-        if (changed) {
-          await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
-          await reloadLocalCoursesState();
-          showToast(`${target} moved to Trash`, "info");
-
-          if (isTrashMode) {
-            els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
-            renderTrashList(searchQuery);
-          } else {
-            renderCourseList(searchQuery);
-          }
-        }
-        exitCourseDetails();
-      } else if (pendingAction === "restore" && pendingTarget) {
-        const target = pendingTarget;
-        softDeletedCourses = softDeletedCourses.filter(c => c !== target);
-        await chrome.storage.local.set({ softDeletedCourses });
-        await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
-        await reloadLocalCoursesState();
-        showToast(`${target} restored to catalog`, "success");
-        if (isTrashMode) {
-          els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
-          renderTrashList(searchQuery);
-        } else {
-          renderCourseList(searchQuery);
-        }
-      } else if (pendingAction === "perm-delete" && pendingTarget) {
+      if (pendingAction === "perm-delete" && pendingTarget) {
         const target = pendingTarget;
         if (userCourses[target] !== undefined) {
           delete userCourses[target];
@@ -4931,7 +5127,7 @@
         await reloadLocalCoursesState();
         showToast(`${target} permanently deleted`, "info");
         if (isTrashMode) {
-          els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''}`;
+          els.coursesPanelCount.textContent = `${softDeletedCourses.length} course${softDeletedCourses.length !== 1 ? 's' : ''} available to restore`;
           renderTrashList(searchQuery);
         } else {
           renderCourseList(searchQuery);
@@ -4944,7 +5140,7 @@
         await reloadLocalCoursesState();
         showToast(count === 1 ? "Course restored to catalog" : `All ${count} courses restored to catalog`, "success");
         if (isTrashMode) {
-          els.coursesPanelCount.textContent = `0 courses`;
+          els.coursesPanelCount.textContent = `0 courses available to restore`;
           renderTrashList(searchQuery);
         } else {
           renderCourseList(searchQuery);
@@ -4967,108 +5163,10 @@
         showToast(count === 1 ? "Course permanently deleted" : `All ${count} courses permanently deleted`, "info");
 
         if (isTrashMode) {
-          els.coursesPanelCount.textContent = `0 courses`;
+          els.coursesPanelCount.textContent = `0 courses available to restore`;
           renderTrashList(searchQuery);
         } else {
           renderCourseList(searchQuery);
-        }
-      } else if (pendingAction === "reset-defaults") {
-        const resetBtn = els.resetDefaultsBtn;
-        const resetText = els.resetDefaultsBtnText || resetBtn;
-
-        if (resetBtn) {
-          resetBtn.classList.remove("is-success", "is-error");
-          resetBtn.classList.add("is-loading");
-          if (resetText) resetText.textContent = "Restoring official catalog…";
-          resetBtn.disabled = true;
-        }
-
-        try {
-          // Track all unique course codes affected by resetting to repository defaults
-          const restoredCodes = [...new Set([...(softDeletedCourses || []), ...(hardDeletedCourses || [])])].sort();
-          const revertedCodes = Object.keys(userCourses || {}).filter(code => bundledCourses[code] || remoteCourses[code]).sort();
-          const affectedCodes = new Set([...restoredCodes, ...revertedCodes]);
-          const changeCount = affectedCodes.size;
-
-          // Track what specific field modifications are being reverted to default
-          const revertedDetails = {};
-          for (const code of revertedCodes) {
-            const userVal = userCourses[code];
-            const officialBase = remoteCourses[code] || bundledCourses[code];
-            const userObj = typeof userVal === "object" && userVal !== null ? userVal : { name: userVal || "" };
-            const officialObj = typeof officialBase === "object" && officialBase !== null ? officialBase : { name: officialBase || "" };
-
-            const changedFields = [];
-            if ((userObj.name || "") !== (officialObj.name || "")) changedFields.push("Title");
-            if ((userObj.examDay || "") !== (officialObj.examDay || "") || (userObj.examSlot || "") !== (officialObj.examSlot || "")) changedFields.push("Exam Schedule");
-            const uPrereq = Array.isArray(userObj.prerequisites) ? userObj.prerequisites.slice().sort().join(",") : "";
-            const oPrereq = Array.isArray(officialObj.prerequisites) ? officialObj.prerequisites.slice().sort().join(",") : "";
-            if (uPrereq !== oPrereq) changedFields.push("Prerequisites");
-
-            revertedDetails[code] = changedFields.length > 0 ? changedFields.join(" & ") + " Reverted" : "Reverted";
-          }
-
-          softDeletedCourses = [];
-          hardDeletedCourses = [];
-
-          // Overwrite and clear edits to official courses, preserving custom user-added courses
-          const cleanedUserCourses = {};
-          for (const [code, val] of Object.entries(userCourses || {})) {
-            const isOfficial = !!(bundledCourses[code] || remoteCourses[code]);
-            if (!isOfficial) {
-              cleanedUserCourses[code] = val;
-            }
-          }
-          userCourses = cleanedUserCourses;
-
-          // Allow the loading animation and spinner to render smoothly
-          await Promise.all([
-            chrome.storage.local.set({ userCourses, softDeletedCourses, hardDeletedCourses }),
-            new Promise(resolve => setTimeout(resolve, 600))
-          ]);
-
-          await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
-          await reloadLocalCoursesState();
-          updateCourseCount();
-
-          if (isTrashMode) {
-            els.coursesPanelCount.textContent = `0 courses`;
-            renderTrashList(searchQuery);
-          } else {
-            renderCourseList(searchQuery);
-          }
-
-          if (resetBtn) {
-            resetBtn.classList.remove("is-loading");
-            resetBtn.classList.add("is-success");
-            const btnMsg = changeCount === 0
-              ? "Already at Default (0 changes)"
-              : `Restored (${changeCount} ${changeCount === 1 ? "change" : "changes"} applied)`;
-            if (resetText) resetText.textContent = btnMsg;
-          }
-
-          renderResetResult({
-            totalChanges: changeCount,
-            restoredCodes,
-            revertedCodes,
-            revertedDetails,
-            timestamp: Date.now()
-          });
-        } catch (err) {
-          console.error("Reset defaults failed:", err);
-          if (resetBtn) {
-            resetBtn.classList.remove("is-loading");
-            resetBtn.classList.add("is-error");
-            if (resetText) resetText.textContent = "Could not reset catalog";
-          }
-        } finally {
-          setTimeout(() => {
-            if (resetBtn) {
-              resetBtn.classList.remove("is-loading", "is-success", "is-error");
-              if (resetText) resetText.textContent = "Reset Official Catalog to Default";
-              resetBtn.disabled = false;
-            }
-          }, 2600);
         }
       } else if (pendingAction === "bulk-remove-domains") {
         const toRemove = Array.from(selectedDomainSet);
@@ -5086,12 +5184,12 @@
         await chrome.storage.local.set({ allowedSites });
         renderAllowlist();
         await updateToggleAndStatus();
-        showToast(count === 1 ? "Removed 1 domain" : "Removed " + count + " domains", "info");
+        showToast(count === 1 ? "1 website removed" : count + " websites removed", "info");
       } else if (pendingAction === "clear-enrolled") {
         enrolledCourses = [];
         await chrome.storage.local.set({ enrolledCourses: [] });
         updateEnrolledUI();
-        showToast("Dropped all enrolled courses", "info");
+        showToast("All courses removed from My Courses", "info");
       }
 
       pendingAction = null;
@@ -5156,7 +5254,7 @@
         if (textSpan) textSpan.textContent = "Copied!";
         els.copySampleBtn.style.background = "var(--accent)";
         els.copySampleBtn.style.color = "#fff";
-        showImportMsg("success", "2-course sample JSON copied to clipboard. Customize and click Import & Merge.");
+        showImportMsg("success", "2-course sample JSON copied to clipboard. Customize it, then select Review import.");
         setTimeout(() => {
           if (els.copySampleBtn) {
             const span = els.copySampleBtn.querySelector("span");
@@ -5295,47 +5393,16 @@
       }
     });
 
-    // GitHub 1-Click Contribution Handler
+    ["detailName", "detailDay", "detailSlot", "detailPrereq", "detailPrereqNote", "detailCredits", "detailInClass", "detailNoPrereq"].forEach(key => {
+      els[key]?.addEventListener("input", updateDetailsSaveState);
+      els[key]?.addEventListener("change", updateDetailsSaveState);
+    });
+
+    // Reuse the same report format as the course details action.
     els.contribSubmitGithubBtn?.addEventListener("click", () => {
       if (!lastAddedCourseForContrib) return;
-      const c = lastAddedCourseForContrib;
-      const title = encodeURIComponent("[Course Addition]: " + c.code + " - " + c.name);
-      const body = encodeURIComponent(
-        "### 📚 Course Addition Proposal\n\n" +
-        "| Field | Value |\n" +
-        "| :--- | :--- |\n" +
-        "| **Course Code** | `" + c.code + "` |\n" +
-        "| **Course Title** | " + c.name + " |\n" +
-        "| **Credits** | " + c.credits + " |\n" +
-        "| **Exam Schedule** | " + c.examSchedule + " |\n" +
-        "| **Prerequisites** | " + c.prerequisites + " |\n" +
-        "| **Prerequisite Note** | " + c.prerequisiteNote + " |\n\n" +
-        "---\n\n" +
-        "### 📌 Source / Verification\n" +
-        "*(e.g. UCAM course registration screenshot, official routine, department syllabus)*\n\n\n" +
-        "---\n" +
-        "*Submitted via UIU Course Code Decoder extension. Thank you for contributing to UIU's community catalog!*"
-      );
-
-      const issueUrl = "https://github.com/litch07/uiu-course-decoder/issues/new?title=" + title + "&body=" + body + "&labels=course-addition";
-      try {
-        chrome.tabs.create({ url: issueUrl });
-      } catch (_) {
-        window.open(issueUrl, "_blank", "noopener,noreferrer");
-      }
-
-      // Update button state visually
-      if (els.contribSubmitGithubBtn) {
-        els.contribSubmitGithubBtn.style.opacity = "0.75";
-        els.contribSubmitGithubBtn.textContent = "✓ Opening GitHub in New Tab...";
-        setTimeout(() => {
-          if (els.contribSubmitGithubBtn) {
-            els.contribSubmitGithubBtn.textContent = "🚀 Reopen GitHub Issue";
-            els.contribSubmitGithubBtn.style.opacity = "1";
-          }
-        }, 3000);
-      }
-      showToast("Opening GitHub issue in new tab...", "info");
+      const code = lastAddedCourseForContrib.code;
+      openCourseReport(courseReportKind(code), code, courses[code], els.contribSubmitGithubBtn);
     });
 
     els.contribDismissBtn?.addEventListener("click", () => {
@@ -5434,7 +5501,8 @@
       const rawPrereq = els.singleCoursePrereq?.value.trim() || "";
       const prereqNote = els.singleCoursePrereqNote ? els.singleCoursePrereqNote.value.trim() : "";
       const rawCredits = els.singleCourseCredits?.value.trim() || "";
-      const singleCredits = rawCredits ? (parseFloat(rawCredits) || null) : null;
+      const singleCredits = rawCredits ? Number(rawCredits) : null;
+      if (rawCredits && (!Number.isFinite(singleCredits) || singleCredits <= 0)) { showSingleCourseMsg("error", "Credits must be a finite positive number."); return; }
 
       if (!rawCode && !rawName) {
         els.singleCourseCode?.classList.add("input-error");
@@ -5456,7 +5524,7 @@
         return;
       }
 
-      const code = rawCode.toUpperCase();
+      const code = CourseData.code(rawCode);
       const prereqs = hasNoPrereqs
         ? ["None"]
         : (rawPrereq ? rawPrereq.split(",").map(p => p.trim().toUpperCase()).filter(Boolean) : []);
@@ -5473,19 +5541,15 @@
         courseObj.credits = singleCredits;
       }
 
-      // Un-delete if this course was previously soft or hard deleted
-      if (softDeletedCourses.includes(code)) {
-        softDeletedCourses = softDeletedCourses.filter(c => c !== code);
-      }
-      if (hardDeletedCourses.includes(code)) {
-        hardDeletedCourses = hardDeletedCourses.filter(c => c !== code);
-      }
-
-      userCourses[code] = courseObj;
-      courses[code] = courseObj;
-
+      const validationError = CourseData.validate(code, courseObj);
+      if (validationError) { showSingleCourseMsg("error", validationError); return; }
+      if (CourseData.cycle({ ...courses, [code]: courseObj })) { showSingleCourseMsg("error", "These prerequisites create a cycle."); return; }
+      const nextSoft = softDeletedCourses.filter(c => c !== code), nextHard = hardDeletedCourses.filter(c => c !== code);
+      const nextUser = { ...userCourses, [code]: courseObj };
       try {
-        await chrome.storage.local.set({ userCourses, softDeletedCourses, hardDeletedCourses });
+        await chrome.storage.local.set({ userCourses: nextUser, softDeletedCourses: nextSoft, hardDeletedCourses: nextHard });
+        userCourses = nextUser; softDeletedCourses = nextSoft; hardDeletedCourses = nextHard;
+        courses[code] = courseObj;
         await chrome.runtime.sendMessage({ type: "RELOAD_COURSES" });
         await reloadLocalCoursesState();
         updateCourseCount();
@@ -5497,21 +5561,30 @@
         }
 
         showSingleCourseMsg("success", `${code} added to course database!`);
-        showToast(`${code} added to catalog`, "success");
+        showToast(`${code} added to your catalog`, "success");
+
+        const reportKind = courseReportKind(code);
+        const contributionTitle = document.getElementById("contribPromptTitle");
+        const contributionLabel = els.contribSubmitGithubBtn?.querySelector("span");
+        if (contributionTitle) contributionTitle.textContent = reportKind === "addition" ? "Suggest this course for everyone" : "Suggest this update for everyone";
+        if (els.contribPromptDesc) els.contribPromptDesc.textContent = reportKind === "addition"
+          ? "Saved on this device. You can also suggest it for the shared catalog."
+          : "Review your saved changes against the shared catalog in a GitHub draft.";
+        if (contributionLabel) contributionLabel.textContent = reportKind === "addition" ? "Open GitHub draft ↗" : "Suggest this update ↗";
 
         // Setup Community Contribution Action Card
         let examScheduleDesc = "Routine Pending / TBA";
         if (isInClass) {
           examScheduleDesc = "In-Class Assessment / Lab Viva";
         } else if (rawDay && rawSlot) {
-          examScheduleDesc = "Day " + rawDay + " • Slot " + rawSlot;
+          examScheduleDesc = rawDay + " · " + rawSlot;
         } else if (rawDay) {
-          examScheduleDesc = "Day " + rawDay;
+          examScheduleDesc = rawDay;
         }
 
-        let prereqDesc = "Not specified";
+        let prereqDesc = "Prerequisites not listed";
         if (hasNoPrereqs) {
-          prereqDesc = "None (Direct entry)";
+          prereqDesc = "No prerequisites";
         } else if (prereqs.length > 0) {
           prereqDesc = prereqs.join(", ");
         }
@@ -5519,7 +5592,7 @@
         lastAddedCourseForContrib = {
           code: code,
           name: rawName,
-          credits: singleCredits !== null ? singleCredits.toFixed(1) : "3.0",
+          credits: singleCredits !== null ? singleCredits.toFixed(1) : "Not listed",
           examSchedule: examScheduleDesc,
           prerequisites: prereqDesc,
           prerequisiteNote: prereqNote || "None"
@@ -5527,7 +5600,7 @@
 
         // Transition from Form State to Dedicated Success State
         if (els.successCourseCode) els.successCourseCode.textContent = code;
-        if (els.successCourseCredits) els.successCourseCredits.textContent = (singleCredits !== null ? singleCredits.toFixed(1) : "3.0") + " Cr";
+        if (els.successCourseCredits) els.successCourseCredits.textContent = (singleCredits !== null ? singleCredits.toFixed(1) + " Cr" : "Credits not listed");
         if (els.successCourseName) els.successCourseName.textContent = rawName;
         if (els.successCourseMeta) els.successCourseMeta.textContent = examScheduleDesc;
         if (els.successCoursePrereq) els.successCoursePrereq.textContent = "Prerequisites: " + prereqDesc;
@@ -5560,20 +5633,20 @@
 
       const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
       if (new Blob([raw]).size > MAX_IMPORT_BYTES) {
-        showImportMsg("error", "Import payload too large (exceeds 2 MB limit). Please reduce the file size.");
+        showImportMsg("error", "This import is larger than 2 MB. Choose a smaller file or split it into smaller imports.");
         return;
       }
 
       let parsed;
       try {
-        parsed = JSON.parse(raw);
+        parsed = CourseData.parse(raw);
       } catch (e) {
-        showImportMsg("error", `JSON Syntax Error: ${e.message}`);
+        showImportMsg("error", "Could not read this JSON. Check commas, quotation marks, and brackets against the sample.");
         return;
       }
 
       if (typeof parsed !== "object" || Array.isArray(parsed) || parsed === null) {
-        showImportMsg("error", 'Invalid format: Root must be a JSON object with course codes as keys (e.g. { "CSE 3715": { ... } }).');
+        showImportMsg("error", 'List course codes with their details inside { }. Use the sample to check the format.');
         return;
       }
 
@@ -5583,7 +5656,7 @@
         if (diff.errors.length > 0) {
           showImportMsg("error", `Found ${diff.errors.length} invalid course entr${diff.errors.length === 1 ? "y" : "ies"}. No valid changes detected.`);
         } else if (diff.unchanged.length > 0) {
-          showImportMsg("info", `All ${diff.unchanged.length} course${diff.unchanged.length !== 1 ? "s" : ""} already match your database identically.`);
+          showImportMsg("info", `All ${diff.unchanged.length} course${diff.unchanged.length !== 1 ? "s" : ""} already match your catalog.`);
         } else {
           showImportMsg("error", "No valid course entries detected in the provided JSON.");
         }
@@ -5598,10 +5671,18 @@
     els.previewCloseBtn?.addEventListener("click", closeImportPreviewModal);
     els.previewCancelBtn?.addEventListener("click", closeImportPreviewModal);
     els.previewConfirmBtn?.addEventListener("click", async () => {
-      if (pendingImportDiff) {
+      if (pendingCatalogReset) { await applyCatalogReset(); return; }
+      if (pendingCatalogUpdate) { await applyCatalogUpdate(); return; }
+      if (!pendingImportDiff || els.previewConfirmBtn.disabled) return;
+      els.previewConfirmBtn.disabled = true;
+      els.previewConfirmBtn.setAttribute("aria-busy", "true");
+      try {
         await executeCommitImportDiff(pendingImportDiff);
-      }
-    });
+        els.previewConfirmBtn.removeAttribute("aria-busy");
+        closeImportPreviewModal();
+      } catch (_) { showToast("Could not save the import. Your catalog is unchanged. Try again.", "error"); }
+      finally { els.previewConfirmBtn.disabled = false; els.previewConfirmBtn.removeAttribute("aria-busy"); }
+    });;
 
     // File Drag-and-Drop and Browse handlers
     els.browseFileBtn?.addEventListener("click", (e) => {
@@ -5686,7 +5767,7 @@
       const val = els.allowlistInput.value.trim().toLowerCase();
       if (!val) return;
       if (!val.includes(".")) {
-        showToast("Invalid domain format", "error");
+        showToast("Enter a website address, such as ucam.uiu.ac.bd.", "error");
         return;
       }
       if (!allowedSites.includes(val)) {
@@ -5743,10 +5824,10 @@
       pendingAction = "bulk-remove-domains";
       const count = selectedDomainSet.size;
       setModalText(
-        "Remove " + count + " Allowed Domain" + (count !== 1 ? "s" : "") + "?",
-        "The extension will no longer run or decode course codes on the " + count + " selected website" + (count !== 1 ? "s" : "") + "."
+        "Remove " + count + " website" + (count !== 1 ? "s" : "") + "?",
+        "Remove the selected website" + (count !== 1 ? "s" : "") + " from your enabled list. You can enable " + (count === 1 ? "it" : "them") + " again later."
       );
-      els.confirmModal?.classList.add("show");
+      openModalSafely(els.confirmModal, els.modalCancelBtn);
     });
 
     // Enable/disable the extension on the current site with dynamic host permissions
@@ -5822,71 +5903,42 @@
     if (els.syncBtn) {
       els.syncBtn.addEventListener("click", async () => {
         const syncText = els.syncBtnText || els.syncBtn;
+        let updateFailed = false;
+        renderSyncResult(null);
+        els.syncBtn.setAttribute("aria-busy", "true");
 
         els.syncBtn.classList.remove("is-success", "is-error");
         els.syncBtn.classList.add("is-loading");
-        syncText.textContent = "Syncing with GitHub…";
+        syncText.textContent = "Checking…";
         els.syncBtn.disabled = true;
         els.syncTime.textContent = "Fetching latest course data…";
 
         try {
           const response = await chrome.runtime.sendMessage({ type: "SYNC_COURSES" });
           if (response.success) {
-            lastSyncedAt = response.lastSyncedAt;
-            lastSyncResult = response.stats || null;
-
-            // Re-fetch courses locally
-            const data = await chrome.storage.local.get(["courses", "softDeletedCourses", "hardDeletedCourses", "remoteCourses"]);
-            courses = data.courses || {};
-            softDeletedCourses = data.softDeletedCourses || [];
-            hardDeletedCourses = data.hardDeletedCourses || [];
-            remoteCourses = data.remoteCourses || {};
-            updateCourseCount();
-
-            const stats = response.stats;
-            const added = stats?.added || 0;
-            const updated = stats?.updated || 0;
-            const removed = stats?.removed || 0;
-            const totalChanges = added + updated + removed;
-
-            let btnText = "Database is up to date";
-            if (totalChanges > 0) {
-              const parts = [];
-              if (added > 0) parts.push(`+${added} new`);
-              if (updated > 0) parts.push(`${updated} upd`);
-              if (removed > 0) parts.push(`${removed} rem`);
-              btnText = `Synced (${parts.join(", ")})`;
-            }
-
+            reviewCatalogUpdate(response);
             els.syncBtn.classList.remove("is-loading");
             els.syncBtn.classList.add("is-success");
-            syncText.textContent = btnText;
-            els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
-
-            renderSyncResult(lastSyncResult);
-            // Session-only: clear from persistent storage so next popup launch starts clean
-            chrome.storage.local.remove("lastSyncResult");
-            checkSyncReminder();
+            syncText.textContent = "Check complete";
           } else {
             throw new Error(response.error || "Unknown error");
           }
         } catch (err) {
           console.error("Course sync failed:", err);
+          updateFailed = true;
           els.syncBtn.classList.remove("is-loading");
           els.syncBtn.classList.add("is-error");
-          syncText.textContent = "Sync failed — Retry";
+          syncText.textContent = "Update failed";
           els.syncTime.textContent = "Check your connection and try again.";
         } finally {
           setTimeout(() => {
-            els.syncBtn.classList.remove("is-loading", "is-success", "is-error");
-            syncText.textContent = "Sync Course Database";
+            els.syncBtn.classList.remove("is-loading", "is-success");
+            if (!updateFailed) els.syncBtn.classList.remove("is-error");
+            syncText.textContent = updateFailed ? "Try again" : "Check for updates";
             els.syncBtn.disabled = false;
+            els.syncBtn.removeAttribute("aria-busy");
             checkSyncReminder();
-            if (lastSyncedAt) {
-              els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
-            } else {
-              els.syncTime.textContent = "Never synced";
-            }
+            if (!updateFailed) els.syncTime.textContent = formatTimeAgo(lastSyncedAt);
             if (els.syncResultBox && els.syncResultBox.classList.contains("show")) {
               els.syncTime.style.display = "none";
             }
@@ -5913,11 +5965,10 @@
       }
     });
 
-    els.resetDefaultsBtn?.addEventListener("click", () => {
-      pendingAction = "reset-defaults";
-      setModalText("Reset Official Catalog?", "This will restore all official course mappings and exam schedules to standard repository defaults, discarding any local modifications. Custom user-added courses will remain unaffected.");
-      els.confirmModal.classList.add("show");
-    });
+    els.resetDefaultsBtn?.addEventListener("click", async () => {
+      try { await reloadLocalCoursesState(); reviewCatalogReset(); }
+      catch (_) { showToast("Could not load catalog changes. Try again.", "error"); }
+    });;
   }
 
   init();

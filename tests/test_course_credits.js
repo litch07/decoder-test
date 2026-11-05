@@ -145,7 +145,7 @@ const docsJs   = fs.readFileSync(path.join(ROOT, 'docs', 'app.js'), 'utf8');
 
 assert('docs/index.html has #modalCreditsPill', docsHtml.includes('id="modalCreditsPill"'));
 assert('docs/index.html has #modalCredits', docsHtml.includes('id="modalCredits"'));
-assert('docs/app.js handles credits in normalizeCourseData', docsJs.includes('parseFloat(val.credits)'));
+assert('docs/app.js handles credits in normalizeCourseData', docsJs.includes('Number(val.credits)') && docsJs.includes('Number.isFinite(parsed)'));
 assert('docs/app.js renders credit chip on course cards', docsJs.includes('creditChip.textContent = `${data.credits} Cr`'));
 assert('docs/app.js populates modalCredits text', docsJs.includes('els.modalCredits.textContent = `${data.credits} Credits`'));
 

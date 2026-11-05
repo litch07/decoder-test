@@ -5,7 +5,7 @@
  * 1. Schedule & Prerequisites form additions in popup.html (In-Class & No-Prereq toggles)
  * 2. Community 1-Click GitHub issue contribution prompt in popup.html & popup.js
  * 3. Content script buildExtendedData discrimination between In-Class, Scheduled, and TBA
- * 4. Content script buildExtendedData discrimination between None and Not Specified prerequisites
+ * 4. Content script buildExtendedData discrimination between None and Prerequisites not listed prerequisites
  * 5. Course Details dynamic contribution card & post-edit save banner (User Added vs Edited vs Official)
  * 6. Zero innerHTML usage in new logic
  */
@@ -76,20 +76,20 @@ assert.strictEqual(resScheduled.exam, "D1, Slot T2", "Scheduled exam must return
 
 // Test D: Explicit None prerequisites
 const resNonePrereq = testFn({ name: "Intro to CS", examDay: "D2", examSlot: "T1", prerequisites: ["None"] });
-assert.strictEqual(resNonePrereq.prereq, "None (Direct Entry)", "Explicit 'None' must return 'None (Direct Entry)'");
+assert.strictEqual(resNonePrereq.prereq, "No prerequisites", "Explicit 'None' must return 'No prerequisites'");
 
-// Test E: Empty / omitted prerequisites -> Not Specified
+// Test E: Empty / omitted prerequisites -> Prerequisites not listed
 const resEmptyPrereq = testFn({ name: "Senior Course", examDay: "D3", examSlot: "T3", prerequisites: [] });
-assert.strictEqual(resEmptyPrereq.prereq, "Not Specified", "Empty prerequisites must return 'Not Specified'");
+assert.strictEqual(resEmptyPrereq.prereq, "Prerequisites not listed", "Empty prerequisites must return 'Prerequisites not listed'");
 
 // ── 4. popup.js Zero-innerHTML and Event Wiring Check ────────────────────────
 assert.ok(JS.includes("els.singleCourseInClass"), "popup.js references els.singleCourseInClass");
 assert.ok(JS.includes("els.singleCourseNoPrereq"), "popup.js references els.singleCourseNoPrereq");
 assert.ok(JS.includes("els.contribSubmitGithubBtn"), "popup.js references els.contribSubmitGithubBtn");
 assert.ok(JS.includes("updateDetailReportCard("), "popup.js implements updateDetailReportCard");
-assert.ok(JS.includes("Upload to Official Repository"), "popup.js contains Upload to Official Repository for user-added courses");
-assert.ok(JS.includes("Propose Changes to Official Catalog"), "popup.js contains Propose Changes to Official Catalog for edited courses");
-assert.ok(JS.includes("Notice an error with this course?"), "popup.js contains Notice an error for official courses");
+assert.ok(JS.includes("Suggest this course"), "popup.js contains Suggest this course for user-added courses");
+assert.ok(JS.includes("Suggest this update"), "popup.js contains Suggest this update for edited courses");
+assert.ok(JS.includes("Report a course error"), "popup.js contains Report a course error for catalog courses");
 assert.ok(JS.includes("els.detailSaveContribGithubBtn"), "popup.js references els.detailSaveContribGithubBtn");
 assert.ok(JS.includes("https://github.com/litch07/uiu-course-decoder/issues/new"), "popup.js generates GitHub issue URL");
 
@@ -110,12 +110,12 @@ assert.ok(JS.includes("detailsSettingsBtn: document.getElementById(\"detailsSett
 assert.ok(JS.includes("settingsOriginView"), "popup.js tracks settingsOriginView for smart back-navigation");
 
 // ── 6. Header Writing & Architectural Polish Checks ──────────────────────────
-assert.ok(HTML.includes("Academic Assistant &amp; Routine Decoder"), "Home subtitle is updated");
-assert.ok(HTML.includes('id="coursesPanelTitle">Course Catalog<'), "Catalog header title is updated");
+assert.ok(HTML.includes("Decode. Map. Plan."), "Home subtitle is updated");
+assert.ok(HTML.includes('id="coursesPanelTitle">Course catalog<'), "Catalog header title is updated");
 assert.ok(HTML.includes("details-header-title-row"), "Details view features code-first header title row");
 assert.ok(HTML.includes('id="detailsCourseSubtitle"'), "Details view has dynamic subtitle element");
-assert.ok(HTML.includes("Add &amp; Import Courses"), "Add / Import title is updated");
-assert.ok(HTML.includes("Theme, site permissions &amp; sync"), "Settings subtitle is updated");
+assert.ok(HTML.includes("Add courses"), "Add / Import title is updated");
+assert.ok(HTML.includes("Appearance, websites &amp; course data"), "Settings subtitle is updated");
 assert.ok(CSS.includes(".details-header-title-row"), "CSS has .details-header-title-row");
 assert.ok(JS.includes("detailsCourseSubtitle"), "popup.js references #detailsCourseSubtitle");
 

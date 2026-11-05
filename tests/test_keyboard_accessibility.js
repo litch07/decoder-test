@@ -42,8 +42,8 @@ assert('confirmModal has role="dialog" and aria-modal="true"',
   popupHtml.includes('id="confirmModal"') &&
   popupHtml.includes('role="dialog"') &&
   popupHtml.includes('aria-modal="true"'));
-assert('confirmModal has aria-labelledby="modalText"',
-  popupHtml.includes('id="confirmModal"') && popupHtml.includes('aria-labelledby="modalText"'));
+assert('confirmModal has aria-labelledby="modalTitle"',
+  popupHtml.includes('id="confirmModal"') && popupHtml.includes('aria-labelledby="modalTitle"') && popupHtml.includes('aria-describedby="modalDescription"'));
 
 assert('exportModal has role="dialog" and aria-modal="true"',
   popupHtml.includes('id="exportModal"') &&
@@ -67,10 +67,10 @@ assert('main-view has role="region" and aria-label="Home Dashboard"',
   popupHtml.includes('role="region"') &&
   popupHtml.includes('aria-label="Home Dashboard"'));
 
-assert('courses-view has role="region" and aria-label="Course Database"',
+assert('courses-view has role="region" and aria-label="Course catalog"',
   popupHtml.includes('class="view courses-view"') &&
   popupHtml.includes('role="region"') &&
-  popupHtml.includes('aria-label="Course Database"'));
+  popupHtml.includes('aria-label="Course catalog"'));
 
 assert('details-view has role="region" and aria-label="Course Details"',
   popupHtml.includes('class="view details-view"') &&

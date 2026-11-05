@@ -88,7 +88,7 @@ Choose how decoded course details appear on your screen:
 - **Differential GitHub Sync**: Pull updates from the community-maintained catalog on GitHub with 1-click diff inspection (`+X new`, `~X updated`, `-X removed`) before committing changes locally.
 - **Layered Data Architecture**: Add unlisted courses, override exam slots, or import batch JSON catalogs (with an enforced 2 MB safety limit). Custom modifications survive official catalog updates.
 - **Safe Trash & Recovery**: Soft-delete courses to a dedicated Trash panel where they can be restored at any time or permanently purged.
-- **One-Click Issue Reporting & Post-Save Community Prompts**: Spot outdated information? Click **Report Wrong Data** in Course Details to open an automated, pre-formatted GitHub issue for maintainers, or propose local edits directly to GitHub.
+- **One-Click Issue Reporting & Post-Save Community Prompts**: Spot outdated information? Click **Report incorrect details** in Course Details to open an prefilled GitHub draft for maintainers, or propose local edits directly to GitHub.
 - **System-Adaptive OLED Dark Mode Palette**: Ultra-low-power OLED deep dark theme (`#090d16`) supporting System Default, Light, and Dark modes with zero flash of white.
 - **Keyboard Navigation & ARIA Accessibility**: Full WCAG-compliant keyboard navigation across all 7 sliding views, modal focus-trapping, hierarchical Escape retreat, and high-contrast visible focus indicators.
 
@@ -212,7 +212,7 @@ Every Pull Request is automatically verified by GitHub Actions via [`.github/wor
 
 Contributions to expand department course catalogs or improve extension functionality are welcome:
 
-- **Quick Corrections**: Open any course in the extension popup and click **Report Wrong Data**.
+- **Quick Corrections**: Open any course in the extension popup and click **Report incorrect details**.
 - **Adding Courses & Features**: Review [`CONTRIBUTING.md`](CONTRIBUTING.md) for the data schema specification, formatting rules, and step-by-step submission workflows.
 
 ---

@@ -521,10 +521,9 @@
     "name": "VLSI Design",
     "examDay": "Day 4",
     "examSlot": "T1",
-    "prerequisites": [
-      "CSE 4327"
-    ],
-    "credits": 3
+    "prerequisites": [],
+    "credits": 3,
+    "prerequisiteNote": "Prerequisite information requires verification; the previous catalog entry incorrectly listed this course itself."
   },
   "CSE 4337": {
     "name": "Robotics",

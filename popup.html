@@ -11,9 +11,9 @@
 
 <body>
 
-  <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="modalText">
+  <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription">
     <div class="modal-content">
-      <div class="modal-text" id="modalText">Are you sure?</div>
+      <div class="modal-text" id="modalText"><h2 class="confirmation-title" id="modalTitle">Review action</h2><p class="confirmation-description" id="modalDescription" hidden></p></div>
       <div class="modal-actions">
         <button class="btn-modal-cancel" id="modalCancelBtn">Cancel</button>
         <button class="btn-modal-confirm" id="modalConfirmBtn">Confirm</button>
@@ -21,37 +21,32 @@
     </div>
   </div>
 
-  <!-- Export Modal -->
-  <div class="modal-overlay" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+  <!-- Export courses: select a scope, then download. -->
+  <div class="modal-overlay" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle" aria-describedby="exportModalDescription">
     <div class="modal-content export-modal-content">
       <div class="export-modal-header">
-        <div class="export-modal-title-row">
-          <svg class="export-modal-icon" viewBox="0 0 24 24">
-            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-          </svg>
-          <div class="export-modal-title" id="exportModalTitle">Export Courses</div>
-        </div>
-        <button type="button" class="export-modal-close-btn" id="exportModalCloseBtn" title="Close export dialog"
-          aria-label="Close export dialog">
-          <svg viewBox="0 0 24 24">
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-          </svg>
+        <h2 class="export-modal-title" id="exportModalTitle">Export courses</h2>
+        <button type="button" class="export-modal-close-btn" id="exportModalCloseBtn" title="Close export dialog" aria-label="Close export dialog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg>
         </button>
       </div>
-      <p class="export-modal-desc">Download course data as clean JSON. Compatible with Batch Upload, sharing, and
-        repository contributions.</p>
-
-      <div class="export-options-list" id="exportOptionsList"></div>
-
-      <div class="modal-actions" style="margin-top: 14px;">
-        <button type="button" class="btn-modal-cancel" id="exportModalCancelBtn" style="width: 100%;">Cancel</button>
+      <p class="export-modal-desc" id="exportModalDescription">Choose which courses to download.</p>
+      <div class="export-options-list" id="exportOptionsList" role="group" aria-label="Courses to export"></div>
+      <div class="export-modal-footer">
+        <p class="export-format-note">JSON file · Import again to restore course data</p>
+        <div class="export-modal-actions">
+          <button type="button" class="btn-modal-cancel" id="exportModalCancelBtn">Cancel</button>
+          <button type="button" class="export-download-btn" id="exportDownloadBtn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></svg>
+            Download JSON
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
 <!-- Pre-Commit Import Preview Modal -->
-  <div class="modal-overlay" id="importPreviewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
+  <div class="modal-overlay" id="importPreviewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle" aria-describedby="previewModalDescription">
     <div class="modal-content preview-modal-content">
       <div class="preview-modal-header">
         <div class="preview-modal-title-row">
@@ -62,8 +57,8 @@
             </svg>
           </div>
           <div>
-            <div class="preview-modal-title" id="previewModalTitle">Review &amp; Import Courses</div>
-            <div class="preview-modal-subtitle">Verify additions and updates before committing</div>
+            <div class="preview-modal-title" id="previewModalTitle">Review import</div>
+            <div class="preview-modal-subtitle" id="previewModalDescription">Review additions and changes to existing courses.</div>
           </div>
         </div>
         <button type="button" class="preview-modal-close-btn" id="previewCloseBtn" title="Close preview"
@@ -87,7 +82,7 @@
           <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: currentColor;">
             <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
           </svg>
-          Confirm &amp; Merge
+          Apply changes
         </button>
       </div>
     </div>
@@ -99,11 +94,9 @@
       <div class="contrib-modal-header">
         <div class="contrib-modal-title-row">
           <div class="contrib-modal-icon-badge">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-            </svg>
+            <svg class="contribution-outline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 10h8M12 6v8"/></svg>
           </div>
-          <h2 id="contributionModalTitle">Community &amp; Contributing</h2>
+          <h2 id="contributionModalTitle">Improve catalog</h2>
         </div>
         <button type="button" class="preview-modal-close-btn" id="contribModalCloseBtn" aria-label="Close contribution dialog" title="Close dialog">
           <svg viewBox="0 0 24 24">
@@ -111,41 +104,21 @@
           </svg>
         </button>
       </div>
-      <p class="contrib-modal-desc">
-        UIU Course Code Decoder is an open-source tool maintained by and for UIU students. Help keep course data, credits, and exam schedules complete for all departments!
-      </p>
+      <p class="contrib-modal-desc">Help keep course details accurate and complete.</p>
       <div class="contrib-cards-list">
-        <a href="https://github.com/litch07/uiu-course-decoder/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="contrib-action-card">
-          <div class="contrib-action-icon">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-          </div>
-          <div class="contrib-action-text">
-            <strong>Contributing Guide</strong>
-            <span>Learn the course schema, formatting rules, and pull request steps.</span>
-          </div>
-          <span class="contrib-action-arrow">&rarr;</span>
-        </a>
         <button type="button" class="contrib-action-card" id="contribReportIssueBtn">
-          <div class="contrib-action-icon warning">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-          </div>
-          <div class="contrib-action-text">
-            <strong>Report Outdated or Missing Data</strong>
-            <span>Open a pre-filled issue template to submit new courses, corrections, or routine updates.</span>
-          </div>
-          <span class="contrib-action-arrow">&rarr;</span>
+          <svg class="catalog-report-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8M8 13h5"/></svg>
+          <span class="contrib-action-text"><strong>Report incorrect details</strong><span>Correct a course name, prerequisites, credits, or exam routine.</span></span>
+          <svg class="catalog-external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6m0-6L10 14M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/></svg>
         </button>
-        <button type="button" class="contrib-action-card" id="contribExportCustomBtn">
-          <div class="contrib-action-icon success">
-            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-          </div>
-          <div class="contrib-action-text">
-            <strong>Export Custom Courses as JSON</strong>
-            <span>Download your custom course additions ready to submit in a PR.</span>
-          </div>
-          <span class="contrib-action-arrow">&darr;</span>
+        <button type="button" class="contrib-action-card" id="contribMissingCourseBtn">
+          <svg class="catalog-report-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          <span class="contrib-action-text"><strong>Request a missing course</strong><span>Suggest a course for the shared catalog.</span></span>
+          <svg class="catalog-external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6m0-6L10 14M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/></svg>
         </button>
       </div>
+      <p class="contrib-draft-note">Review and submit on GitHub. A GitHub account is required.</p>
+      <a href="https://github.com/litch07/uiu-course-decoder/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="contrib-guide-link">Contribution guide ↗</a>
       <div class="modal-actions" style="margin-top: 12px;">
         <button type="button" class="btn-modal-cancel" id="contribModalDoneBtn" style="width: 100%;">Close</button>
       </div>
@@ -155,83 +128,26 @@
   <!-- Slide container: holds both views side by side; CSS translateX switches between them -->
   <div class="view-wrapper" id="viewWrapper">
 
-    <!-- View 0: Dedicated Welcome & Onboarding Screen -->
-    <div class="view welcome-view" id="welcomeCard" role="region" aria-label="Welcome and Onboarding Guide">
-      <div class="welcome-screen-inner">
-
-        <!-- Top Bar with Pill Tag and Dismiss Button -->
-        <div class="welcome-topbar">
-          <div class="welcome-tag-pill">
-            <span class="welcome-tag-dot"></span>
-            <span>ACADEMIC COMPANION</span>
+    <!-- First-run welcome: one concise introduction, no setup wizard. -->
+    <div class="view welcome-view" id="welcomeCard" role="region" aria-labelledby="welcomeTitle">
+      <div class="onboarding-layout">
+        <div class="onboarding-content">
+          <div class="onboarding-brand-row">
+            <img src="icons/icon.png" alt="" class="onboarding-logo" width="40" height="40" />
+            <h1 id="welcomeTitle">UIU Course Code Decoder</h1>
+            <button type="button" class="onboarding-close" id="welcomeDismissBtn" aria-label="Close welcome and open Home" title="Open Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M6 18 18 6"/></svg></button>
           </div>
-          <button type="button" class="welcome-skip-btn" id="welcomeDismissBtn" aria-label="Skip onboarding and enter home" title="Skip to Home">
-            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-          </button>
+          <p class="onboarding-tagline">Decode courses. Map prerequisites. Plan exams.</p>
+          <ul class="onboarding-features"><li class="onboarding-feature"><span class="onboarding-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M3 12h18M12 3a18 18 0 0 1 0 18 18 18 0 0 1 0-18"/></svg></span><div><h2>Decode course codes</h2><p>Enable a website from Home, then hover over course codes.</p></div></li><li class="onboarding-feature"><span class="onboarding-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v12a3 3 0 0 0 3 3h9m-4-4 4 4-4 4M6 7h8a3 3 0 0 1 3 3v1"/></svg></span><div><h2>Explore prerequisites</h2><p>Follow prerequisite paths and see which courses come next.</p></div></li><li class="onboarding-feature"><span class="onboarding-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2M8 14h3M8 17h6"/></svg></span><div><h2>Plan your courses & exams</h2><p>Check exam clashes and busy days in My courses &amp; exams.</p></div></li></ul>
+          <aside class="onboarding-planning-note">Your plan stays on this device. Recheck exam dates and times in UCAM before finalizing it.</aside>
+          <div class="onboarding-privacy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4 3 7 8 9 5-2 8-5 8-9V6l-8-3M8 12l3 3 5-6"/></svg>
+            <p><strong>Offline lookups · No tracking</strong><span>Catalog updates use GitHub only when you check.</span></p>
+          </div>
         </div>
-
-        <!-- Hero Branding -->
-        <div class="welcome-hero-section">
-          <div class="welcome-brand-badge">
-            <img src="icons/icon.png" alt="UIU Course Decoder Logo" class="welcome-brand-img" />
-          </div>
-          <h1 class="welcome-title">Welcome to UIU Course Decoder!</h1>
-          <p class="welcome-subtitle">Your offline academic assistant &amp; routine planner</p>
-          <p class="welcome-intro-desc">
-            Instantly decode course codes, check exam routines, and inspect prerequisites on any UIU webpage (UCAM, LMS &amp; Sheets).
-          </p>
+        <div class="onboarding-actions">
+          <button type="button" class="btn-welcome-dismiss" id="welcomeActionBtn"><span>Get started</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>
         </div>
-
-        <!-- 3 Feature Highlight Cards -->
-        <div class="welcome-feature-list">
-
-          <div class="welcome-feature-card">
-            <div class="welcome-feature-icon-box icon-offline">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-              </svg>
-            </div>
-            <div class="welcome-feature-text">
-              <div class="welcome-feature-heading">100% Offline &amp; Private</div>
-              <div class="welcome-feature-detail">All catalog queries, routine notes, and custom additions stay securely on your device.</div>
-            </div>
-          </div>
-
-          <div class="welcome-feature-card">
-            <div class="welcome-feature-icon-box icon-routine">
-              <svg viewBox="0 0 24 24">
-                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5v-5z"/>
-              </svg>
-            </div>
-            <div class="welcome-feature-text">
-              <div class="welcome-feature-heading">Exam Routine &amp; Clash Alerts</div>
-              <div class="welcome-feature-detail">Add subjects to <em>My Courses</em> to automatically detect same-day exam schedule conflicts.</div>
-            </div>
-          </div>
-
-          <div class="welcome-feature-card">
-            <div class="welcome-feature-icon-box icon-hover">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-              </svg>
-            </div>
-            <div class="welcome-feature-text">
-              <div class="welcome-feature-heading">Instant Hover Live Decoding</div>
-              <div class="welcome-feature-detail">Hover over any course code (e.g. <code>CSE 3421</code>) anywhere on UIU portals to preview it live.</div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Bottom Action CTA -->
-        <div class="welcome-bottom-action">
-          <button type="button" class="btn-welcome-dismiss" id="welcomeActionBtn" title="Enter Home Dashboard">
-            <span>Got it, let's go!</span>
-            <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
-          </button>
-          <div class="welcome-footer-hint">Open-source tool maintained by &amp; for UIU students</div>
-        </div>
-
       </div>
     </div>
 
@@ -244,37 +160,19 @@
         </div>
         <div class="header-text" style="flex: 1;">
           <h1>UIU Course Code Decoder</h1>
-          <p>Academic Assistant &amp; Routine Decoder</p>
+          <p>Decode. Map. Plan.</p>
         </div>
-        <button class="header-btn" id="openSettingsBtn" title="Settings &amp; Preferences">
+        <button class="header-btn" id="openSettingsBtn" title="Settings" aria-label="Settings">
           <svg style="width:17px;height:17px;fill:white;" viewBox="0 0 24 24">
             <path
               d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
           </svg>
-          <span id="settingsBadge" class="settings-badge" style="display: none;"></span>
         </button>
       </div>
 
-      <!-- Overdue sync alert banner on Home Screen -->
-      <div id="homeSyncAlert" class="home-sync-alert" style="display: none;" title="Open Catalog Sync">
-        <div class="home-sync-alert-content">
-          <svg viewBox="0 0 24 24">
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-          </svg>
-          <span>Catalog has not been updated in over 2 months</span>
-        </div>
-        <span class="home-sync-alert-link">
-          Sync database
-          <svg viewBox="0 0 24 24">
-            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-          </svg>
-        </span>
-      </div>
-
       <div class="body">
-        <!-- Top Hero: Clickable Course Catalog Card -->
-        <button class="stat-pill stat-pill-interactive" id="openCoursesBtn" type="button" aria-label="Browse Course Database" title="Click to browse course database">
+        <div class="home-catalog-card">
+        <button class="stat-pill stat-pill-interactive" id="openCoursesBtn" type="button" aria-label="Browse Course catalog" title="Click to browse course database">
           <div class="stat-pill-left">
             <div class="stat-pill-icon">
               <svg viewBox="0 0 24 24">
@@ -282,8 +180,8 @@
               </svg>
             </div>
             <div class="stat-pill-info">
-              <span class="stat-label">Courses Indexed</span>
-              <span class="stat-sub">Browse &amp; Search Catalog</span>
+              <span class="stat-label">Course catalog</span>
+              <span class="stat-sub">Search by code or name</span>
             </div>
           </div>
           <div class="stat-pill-right">
@@ -291,6 +189,43 @@
             <svg class="stat-pill-arrow" viewBox="0 0 24 24">
               <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
             </svg>
+          </div>
+        </button>
+
+          <button type="button" id="homeSyncAlert" class="catalog-update-note" style="display: none;" title="Open catalog updates in Settings">
+            <span id="homeSyncAge">Catalog update available</span>
+            <span class="catalog-update-action">Check for updates</span>
+          </button>
+        </div>
+
+        <!-- Feature 1: My Courses Hub Card -->
+        <button class="card enrolled-hub-card enrolled-quick-card" id="homeEnrolledCard" type="button" aria-label="Open My Courses and Exam Routine">
+          <div class="enrolled-hub-top">
+            <div class="enrolled-hub-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM3.45 9L12 4.34 20.55 9 12 13.66 3.45 9zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+              </svg>
+            </div>
+            <div class="enrolled-hub-info">
+              <div class="enrolled-hub-title-row">
+                <span class="enrolled-hub-title">My courses &amp; exams</span>
+                <span class="enrolled-hub-count-chip" id="homeEnrolledCountBadge"><span id="homeEnrolledCount">0</span></span>
+              </div>
+              <div class="enrolled-hub-sub">
+                <span id="homeEnrolledCredits">Add courses to plan your exams</span>
+                <span class="enrolled-hub-dot">&bull;</span>
+                <span id="homeEnrolledStatusHint">Plan exam routine</span>
+              </div>
+            </div>
+            <div class="enrolled-hub-arrow">
+              <svg viewBox="0 0 24 24">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="home-exam-summary" id="homeExamSummary" role="status" aria-live="polite" aria-atomic="true" style="display: none;">
+            <div class="clash-badge danger" id="homeClashBadge" style="display: none;"></div>
+            <div class="clash-badge warning" id="homeSameDayBadge" style="display: none;"></div>
           </div>
         </button>
 
@@ -310,33 +245,33 @@
               </div>
             </div>
             <label class="switch" id="toggleLabel" title="Toggle extension on this domain">
-              <input type="checkbox" id="siteToggle" checked />
+              <input type="checkbox" id="siteToggle" aria-label="Enable course decoding on this website" aria-describedby="statusText" checked />
               <span class="switch-track"></span>
             </label>
           </div>
         </div>
 
         <div class="card" id="displaySettingsCard">
-          <span class="card-title">Display Mode</span>
+          <span class="card-title">Website display</span>
           <div class="mode-group" role="radiogroup" aria-label="Decoder display mode">
             <label class="mode-option">
               <input type="radio" name="mode" value="highlight" id="modeHighlight" />
               <span class="mode-btn" title="Yellow background, name on hover">
-                <span class="mode-icon">✨</span>
+                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h7M4 17l8-8 4 4-8 8H4zM14 3l7 7-3 3-7-7z"/></svg>
                 <span class="mode-name">Highlight</span>
               </span>
             </label>
             <label class="mode-option">
               <input type="radio" name="mode" value="tooltip" id="modeTooltip" />
               <span class="mode-btn" title="Hover to see full name">
-                <span class="mode-icon">💬</span>
+                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <span class="mode-name">Tooltip</span>
               </span>
             </label>
             <label class="mode-option">
               <input type="radio" name="mode" value="inline" id="modeInline" />
               <span class="mode-btn" title="Adds full name in parentheses">
-                <span class="mode-icon">✏️</span>
+                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
                 <span class="mode-name">Inline</span>
               </span>
             </label>
@@ -346,7 +281,7 @@
 
           <div class="toggle-row">
             <div>
-              <div class="toggle-label">Show Exam Day &amp; Slot</div>
+              <label class="toggle-label" for="showExamInfoToggle">Exam day &amp; slot</label>
             </div>
             <label class="switch">
               <input type="checkbox" id="showExamInfoToggle" />
@@ -356,7 +291,7 @@
 
           <div class="toggle-row">
             <div>
-              <div class="toggle-label">Show Prerequisites</div>
+              <label class="toggle-label" for="showPrerequisitesToggle">Prerequisites</label>
             </div>
             <label class="switch">
               <input type="checkbox" id="showPrerequisitesToggle" />
@@ -365,35 +300,7 @@
           </div>
         </div>
 
-        <!-- Feature 1: My Courses Hub Card -->
-        <button class="card enrolled-hub-card enrolled-quick-card" id="homeEnrolledCard" type="button" aria-label="Open My Courses and Exam Routine">
-          <div class="enrolled-hub-top">
-            <div class="enrolled-hub-icon">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM3.45 9L12 4.34 20.55 9 12 13.66 3.45 9zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
-              </svg>
-            </div>
-            <div class="enrolled-hub-info">
-              <div class="enrolled-hub-title-row">
-                <span class="enrolled-hub-title">My Courses</span>
-                <span class="enrolled-hub-count-chip"><span id="homeEnrolledCount">0</span></span>
-              </div>
-              <div class="enrolled-hub-sub">
-                <span id="homeEnrolledCredits">0.0 Cr</span>
-                <span class="enrolled-hub-dot">&bull;</span>
-                <span id="homeEnrolledStatusHint">Plan exam routine</span>
-              </div>
-            </div>
-            <div class="enrolled-hub-arrow">
-              <svg viewBox="0 0 24 24">
-                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-              </svg>
-            </div>
-          </div>
-          <div class="clash-badge danger" id="homeClashBadge" style="display: none;">
-            &#9888;&#65039; Exam Schedule Notice
-          </div>
-        </button>
+
 
 
       </div>
@@ -415,43 +322,42 @@
     </div>
 
     <!-- View 2: Course database panel (slides in from the right) -->
-    <div class="view courses-view" role="region" aria-label="Course Database">
+    <div class="view courses-view" role="region" aria-label="Course catalog">
 
       <div class="header">
-        <button class="header-back" id="backBtn" title="Go back">
+        <button class="header-back" id="backBtn" title="Back" aria-label="Back">
           <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
           </svg>
         </button>
         <div class="header-text" style="flex:1;">
-          <h1 id="coursesPanelTitle">Course Catalog</h1>
+          <h1 id="coursesPanelTitle">Course catalog</h1>
           <p id="coursesPanelCount">Browse &amp; search all courses</p>
         </div>
         <div class="header-actions">
-          <button type="button" id="openContribModalBtn" class="header-export-btn" title="Contributing &amp; Community Guide" aria-label="Community &amp; Contributing Guide">
-            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-            </svg>
+
+          <button type="button" id="exportCoursesBtn" class="header-export-btn header-export-action" title="Export courses as JSON" aria-haspopup="dialog" aria-controls="exportModal"
+            aria-label="Export courses as JSON">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></svg><span>Export</span>
           </button>
-          <button type="button" id="exportCoursesBtn" class="header-export-btn" title="Export Courses"
-            aria-label="Export Courses">
-            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-            </svg>
-          </button>
-          <button id="viewTrashBtn" class="header-trash-btn" title="Trash Bin">
+          <details class="catalog-menu" id="catalogMenu">
+            <summary class="header-btn" id="catalogMenuToggle" aria-label="More catalog options" title="More catalog options"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="catalog-trash-dot" aria-hidden="true"></span></summary>
+            <div class="catalog-menu-panel">
+<button type="button" id="viewTrashBtn" class="catalog-menu-item" title="Trash">
             <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
               <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
             </svg>
-            <div id="trashBadge"
-              style="position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; border-radius: 50%; font-size: 0.55rem; width: 15px; height: 15px; display: none; align-items: center; justify-content: center; font-weight: bold; border: 1.5px solid var(--accent); line-height: 1;">
-            </div>
-          </button>
-          <button type="button" class="header-btn" id="coursesSettingsBtn" title="Settings &amp; Preferences" aria-label="Settings &amp; Preferences">
+
+          <span>Trash</span><span id="trashBadge" class="catalog-trash-count" style="display: none;" aria-hidden="true"></span></button><button type="button" id="openContribModalBtn" class="catalog-menu-item" title="Improve the course catalog" aria-label="Improve the course catalog">
+            <svg class="contribution-outline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 10h8M12 6v8"/></svg>
+          <span>Improve catalog</span></button><button type="button" class="catalog-menu-item" id="coursesSettingsBtn" title="Settings" aria-label="Settings">
             <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
               <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
             </svg>
-          </button>
+          <span>Settings</span></button></div>
+          </details>
+
+
         </div>
       </div>
 
@@ -479,25 +385,22 @@
         <!-- Filter row -->
         <div class="filter-row" id="courseFilterRow" role="group" aria-label="Course list filters">
           <button class="filter-btn active" data-filter="all">All</button>
-          <button class="filter-btn" data-filter="user"><span class="filter-dot dot-user"></span>User Added</button>
+          <button class="filter-btn" data-filter="user"><span class="filter-dot dot-user"></span>Custom</button>
           <button class="filter-btn" data-filter="edited"><span class="filter-dot dot-edited"></span>Edited</button>
           <button class="filter-btn" data-filter="official"><span
-              class="filter-dot dot-official"></span>Official</button>
+              class="filter-dot dot-official"></span>Catalog</button>
         </div>
+
+        <p class="trash-notice" id="trashNotice" style="display: none;">Restore courses to the catalog, or delete them permanently.</p>
 
         <!-- Trash actions row -->
         <div class="filter-row" id="trashActionsRow" style="display: none; gap: 8px;">
           <button class="btn-trash-action restore" id="restoreAllBtn">
-            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path
-                d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.896 8.896 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
-            </svg>
-            Restore All
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg>
+            Restore all
           </button>
           <button class="btn-trash-action empty" id="emptyTrashBtn">
-            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>
             Empty Trash
           </button>
         </div>
@@ -523,7 +426,7 @@
           <svg style="width:15px;height:15px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
           </svg>
-          Add / Import Courses
+          Add courses
         </button>
 
 
@@ -540,15 +443,13 @@
         <div class="header-text" style="flex:1;">
           <div class="details-header-title-row">
             <h1 id="detailsCourseCode">Course Details</h1>
-            <span class="origin-badge official" id="detailsOriginBadge">Official</span>
+            <span class="origin-badge official" id="detailsOriginBadge">Catalog</span>
           </div>
           <p id="detailsCourseSubtitle">Course Information &amp; Routine</p>
         </div>
         <div class="header-actions">
-          <button type="button" class="header-export-btn" id="detailsInfoBtn" title="How to contribute or report wrong data" aria-label="Contributing &amp; Community Guide">
-            <svg class="course-header-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8h.01M12 11v5M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"/></svg>
-          </button>
-          <button type="button" class="header-btn" id="detailsSettingsBtn" title="Settings &amp; Preferences" aria-label="Settings &amp; Preferences">
+
+          <button type="button" class="header-btn" id="detailsSettingsBtn" title="Settings" aria-label="Settings">
             <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
               <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
             </svg>
@@ -562,18 +463,18 @@
           <div class="detail-enroll-status-col">
             <div class="detail-enroll-status-row">
               <span class="detail-enroll-indicator" id="detailEnrollIndicator"></span>
-              <span class="detail-enroll-status-text" id="detailEnrollStatusText">Not in Trimester Routine</span>
+              <span class="detail-enroll-status-text" id="detailEnrollStatusText">Not in My Courses</span>
             </div>
             <span class="detail-enroll-hint" id="detailEnrollHint">Add to track credits and detect exam schedule clashes</span>
           </div>
-          <button type="button" class="btn-enroll-toggle" id="detailsEnrollBtn" title="Toggle enrollment in this course">
+          <button type="button" class="btn-enroll-toggle" id="detailsEnrollBtn" title="Add or remove this course from My Courses">
             <svg class="enroll-star-icon" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-            <span id="detailsEnrollBtnText">Enroll</span>
+            <span id="detailsEnrollBtnText">Add</span>
           </button>
         </div>
 
         <!-- Clash Warning Banner in Course Details (Task 3.2) -->
-        <div class="detail-clash-warning" id="detailClashWarning" style="display: none;">
+        <div class="detail-clash-warning" id="detailClashWarning" role="status" aria-live="polite" aria-atomic="true" style="display: none;">
           <svg class="clash-alert-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
           <span id="detailClashText">Exam routine clashes with another enrolled course</span>
         </div>
@@ -587,39 +488,26 @@
               </svg>
             </div>
             <div class="detail-contrib-banner-text">
-              <div class="detail-contrib-banner-title">Changes Saved Locally!</div>
-              <div class="detail-contrib-banner-desc">Help keep UIU course information complete by proposing your update to the official catalog.</div>
+              <div class="detail-contrib-banner-title">Changes saved on this device</div>
+              <div class="detail-contrib-banner-desc">Review your saved changes against the shared catalog in a GitHub draft.</div>
             </div>
             <button type="button" class="detail-contrib-banner-close" id="detailSaveContribClose" aria-label="Dismiss banner" title="Dismiss">&times;</button>
           </div>
           <div class="detail-contrib-banner-actions">
-            <button type="button" class="btn-detail-contrib-github" id="detailSaveContribGithubBtn" title="Propose this update to the official catalog on GitHub">
-              <svg class="btn-detail-contrib-github-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-              </svg>
-              <span>Submit to GitHub</span>
+            <button type="button" class="btn-detail-contrib-github" id="detailSaveContribGithubBtn" title="Open a GitHub draft comparing catalog details with your saved changes">
+              <svg class="catalog-report-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8M8 13h5"/></svg>
+              <span>Suggest this update ↗</span>
             </button>
-            <button type="button" class="btn-detail-contrib-done" id="detailSaveContribDoneBtn" title="Return to Course Catalog">
+            <button type="button" class="btn-detail-contrib-done" id="detailSaveContribDoneBtn" title="Return to Course catalog">
               <span>Back to Catalog &rarr;</span>
             </button>
           </div>
         </div>
 
-        <div class="prereq-launcher-card" id="detailPrereqLauncherCard">
-          <button type="button" class="btn-open-prereq-flow" id="btnOpenPrereqFlow" aria-controls="prereqFlowView">
-            <svg class="roadmap-button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v12a3 3 0 0 0 3 3h9m-4-4 4 4-4 4M6 7h8a3 3 0 0 1 3 3v1"/></svg>
-            <span class="roadmap-button-copy">
-              <span id="btnOpenPrereqFlowText">Course roadmap</span>
-              <span class="roadmap-button-counts" id="roadmapButtonCounts">0 prerequisites · Opens 0 courses</span>
-            </span>
-            <svg class="roadmap-button-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
-          </button>
-        </div>
-
         <!-- Directly Editable Course Customization Card (Open & Immediately Accessible) -->
         <div class="detail-form-container" id="detailsFormContainer">
           <div class="details-card">
-            
+
 
             <div class="form-group">
               <label class="form-label" for="detailName">Course Name <span class="required">*</span></label>
@@ -631,7 +519,7 @@
                 <label class="form-label" for="detailPrereq">Prerequisites</label>
                 <label class="form-checkbox-inline" for="detailNoPrereq">
                   <input type="checkbox" id="detailNoPrereq" class="form-checkbox-sm" />
-                  <span>None (Direct entry)</span>
+                  <span>No prerequisites</span>
                 </label>
               </div>
               <input type="text" id="detailPrereq" class="form-input" placeholder="e.g. CSE 1111, MATH 1151" />
@@ -665,53 +553,40 @@
             </div>
 
             <div class="details-actions">
-              <button class="btn-save-details" id="detailSaveBtn">
+              <button type="button" class="btn-save-details" id="detailSaveBtn" disabled title="No changes to save">
                 <svg viewBox="0 0 24 24">
                   <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
                 </svg>
-                Save Changes
+                Save changes
               </button>
               <button class="btn-del-details" id="detailDelBtn">
                 <svg viewBox="0 0 24 24">
                   <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                 </svg>
-                Delete Course
+                Move to Trash
               </button>
             </div>
           </div>
         </div>
 
-        <details class="report-card" id="detailReportCard">
-          <summary class="report-card-header">
-            <span class="report-card-icon-badge" id="detailReportIconBadge">
-              <svg viewBox="0 0 24 24" id="detailReportIcon">
-                <path id="detailReportIconPath" fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-              </svg>
+        <div class="prereq-launcher-card" id="detailPrereqLauncherCard">
+          <button type="button" class="btn-open-prereq-flow" id="btnOpenPrereqFlow" aria-controls="prereqFlowView">
+            <svg class="roadmap-button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v12a3 3 0 0 0 3 3h9m-4-4 4 4-4 4M6 7h8a3 3 0 0 1 3 3v1"/></svg>
+            <span class="roadmap-button-copy">
+              <span id="btnOpenPrereqFlowText">Course roadmap</span>
+              <span class="roadmap-button-counts" id="roadmapButtonCounts">0 prerequisites · Required by 0 courses</span>
             </span>
-            <span class="report-card-header-text">
-              <span class="report-card-title" id="detailReportTitle">Upload to Official Repository</span>
-              <span class="report-card-subtitle" id="detailReportSubtitle">Saved locally on this device</span>
-            </span>
-          </summary>
-          <div class="report-card-body" id="detailReportBody">
-            This course is currently stored on your browser. Upload it to the community catalog so all UIU students can automatically decode it!
-          </div>
-          <button type="button" class="btn-report-issue" id="reportIssueBtn"
-            title="Upload this user-added course to the official repository via GitHub">
-            <svg class="report-btn-icon" id="detailReportBtnIcon" viewBox="0 0 24 24">
-              <path id="detailReportBtnIconPath" fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-            </svg>
-            <span id="detailReportBtnText">Submit Course to GitHub</span>
-            <svg class="report-external-icon" viewBox="0 0 24 24">
-              <path d="M5 17.59L15.59 7H9V5h10v10h-2V8.41L6.41 19 5 17.59z" />
-            </svg>
+            <svg class="roadmap-button-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
           </button>
-          <div class="report-card-footer">
-            <span id="detailReportFooterHint">Open-source community project</span>
-            <a href="https://github.com/litch07/uiu-course-decoder/blob/main/CONTRIBUTING.md" target="_blank"
-              rel="noopener noreferrer" class="report-contribute-link">Contributing Guide &rarr;</a>
-          </div>
-        </details>
+        </div>
+
+        <div class="catalog-report-row" id="detailReportCard">
+          <button type="button" class="catalog-report-action" id="reportIssueBtn" title="Report a course error — opens a GitHub draft for you to review and submit">
+            <svg class="catalog-report-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8M8 13h5"/></svg>
+            <span class="catalog-report-label"><span id="detailReportTitle">Report a course error</span><span id="detailReportSubtitle">Suggest corrections to course or exam details on GitHub</span></span>
+            <svg class="catalog-external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6m0-6L10 14M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -723,10 +598,10 @@
         </button>
         <div class="header-text" style="flex:1;">
           <div class="details-header-title-row">
-            <h1 id="flowCourseCode">Course Code</h1>
-            <span class="origin-badge official" id="flowOriginBadge">Official</span>
+            <h1 id="flowCourseCode">Course roadmap</h1>
+            <span class="origin-badge official" id="flowOriginBadge">Catalog</span>
           </div>
-          <p id="flowCourseSubtitle">Prerequisite roadmap</p>
+          <p id="flowCourseSubtitle">Course code and name</p>
         </div>
         <div class="header-actions">
           <!-- Code / Name switch in header toolbar -->
@@ -740,7 +615,7 @@
               Name
             </button>
           </div>
-          <button type="button" class="header-btn" id="flowSettingsBtn" title="Settings &amp; Preferences" aria-label="Settings &amp; Preferences">
+          <button type="button" class="header-btn" id="flowSettingsBtn" title="Settings" aria-label="Settings">
             <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
               <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
             </svg>
@@ -796,22 +671,18 @@
     <!-- View 4: Import courses panel -->
     <div class="view import-view" role="region" aria-label="Add or Import Courses">
       <div class="header">
-        <button class="header-back" id="importBackBtn" title="Go back">
+        <button class="header-back" id="importBackBtn" title="Back" aria-label="Back">
           <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
           </svg>
         </button>
         <div class="header-text" style="flex:1;">
-          <h1>Add &amp; Import Courses</h1>
-          <p id="importViewSubtitle">Add single course or bulk JSON</p>
+          <h1>Add courses</h1>
+          <p id="importViewSubtitle"></p>
         </div>
         <div class="header-actions">
-          <button type="button" class="header-export-btn" id="importInfoBtn" title="Community Contributing Guide" aria-label="Community Contributing Guide">
-            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-            </svg>
-          </button>
-          <button type="button" class="header-btn" id="importSettingsBtn" title="Settings &amp; Preferences" aria-label="Settings &amp; Preferences">
+
+          <button type="button" class="header-btn" id="importSettingsBtn" title="Settings" aria-label="Settings">
             <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
               <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
             </svg>
@@ -825,14 +696,14 @@
             <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
             </svg>
-            Single Course
+            Add a course
           </button>
           <button type="button" class="import-tab-btn" id="tabBulkImport" role="tab" aria-selected="false" aria-controls="bulkImportSection">
             <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
               <path
                 d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
             </svg>
-            Batch Upload
+            Import JSON
           </button>
         </div>
 
@@ -920,7 +791,7 @@
                     <label class="form-label" for="singleCoursePrereq">Prerequisites</label>
                     <label class="form-checkbox-inline" for="singleCourseNoPrereq">
                       <input type="checkbox" id="singleCourseNoPrereq" class="form-checkbox-sm" />
-                      <span>None (Direct entry)</span>
+                      <span>No prerequisites</span>
                     </label>
                   </div>
                   <input type="text" class="form-input" id="singleCoursePrereq"
@@ -936,7 +807,7 @@
               </div>
             </div>
 
-            <div class="import-msg" id="singleCourseMsg" style="display: none;"></div>
+            <div class="import-msg" id="singleCourseMsg" role="status" aria-live="polite" aria-atomic="true" style="display: none;"></div>
 
             <!-- Form Actions -->
             <div class="import-actions">
@@ -964,8 +835,8 @@
                 </svg>
               </div>
               <div class="success-header-text">
-                <h3>Course Added to Catalog!</h3>
-                <p>Saved to your local extension database</p>
+                <h3>Course added</h3>
+                <p>Saved on this device</p>
               </div>
             </div>
 
@@ -973,7 +844,7 @@
             <div class="added-course-preview">
               <div class="preview-code-row">
                 <span class="preview-code" id="successCourseCode">CSE 3715</span>
-                <span class="preview-credits" id="successCourseCredits">3.0 Cr</span>
+                <span class="preview-credits" id="successCourseCredits">Credits not listed</span>
               </div>
               <div class="preview-name" id="successCourseName">Software Engineering</div>
               <div class="preview-meta-row">
@@ -991,16 +862,14 @@
                   </svg>
                 </div>
                 <div class="community-text">
-                  <strong>Share with UIU Community?</strong>
-                  <span id="contribPromptDesc">Submit this course to the official catalog on GitHub so all students can decode it.</span>
+                  <strong id="contribPromptTitle">Suggest this course for everyone</strong>
+                  <span id="contribPromptDesc">Saved on this device. You can also suggest it for the shared catalog.</span>
                 </div>
                 <button type="button" class="btn-community-dismiss" id="contribDismissBtn" title="Dismiss" aria-label="Dismiss">&times;</button>
               </div>
               <button type="button" class="btn-github-submit" id="contribSubmitGithubBtn">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
-                </svg>
-                <span>Submit to GitHub (1-Click)</span>
+                <svg class="catalog-report-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8M8 13h5"/></svg>
+                <span>Open GitHub draft ↗</span>
               </button>
             </div>
 
@@ -1080,13 +949,13 @@
           </div>
           <textarea class="json-textarea" id="jsonInput" spellcheck="false"
             placeholder='{&#10;  "CSE 3715": {&#10;    "name": "Software Engineering",&#10;    "examDay": "D1",&#10;    "examSlot": "T1",&#10;    "prerequisites": [&#10;      "CSE 2215",&#10;      "CSE 2216"&#10;    ]&#10;  },&#10;  "ACT 1111": {&#10;    "name": "Financial Accounting",&#10;    "examDay": "",&#10;    "examSlot": "",&#10;    "prerequisites": []&#10;  }&#10;}'></textarea>
-          <div class="import-msg" id="importMsg"></div>
+          <div class="import-msg" id="importMsg" role="status" aria-live="polite" aria-atomic="true"></div>
           <div class="import-actions">
             <button class="btn-import" id="importBtn">
               <svg style="width:14px;height:14px;fill:white;" viewBox="0 0 24 24">
                 <path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z" />
               </svg>
-              Import &amp; Merge
+              Review import
             </button>
             <button class="btn-clear" id="clearBtn">
               <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24">
@@ -1103,20 +972,18 @@
     <!-- View: My Courses & Exam Routine (Dedicated Student Planner) -->
     <div class="view mycourses-view" role="region" aria-label="My Courses and Exam Routine">
       <div class="header">
-        <button class="header-back" id="myCoursesBackBtn" title="Go back" aria-label="Back to home">
+        <button class="header-back" id="myCoursesBackBtn" title="Back to home" aria-label="Back to home">
           <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
           </svg>
         </button>
         <div class="header-text" style="flex:1;">
-          <h1>My Courses &amp; Routine</h1>
-          <p id="myCoursesHeaderSubtitle">0 enrolled courses &bull; 0.0 credits</p>
+          <h1>My courses &amp; exams</h1>
+          <p id="myCoursesHeaderSubtitle">0 courses · 0 credits</p>
         </div>
         <div class="header-actions">
-          <button type="button" class="header-export-btn" id="exportRoutineMdBtn" title="Export Enrolled Courses &amp; Routine (.md)" aria-label="Export Enrolled Courses &amp; Routine">
-            <svg style="width:16px;height:16px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-            </svg>
+          <button type="button" class="header-export-btn header-export-action" id="exportRoutineMdBtn" title="Download exam routine as Markdown (.md)" aria-label="Export exam routine">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></svg><span>Export</span>
           </button>
         </div>
       </div>
@@ -1128,7 +995,7 @@
             <svg class="mycourses-search-icon" viewBox="0 0 24 24">
               <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
             </svg>
-            <input type="text" id="myCoursesSearchInput" placeholder="Search course code or title (e.g. CSE 2215)…" autocomplete="off" spellcheck="false" />
+            <input type="text" id="myCoursesSearchInput" placeholder="Find a course to add…" aria-label="Find a course to add by code or name" autocomplete="off" spellcheck="false" />
             <button type="button" class="mycourses-search-clear" id="myCoursesSearchClearBtn" style="display: none;" title="Clear search" aria-label="Clear search">&times;</button>
           </div>
           <!-- Dropdown autocomplete suggestions -->
@@ -1136,7 +1003,7 @@
         </div>
 
                 <!-- Exam Routine Clash Alert Card -->
-        <div class="clash-alert-box" id="clashAlertBox" style="display: none;">
+        <div class="clash-alert-box" id="clashAlertBox" role="status" aria-live="polite" aria-atomic="true" style="display: none;">
           <div class="clash-alert-header">
             <span class="clash-alert-icon-wrap" id="clashAlertIconWrap">
               <svg viewBox="0 0 24 24">
@@ -1154,18 +1021,14 @@
 <div class="enrolled-summary-card" id="enrolledSummaryCard">
           <div class="enrolled-summary-header">
             <div class="enrolled-summary-title">
-              <span class="enrolled-summary-label">Enrolled Summary</span>
-              <div class="enrolled-summary-stats">
-                <strong><span id="enrolledTotalCourses">0</span> courses</strong>
-                <span class="stat-dot-sep">&bull;</span>
-                <strong><span id="enrolledTotalCredits">0.0</span> credits</strong>
-              </div>
+              <span class="enrolled-summary-label">Exam routine</span>
+
             </div>
-            <button type="button" class="btn-clear-enrolled" id="clearEnrolledBtn" title="Drop all courses">
+            <button type="button" class="btn-clear-enrolled" id="clearEnrolledBtn" title="Remove all courses from My Courses">
               <svg viewBox="0 0 24 24" style="width:11px;height:11px;fill:currentColor;flex-shrink:0;">
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
               </svg>
-              Drop All
+              Remove all
             </button>
           </div>
         </div>
@@ -1180,82 +1043,63 @@
               <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM3.45 9L12 4.34 20.55 9 12 13.66 3.45 9zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
             </svg>
           </div>
-          <div class="mycourses-empty-title">Your Trimester Routine is Empty</div>
+          <div class="mycourses-empty-title">No courses added yet</div>
           <div class="mycourses-empty-desc">Quickly add your courses using the search box above to calculate credits, build your exam routine, and detect schedule clashes.</div>
           <button type="button" class="btn-browse-catalog-cta" id="browseCatalogFromMyCoursesBtn">
             <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;">
               <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
             </svg>
-            Browse Course Catalog
+            Browse Course catalog
           </button>
         </div>
+        <aside class="routine-source-note" id="routinePlanningNote" aria-labelledby="routinePlanningNoteTitle" hidden>
+          <strong id="routinePlanningNoteTitle">Planning reminder</strong>
+          <p>Recheck the latest exam dates and times in UCAM before finalizing your plan.</p>
+          <p>Your selections are saved only on this device. You can remove or replace courses here without changing your UCAM registration.</p>
+        </aside>
       </div>
     </div>
 
     <!-- View 5: Settings & Preferences panel -->
     <div class="view settings-view" role="region" aria-label="Settings and Preferences">
       <div class="header">
-        <button class="header-back" id="settingsBackBtn" title="Go back">
+        <button class="header-back" id="settingsBackBtn" title="Back" aria-label="Back">
           <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
           </svg>
         </button>
         <div class="header-text" style="flex:1;">
-          <h1>Settings &amp; Preferences</h1>
-          <p>Theme, site permissions &amp; sync</p>
+          <h1>Settings</h1>
+          <p>Appearance, websites &amp; course data</p>
         </div>
       </div>
 
-      <div class="body">
-        <!-- Card 0: Appearance & Theme (Task 3.4) -->
-        <div class="card" id="themeSettingsCard">
-          <span class="card-title">
-            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
-            </svg>
-            Appearance &amp; Theme
-          </span>
-          <div class="theme-options-group" id="themeOptionsGroup" role="radiogroup" aria-label="Theme selection">
+      <div class="body settings-body">
+        <section class="settings-section" id="themeSettingsCard" aria-labelledby="appearanceSettingsTitle">
+          <h2 class="settings-section-title" id="appearanceSettingsTitle"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1-3.7 2 2 0 0 1 1-3.3h2a4 4 0 0 0 4-4c0-4-4-7-9-7zM7 10h.01M10 7h.01M15 7h.01"/></svg>Appearance</h2><div class="theme-options-group" id="themeOptionsGroup" role="radiogroup" aria-label="Theme selection">
             <button type="button" class="theme-option-btn active" id="themeSystem" data-theme-val="system" role="radio" aria-checked="true">
-              <svg class="theme-icon" viewBox="0 0 24 24">
-                <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
-              </svg>
+              <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3h16v12H4zM8 21h8M12 15v6"/></svg>
               <span>System</span>
             </button>
             <button type="button" class="theme-option-btn" id="themeLight" data-theme-val="light" role="radio" aria-checked="false">
-              <svg class="theme-icon" viewBox="0 0 24 24">
-                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
-              </svg>
+              <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
               <span>Light</span>
             </button>
             <button type="button" class="theme-option-btn" id="themeDark" data-theme-val="dark" role="radio" aria-checked="false">
-              <svg class="theme-icon" viewBox="0 0 24 24">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
+              <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
               <span>Dark</span>
             </button>
           </div>
-          <div id="themeStatusHint" class="theme-status-hint">
-            System theme automatically adapts to your operating system or browser mode.
-          </div>
-        </div>
+          <p id="themeStatusHint" class="settings-hint theme-status-hint" hidden></p>
+        </section>
 
-        <!-- Card 1: Allowed Domains -->
-        <div class="card">
-          <div class="card-title-row">
-            <span class="card-title">
-              <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-              </svg>
-              Allowed Domains <span class="card-title-hint">(Supports *)</span>
-            </span>
-            <span class="domains-count-badge" id="domainsCountBadge">0 domains</span>
-          </div>
-
+        <section class="settings-section" id="websiteSettingsCard" aria-labelledby="websiteSettingsTitle">
+          <div class="settings-section-heading"><h2 class="settings-section-title" id="websiteSettingsTitle"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M3 12h18M12 3a18 18 0 0 1 0 18 18 18 0 0 1 0-18"/></svg>Enabled websites</h2><span class="domains-count-badge" id="domainsCountBadge">0 websites</span></div>
+          <p class="settings-hint">Decode course codes only on websites you enable.</p>
+          <label class="settings-field-label" for="allowlistInput">Website address</label>
           <div class="allowlist-input-row">
-            <input type="text" id="allowlistInput" placeholder="e.g. ucam.uiu.ac.bd" />
-            <button id="allowlistBtn">Add</button>
+            <input type="text" id="allowlistInput" placeholder="ucam.uiu.ac.bd" aria-label="Website address to enable" aria-describedby="websitePatternHint" autocomplete="off" autocapitalize="none" spellcheck="false" />
+            <button type="button" id="allowlistBtn" aria-label="Enable website">Enable</button>
           </div>
 
           <!-- Domain Search & Filter Bar -->
@@ -1264,7 +1108,7 @@
               <svg class="domain-search-icon" viewBox="0 0 24 24">
                 <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
               </svg>
-              <input type="text" id="domainSearchInput" placeholder="Filter domains..." aria-label="Filter domains" />
+              <input type="text" id="domainSearchInput" placeholder="Find a website…" aria-label="Find an enabled website" />
               <button type="button" class="domain-search-clear" id="domainSearchClearBtn" style="display: none;" title="Clear filter" aria-label="Clear filter">&times;</button>
             </div>
           </div>
@@ -1273,65 +1117,42 @@
           <div class="domain-bulk-toolbar" id="domainBulkToolbar" style="display: none;">
             <label class="domain-select-all-label">
               <input type="checkbox" id="domainSelectAll" aria-label="Select all domains" />
-              <span id="domainSelectAllText">Select All</span>
+              <span id="domainSelectAllText">Select all</span>
             </label>
             <div class="domain-bulk-actions">
               <button type="button" class="btn-bulk-remove-domains" id="bulkRemoveDomainsBtn" disabled aria-label="Remove selected domains">
                 <svg viewBox="0 0 24 24" style="width: 11px; height: 11px; fill: currentColor;">
                   <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                 </svg>
-                <span id="bulkRemoveDomainsBtnText">Remove Selected</span>
+                <span id="bulkRemoveDomainsBtnText">Remove selected</span>
               </button>
             </div>
           </div>
 
           <div id="allowlistContainer" class="allowlist-container"></div>
-          <div style="font-size: 0.65rem; color: var(--text-muted); line-height: 1.35; margin-top: 2px;">
-            The extension only runs on websites in this list. Use <code>*</code> for wildcards (e.g.
-            <code>*.uiu.ac.bd</code>).
+
+          <p class="settings-hint" id="websitePatternHint">To include subdomains, use <code>*.uiu.ac.bd</code>.</p>
+        </section>
+
+        <section class="settings-section" id="catalogSettingsCard" aria-labelledby="catalogSettingsTitle">
+          <h2 class="settings-section-title" id="catalogSettingsTitle"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.36-6.36L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.36 6.36L3 16M3 21v-5h5"/></svg>Catalog updates</h2>
+          <p class="settings-hint">Get the latest shared catalog from GitHub. Your custom courses and edits stay saved.</p>
+          <p id="syncReminderBanner" class="settings-update-reminder" style="display: none;">Last updated over 60 days ago. Check for catalog updates.</p>
+          <div class="settings-update-row">
+            <span id="syncTime" class="settings-hint" role="status" aria-live="polite" aria-atomic="true">Not updated yet</span>
+            <button type="button" class="settings-update-button" id="syncBtn">
+              <svg class="settings-icon sync-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.36-6.36L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.36 6.36L3 16M3 21v-5h5"/></svg><span id="syncBtnText">Check for updates</span>
+            </button>
           </div>
-        </div>
-
-        <!-- Card 2: Database Sync & Cloud Updates -->
-        <div class="card">
-          <span class="card-title">
-            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path
-                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
-            </svg>
-            Official Catalog Sync
-          </span>
-
-          <div id="syncReminderBanner" class="sync-reminder-banner" style="display: none; margin-bottom: 8px;">
-            <svg style="width:14px;height:14px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-            </svg>
-            <span>Course catalog has not been updated in over 2 months. Sync database to fetch the latest official
-              course mappings &amp; exam schedules.</span>
-          </div>
-
-          <button class="btn-courses btn-sync" id="syncBtn">
-            <svg class="sync-icon" style="width:14px;height:14px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
-              <path
-                d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
-            </svg>
-            <span id="syncBtnText">Sync Course Database</span>
-          </button>
-          <div id="syncTime"
-            style="font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: -4px;">
-            Never synced</div>
-
-          <!-- Sync result diff summary box -->
-          <div id="syncResultBox" class="sync-card">
+          <div id="syncResultBox" role="status" aria-live="polite" aria-atomic="true" class="sync-card">
             <div class="sync-card-header">
               <div class="sync-card-status">
                 <span id="syncResultDot" class="sync-card-dot"></span>
-                <span id="syncResultTitle">Database is up to date</span>
+                <span id="syncResultTitle">Catalog is up to date</span>
               </div>
               <div class="sync-card-header-actions">
                 <div class="sync-card-time-group">
-                  <span class="sync-card-time-label">Last synced</span>
+                  <span class="sync-card-time-label">Last updated</span>
                   <span id="syncResultTime" class="sync-card-time"></span>
                 </div>
                 <button type="button" class="sync-card-dismiss-btn" id="syncResultDismissBtn" title="Dismiss summary"
@@ -1343,40 +1164,34 @@
                 </button>
               </div>
             </div>
-            <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the official repository.
+            <div id="syncResultDesc" class="sync-card-desc">Your local course catalog matches the project repository.
             </div>
             <div id="syncResultBadges" class="sync-metrics-row" style="display: none;"></div>
             <div id="syncResultDetails" class="sync-diff-section" style="display: none;"></div>
           </div>
-        </div>
+        </section>
 
-        <!-- Card 3: Danger Zone / Catalog Reset -->
-        <div class="card danger-card" id="dangerResetCard" style="border-color: #fecaca; background: #fffbfb;">
-          <span class="card-title" style="color: #b91c1c;">
-            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
-            </svg>
-            Reset Official Catalog
-          </span>
-          <div
-            style="font-size: 0.67rem; color: var(--text-muted); line-height: 1.45; text-align: justify; text-justify: inter-word;">
-            Restores official course codes, titles, and exam schedules to repository defaults, discarding any local
-            modifications. Custom user-added courses remain safely unaffected.
-          </div>
-          <button class="btn-reset-danger" id="resetDefaultsBtn"
-            title="Restore all official courses to their default catalog state">
-            <svg class="reset-icon" style="width:14px;height:14px;fill:currentColor;flex-shrink:0;" viewBox="0 0 24 24">
-              <path
-                d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
-            </svg>
-            <span id="resetDefaultsBtnText">Reset Official Catalog to Default</span>
+        <section class="settings-section" id="aboutSettingsCard" aria-labelledby="aboutSettingsTitle">
+          <h2 class="settings-section-title" id="aboutSettingsTitle"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8h.01M11 12h1v4m9-4a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg>About</h2>
+          <dl class="settings-about-list">
+            <div><dt>Version</dt><dd id="extVersion">v2.0.0</dd></div>
+            <div><dt>Developer</dt><dd><a href="https://github.com/litch07" target="_blank" rel="noopener noreferrer">Sadid Ahmed ↗</a></dd></div>
+            <div><dt>Source code</dt><dd><a href="https://github.com/litch07/uiu-course-decoder" target="_blank" rel="noopener noreferrer">GitHub project ↗</a></dd></div>
+          </dl>
+        </section>
+
+        <section class="settings-section settings-reset-section danger-card" id="dangerResetCard" aria-labelledby="resetSettingsTitle">
+          <h2 class="settings-section-title" id="resetSettingsTitle"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg>Reset catalog changes</h2>
+          <p class="settings-hint">Restore deleted catalog courses and remove your local edits. Your custom courses stay saved.</p>
+          <button type="button" class="btn-reset-danger" id="resetDefaultsBtn" title="Review and confirm resetting catalog changes">
+            <svg class="settings-icon reset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg><span id="resetDefaultsBtnText">Review reset</span>
           </button>
-          <!-- Reset result diff summary box (session only, not persisted) -->
-          <div id="resetResultBox" class="sync-card">
+          <p class="settings-hint" id="resetAvailabilityHint" hidden>No catalog changes to reset.</p>
+          <div id="resetResultBox" role="status" aria-live="polite" aria-atomic="true" class="sync-card">
             <div class="sync-card-header">
               <div class="sync-card-status">
                 <span id="resetResultDot" class="sync-card-dot"></span>
-                <span id="resetResultTitle">Official Catalog Restored</span>
+                <span id="resetResultTitle">Catalog changes reset</span>
               </div>
               <div class="sync-card-header-actions">
                 <div class="sync-card-time-group">
@@ -1396,42 +1211,14 @@
             <div id="resetResultBadges" class="sync-metrics-row" style="display: none;"></div>
             <div id="resetResultDetails" class="sync-diff-section" style="display: none;"></div>
           </div>
-        </div>
-
-        <!-- Card 4: About & Project Info -->
-        <div class="card">
-          <span class="card-title">
-            <svg style="width:13px;height:13px;fill:currentColor;" viewBox="0 0 24 24">
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-            </svg>
-            About
-          </span>
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem;">
-            <span style="color: var(--text-muted); font-weight: 500;">Version</span>
-            <span id="extVersion"
-              style="font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 2px 7px; border-radius: 6px; font-size: 0.7rem;">v2.0.0</span>
-          </div>
-          <div
-            style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; margin-top: 4px;">
-            <span style="color: var(--text-muted); font-weight: 500;">Developer</span>
-            <a href="https://github.com/litch07" target="_blank" rel="noopener noreferrer"
-              style="color: var(--accent); font-weight: 600; text-decoration: none; font-size: 0.72rem;">Sadid Ahmed
-              ↗</a>
-          </div>
-          <div
-            style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; margin-top: 4px;">
-            <span style="color: var(--text-muted); font-weight: 500;">Repository</span>
-            <a href="https://github.com/litch07/uiu-course-decoder" target="_blank" rel="noopener noreferrer"
-              style="color: var(--accent); font-weight: 600; text-decoration: none; font-size: 0.72rem;">GitHub Project
-              ↗</a>
-          </div>
-        </div>
+        </section>
       </div>
     </div>
 
   </div>
 
+  <div class="search-announcements" id="searchAnnouncements" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="course-data.js"></script>
   <script src="popup.js"></script>
 </body>
 
