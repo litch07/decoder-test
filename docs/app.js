@@ -2,13 +2,13 @@
  * UIU Course Code Decoder — Public Web Catalog & Prerequisite Explorer
  * File: docs/app.js
  *
- * Architecture & Guarantees:
+ * Implementation overview:
  *  - Strict Zero-innerHTML DOM generation (createElement, textContent, appendChild only).
- *  - High-performance client-side search, filtering, and sorting over 315+ courses.
+ *  - Client-side catalog search, filtering and sorting.
  *  - Cycle-safe BFS prerequisite chain computation and reverse "unlocks" lookup.
  *  - Interactive Code ↔ Name toggle with localStorage preference persistence.
  *  - Deep URL hash routing (e.g. #CSE-2215 opens that course modal directly).
- *  - Offline-first fallback loading.
+ *  - Same-site JSON loading, with a repository-relative fallback and optional embedded-data fallback.
  */
 
 (function () {
@@ -761,7 +761,7 @@
 
     // Update total metric
     if (els.totalCoursesMetric) {
-      els.totalCoursesMetric.textContent = `${courseKeys.length}+`;
+      els.totalCoursesMetric.textContent = String(courseKeys.length);
     }
 
     // Populate counts and initial grid

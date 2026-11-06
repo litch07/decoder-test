@@ -1,58 +1,29 @@
-# Security Policy
+# Security
 
-## Supported Versions
+Reviewed **6 November 2026** against source manifest **2.0.0**. These are implemented controls and their limits, not a security certification.
 
-| Version | Status | Notes |
-|:---:|:---:|---|
-| **2.x** | ✅ Supported | Active release line with per-site permissions and Zero-innerHTML security. |
-| **1.x** | ❌ Unsupported | Legacy version. Users are strongly encouraged to update to 2.x. |
+## Implemented controls
 
----
+- **Zero-innerHTML:** runtime UI uses programmatic DOM creation, text nodes and `textContent` instead of `.innerHTML` or `.insertAdjacentHTML`. Course data is treated as text. This reduces HTML-injection exposure; it does not prove that every possible vulnerability is absent.
+- **Local data model:** no extension analytics, remote executable code or external runtime library/CDN is implemented. The independent public web page loads Google Fonts.
+- **Host access:** declared UIU/Google Docs/GitHub raw host permissions plus optional grants for additional sites. Injection also checks the enabled-site list. This is not an optional-only permission model.
+- **Input validation:** full-code identities, duplicate JSON-key/normalized-code detection, schema checks, positive finite credits, exam fields and prerequisite graph validation.
+- **Graph integrity:** missing references, self-dependencies, duplicate edges and cycles are errors. Suspicious CSE/DS edges and differing overrides are review warnings; they are not silently deleted.
+- **Review before mutation:** JSON import, remote catalog updates and catalog resets present a preview. Sync application checks the reviewed remote revision. Existing intentional local overrides are retained.
+- **Size checks:** imports and remote catalog text are limited to 2 MiB. Remote text is read before the size check, so the check does not bound network transfer/memory while reading a response.
 
-## Security Architecture & Design Principles
+The master tests include checks for unsafe DOM APIs and regression coverage for validation, graph identity, imports and synchronization. Tests do not replace a complete security review.
 
-**UIU Course Code Decoder** follows defensive security and privacy practices:
+## Data and network boundaries
 
-- **Zero Telemetry**: The extension collects no usage analytics, user identifiers, or browsing history.
-- **Local Storage Isolation**: All user configurations, allowed domains, and catalog entries reside strictly in `chrome.storage.local`.
-- **Restricted Network Boundary**: The extension contacts `raw.githubusercontent.com` only when the user explicitly triggers "Sync Course Database" in Settings. All responses are verified against strict schema constraints and an enforced **2 MB payload size cap**.
-- **Manifest V3 Compliance**: Built on Chrome's latest extension security platform with granular, least-privilege permissions.
-- **Per-Site Dynamic Permissions**: Content scripts execute strictly on domains explicitly granted by the user via `optional_host_permissions`.
-- **Zero-innerHTML DOM Architecture**: All text decorations, overlays, and tooltip cards are constructed strictly using safe browser DOM APIs (`textContent`, `createElement`, `createTextNode`), completely eliminating DOM-based Cross-Site Scripting (XSS) attack vectors.
+Course lookups are local. Requested catalog updates use HTTPS to the configured GitHub raw JSON. External links and GitHub drafts leave the extension; draft URLs include the prefilled data when opened. Browser-local storage is not application-level encrypted. See [PRIVACY.md](PRIVACY.md).
 
----
+## Reporting a vulnerability
 
-## Reporting a Vulnerability
+Avoid placing exploitable details, credentials or private student data in a public issue. Use a private repository security advisory if private reporting is enabled; otherwise contact the maintainer through an available private channel before disclosing sensitive details. Public issues are suitable for non-sensitive bugs and academic data corrections.
 
-If you discover a security vulnerability in this project, **please do not file a public GitHub issue**.
+Include the affected source revision/version, browser, reproduction steps, impact and a minimal sanitized example. There is no documented guaranteed response time, patch deadline, bounty or credit policy. Availability of private reporting must be checked on the repository.
 
-Instead, report it privately through GitHub Security Advisories:
+## Contributor requirements
 
-1. Open a private [Security Advisory](https://github.com/litch07/uiu-course-decoder/security/advisories/new) on the repository.
-2. Please include:
-   - A clear description of the vulnerability
-   - Step-by-step reproduction instructions or a minimal proof-of-concept
-   - The potential impact and attack vectors
-   - Suggested mitigations or patches (optional)
-
-### Response Timelines
-
-- **Initial Acknowledgment**: Within **48 hours** of report receipt.
-- **Status Updates**: Periodic updates as the issue is investigated and reproduced.
-- **Fix & Release**: We aim to release a verified patch within **7 days** for critical vulnerabilities.
-
----
-
-## Scope
-
-Security reports are relevant for:
-- Content injection or DOM-based XSS vulnerabilities in `content.js` or `popup.js`
-- Privilege escalation through extension permissions or background service workers
-- Data exfiltration from `chrome.storage.local`
-- Malicious payload injection in catalog synchronization or batch JSON imports
-
----
-
-## Acknowledgments
-
-Responsible security disclosures will be credited in the project release notes and repository acknowledgments.
+Keep runtime DOM construction free of unsafe HTML injection. Validate external data before storage/application, preserve user data and avoid introducing network services or dependencies without a justified design. Run catalog validation, copy checks and all 24 master suites. See [CONTRIBUTING.md](CONTRIBUTING.md).

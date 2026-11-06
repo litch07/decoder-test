@@ -15,11 +15,11 @@ This is an interim state, not a claim that every prerequisite roadmap is correct
 
 ## Read first
 
-- [Investigation and academic evidence](</D:/New Works/uiu-course-code-decoder-extension/PREREQUISITE_AUDIT.md>)
-- [Current architecture](</D:/New Works/uiu-course-code-decoder-extension/EXTENSION_CURRENT_STATE.md>)
-- [Shared data and graph module](</D:/New Works/uiu-course-code-decoder-extension/course-data.js>)
-- [Production regression coverage](</D:/New Works/uiu-course-code-decoder-extension/tests/prerequisite_integrity_checks.js>)
-- [Public explorer browser fixture](</D:/New Works/uiu-course-code-decoder-extension/tests/fixtures/prerequisite_web.html>)
+- [Investigation and academic evidence](PREREQUISITE_AUDIT.md)
+- [Current architecture](EXTENSION_CURRENT_STATE.md)
+- [Shared data and graph module](course-data.js)
+- [Production regression coverage](tests/prerequisite_integrity_checks.js)
+- [Public explorer browser fixture](tests/fixtures/prerequisite_web.html)
 
 ## What is already implemented
 

@@ -1,6 +1,6 @@
 # Prerequisite integrity investigation
 
-Checked: 6 November 2026. Relationship arrows below mean **course requires prerequisite**.
+Investigation recorded: 6 November 2026; applies to the current manifest 2.0.0 source. Academic-source comparisons and browser results below record that investigation, rather than a new live-source/browser audit on every documentation edit. Relationship arrows below mean **course requires prerequisite**.
 
 ## Root cause
 
@@ -48,23 +48,23 @@ After the correction, the base catalog has two CSE/DS cross-prefix edges; the BS
 
 | Stage | Location | Identity and relationship handling |
 |---|---|---|
-| Bundled records | [courses.json](</D:/New Works/uiu-course-code-decoder-extension/courses.json:283>) | Shared foundation defaults and source-backed variants; public copy is synchronized. |
-| Identity and indexing | [course-data.js](</D:/New Works/uiu-course-code-decoder-extension/course-data.js:5>) | Complete prefix + numeric part + suffix; case/spacing normalization only. No numeric/title equivalence. Normalized-key collisions are rejected. |
-| Catalog normalization | [course-data.js](</D:/New Works/uiu-course-code-decoder-extension/course-data.js:35>) | Canonical dictionary keys and prerequisite references. Partial overrides do not fabricate empty prerequisite arrays. |
-| Graph construction/BFS/reverse | [course-data.js](</D:/New Works/uiu-course-code-decoder-extension/course-data.js:46>) | One forward map and its reverse, cycle-safe BFS, deduplicated edges, selected curriculum. Missing references remain missing nodes rather than resolving to another prefix. |
-| Graph validation | [course-data.js](</D:/New Works/uiu-course-code-decoder-extension/course-data.js:90>) | Missing references, duplicate edges, self-dependencies, cycles and cross-program review warnings. Every recorded curriculum variant is checked. |
-| Layer merging | [course-data.js](</D:/New Works/uiu-course-code-decoder-extension/course-data.js:140>) | Bundled + remote + user, then full-code soft/hard exclusions. Explicit prerequisite edits override inherited variants only when requirements actually differ. |
-| Override review | [course-data.js](</D:/New Works/uiu-course-code-decoder-extension/course-data.js:157>) | Flags differing remote/user prerequisites or variants, without deleting intentional edits. |
-| Service worker loading | [background.js](</D:/New Works/uiu-course-code-decoder-extension/background.js:9>) | Reads source layers, applies the shared merge, persists active records and `catalogDiagnostics`. Existing legacy deletion-key migration remains. |
-| Catalog sync | [background.js](</D:/New Works/uiu-course-code-decoder-extension/background.js:60>) | Duplicate JSON-key/schema/whole-graph validation before preview/apply; warnings included in review; stale review revisions rejected. |
-| Popup loading/cache | [popup.js](</D:/New Works/uiu-course-code-decoder-extension/popup.js:370>) | Normalizes source maps and selections, rebuilds the derived cache against the current bundle, preserves differing overrides and stores diagnostics. |
-| Field comparisons/import/export | [popup.js](</D:/New Works/uiu-course-code-decoder-extension/popup.js:886>) and [import preview](</D:/New Works/uiu-course-code-decoder-extension/popup.js:1283>) | Full-code normalization, variant-aware comparisons, prospective-graph import checks, variant-preserving export and commit. Existing broken references do not block unrelated repairs; newly introduced structural errors do. |
-| Popup roadmap | [popup.js](</D:/New Works/uiu-course-code-decoder-extension/popup.js:3222>) | Shared graph for direct prerequisites, stages and reverse unlocks. Per-node requirement text uses the same resolved records. Existing navigation history preserves the originating curriculum when opening shared courses. |
-| Web explorer | [docs/app.js](</D:/New Works/uiu-course-code-decoder-extension/docs/app.js:104>) and [graph adapter](</D:/New Works/uiu-course-code-decoder-extension/docs/app.js:133>) | Shared identity/graph module; normalized loader and URL hash; retained curriculum when following badges. Review messages use the existing note area. |
-| Website decoder | [content.js](</D:/New Works/uiu-course-code-decoder-extension/content.js:42>) | Regex and `resolve` match full-prefix codes, including compact spacing. Display alias grouping never merges catalog entries, prerequisite arrays or graph identities. |
-| Search/departments/forms | [popup.js](</D:/New Works/uiu-course-code-decoder-extension/popup.js:2092>) | Search can match titles and code fragments for discovery; department prefixes are filters. Neither is used as graph identity. Add/edit validation uses CourseData; deletions and enrolled selections retain normalized full codes. |
+| Bundled records | [courses.json](courses.json#L283) | Shared foundation defaults and source-backed variants; public copy is synchronized. |
+| Identity and indexing | [course-data.js](course-data.js#L5) | Complete prefix + numeric part + suffix; case/spacing normalization only. No numeric/title equivalence. Normalized-key collisions are rejected. |
+| Catalog normalization | [course-data.js](course-data.js#L35) | Canonical dictionary keys and prerequisite references. Partial overrides do not fabricate empty prerequisite arrays. |
+| Graph construction/BFS/reverse | [course-data.js](course-data.js#L46) | One forward map and its reverse, cycle-safe BFS, deduplicated edges, selected curriculum. Missing references remain missing nodes rather than resolving to another prefix. |
+| Graph validation | [course-data.js](course-data.js#L90) | Missing references, duplicate edges, self-dependencies, cycles and cross-program review warnings. Every recorded curriculum variant is checked. |
+| Layer merging | [course-data.js](course-data.js#L140) | Bundled + remote + user, then full-code soft/hard exclusions. Explicit prerequisite edits override inherited variants only when requirements actually differ. |
+| Override review | [course-data.js](course-data.js#L157) | Flags differing remote/user prerequisites or variants, without deleting intentional edits. |
+| Service worker loading | [background.js](background.js#L9) | Reads source layers, applies the shared merge, persists active records and `catalogDiagnostics`. Existing legacy deletion-key migration remains. |
+| Catalog sync | [background.js](background.js#L60) | Duplicate JSON-key/schema/whole-graph validation before preview/apply; warnings included in review; stale review revisions rejected. |
+| Popup loading/cache | [popup.js](popup.js#L370) | Normalizes source maps and selections, rebuilds the derived cache against the current bundle, preserves differing overrides and stores diagnostics. |
+| Field comparisons/import/export | [popup.js](popup.js#L886) and [import preview](popup.js#L1283) | Full-code normalization, variant-aware comparisons, prospective-graph import checks, variant-preserving export and commit. Existing broken references do not block unrelated repairs; newly introduced structural errors do. |
+| Popup roadmap | [popup.js](popup.js#L3222) | Shared graph for direct prerequisites, stages and reverse unlocks. Per-node requirement text uses the same resolved records. Existing navigation history preserves the originating curriculum when opening shared courses. |
+| Web explorer | [docs/app.js](docs/app.js#L104) and [graph adapter](docs/app.js#L133) | Shared identity/graph module; normalized loader and URL hash; retained curriculum when following badges. Review messages use the existing note area. |
+| Website decoder | [content.js](content.js#L42) | Regex and `resolve` match full-prefix codes, including compact spacing. Display alias grouping never merges catalog entries, prerequisite arrays or graph identities. |
+| Search/departments/forms | [popup.js](popup.js#L2092) | Search can match titles and code fragments for discovery; department prefixes are filters. Neither is used as graph identity. Add/edit validation uses CourseData; deletions and enrolled selections retain normalized full codes. |
 
-The popup’s existing name/code badge toggle can show identical titles, but badges retain their original code for lookup, navigation and tooltips. Rendering was not the source of the cross-program paths.
+The public explorer’s name/code badge toggle can show identical titles, but badges retain their original code for lookup, navigation and tooltips. The corresponding popup control is currently hidden, so it is not an available user-facing option. Rendering was not the source of the cross-program paths.
 
 ## Saved records and effective catalog behavior
 
@@ -76,9 +76,9 @@ The actual installed browser storage was not accessed. Production-function tests
 
 ## Tests and future updates
 
-- [Production integration tests](</D:/New Works/uiu-course-code-decoder-extension/tests/prerequisite_integrity_checks.js:1>) run inside the existing prerequisite suite, keeping 24 master suites.
+- [Production integration tests](tests/prerequisite_integrity_checks.js#L1) run inside the existing prerequisite suite, keeping 24 master suites.
 - Checks cover CSE 4813 → CSE 4889 and DS 4211 → DS 4889; full chains and reverse unlock separation; equal titles/numbers with different prefixes; missing references; self/cycles/duplicate edges; variant cycles; legitimate EEE/MATH/PHY edges; full-code deletions; stale override warnings; imports/exports; preview/apply sync; stale review rejection; and stale cache rebuilding.
-- Both popup/web production helpers are exercised. [Browser fixture](</D:/New Works/uiu-course-code-decoder-extension/tests/fixtures/prerequisite_web.html:1>) runs 13 checks against the actual public explorer, including all 315 cards and curriculum-preserving navigation.
+- Both popup/web production helpers are exercised. [Browser fixture](tests/fixtures/prerequisite_web.html#L1) runs 13 checks against the actual public explorer, including all 315 cards and curriculum-preserving navigation.
 - `node scripts/sync_catalog.js --check` verifies byte-identical JSON and shared-module copies. `node scripts/validate_catalog.js` rejects structural errors in base and variant graphs and prints cross-program review warnings. CI runs both and `node tests/run_all.js`.
 - Cross-program warnings do not delete edges or fail validation merely for using another subject prefix. Academic corrections still require source and curriculum review. New official snapshots are structurally validated before applying; partial local imports are checked against the prospective effective catalog.
 
@@ -87,4 +87,4 @@ Validation completed: all 24 suites passed; catalog/shared-module copies match; 
 
 ## Deferred follow-up
 
-Complete program/curriculum selection is not implemented. The four verified shared-course variants and preserved navigation context are an interim fix. The decision is to retain them and defer full academic coverage, explicit selection and override-scope migration to the next minor feature version. The next-work entry point is [CURRICULUM_PREREQUISITES_HANDOFF.md](</D:/New Works/uiu-course-code-decoder-extension/CURRICULUM_PREREQUISITES_HANDOFF.md>).
+Complete program/curriculum selection is not implemented. The four verified shared-course variants and preserved navigation context are an interim fix. The decision is to retain them and defer full academic coverage, explicit selection and override-scope migration to the next minor feature version. The next-work entry point is [CURRICULUM_PREREQUISITES_HANDOFF.md](CURRICULUM_PREREQUISITES_HANDOFF.md).

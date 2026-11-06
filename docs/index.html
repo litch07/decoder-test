@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UIU Course Code Decoder — Public Course Catalog &amp; Prerequisite Explorer</title>
-  <meta name="description" content="Official course catalog, exam schedules, and interactive recursive prerequisite dependency explorer for United International University (UIU) students." />
+  <meta name="description" content="Browse UIU course names, saved exam day/slot information and prerequisite roadmaps. Check the applicable curriculum and latest UCAM routine before planning." />
   <meta name="theme-color" content="#4f46e5" />
 
   <!-- OpenGraph / Social Sharing -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="UIU Course Code Decoder — Public Catalog &amp; Prerequisite Explorer" />
-  <meta property="og:description" content="Explore 315+ UIU undergraduate courses, exam routines, and interactive prerequisite chains online or via the Chrome extension." />
+  <meta property="og:description" content="Explore the UIU course catalog and prerequisite chains online, or decode course codes on enabled websites with the Chrome extension." />
   <meta property="og:image" content="icons/icon128.png" />
 
   <!-- Favicon -->
@@ -75,7 +75,7 @@
         Never Guess a <span class="gradient-text">Course Code</span> Again.
       </h1>
       <p class="hero-subtitle">
-        Explore 315+ verified UIU courses with real-time prerequisite ancestry chains, reverse unlocks, and exam routine schedules. Available online or augmented directly into UCAM &amp; eLMS via our lightweight Chrome Extension.
+        Look up UIU course names, explore prerequisite chains and see what comes next. The Chrome extension also decodes codes on enabled websites and helps you compare exam plans. Check your applicable curriculum and the latest UCAM routine before finalizing a plan.
       </p>
 
       <div class="hero-cta-group">
@@ -93,23 +93,23 @@
         </a>
       </div>
 
-      <!-- Live metrics strip -->
+      <!-- Catalog and implementation summary -->
       <div class="metrics-strip">
         <div class="metric-card">
-          <span class="metric-num" id="totalCoursesMetric">315+</span>
-          <span class="metric-label">Verified Courses</span>
+          <span class="metric-num" id="totalCoursesMetric">315</span>
+          <span class="metric-label">Catalog Courses</span>
         </div>
         <div class="metric-card">
-          <span class="metric-num">7</span>
-          <span class="metric-label">Academic Disciplines</span>
+          <span class="metric-num">6</span>
+          <span class="metric-label">Subject Filters</span>
         </div>
         <div class="metric-card">
-          <span class="metric-num">100%</span>
-          <span class="metric-label">Offline &amp; Private</span>
+          <span class="metric-num">Local</span>
+          <span class="metric-label">Extension Lookups</span>
         </div>
         <div class="metric-card">
           <span class="metric-num">Zero</span>
-          <span class="metric-label">Telemetry or Tracking</span>
+          <span class="metric-label">App Analytics</span>
         </div>
       </div>
     </div>
@@ -315,38 +315,38 @@
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon-box">⚡</div>
-          <h3 class="feature-title">Universal Detection</h3>
-          <p class="feature-desc">Scans UCAM advising slips, eLMS dashboards, and even SVG exam schedule charts to decode codes on the fly.</p>
+          <h3 class="feature-title">Website Course Decoding</h3>
+          <p class="feature-desc">Decodes codes in accessible page text and supported SVG/Highcharts layouts. Canvas-only documents and inaccessible frames are not universally supported.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-box">🎨</div>
           <h3 class="feature-title">3 Adaptive Display Modes</h3>
-          <p class="feature-desc">Switch seamlessly between <strong>Highlight</strong> (interactive card on hover), <strong>Tooltip</strong> (zero layout change), and <strong>Inline</strong> (course titles in parentheses).</p>
+          <p class="feature-desc">Choose <strong>Highlight</strong> for a background marker, <strong>Tooltip</strong> for a dotted underline, or <strong>Inline</strong> for inserted names. Hover or focus for further details.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-box">🔒</div>
           <h3 class="feature-title">Per-Site Permissions</h3>
-          <p class="feature-desc">Operates under strict least-privilege optional host permissions. Only inspects webpages you explicitly authorize via the popup.</p>
+          <p class="feature-desc">Decoding checks enabled websites and browser access. UIU and Google Docs hosts are declared in the manifest; additional sites use optional permissions.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-box">🛡️</div>
           <h3 class="feature-title">Zero-innerHTML Security</h3>
-          <p class="feature-desc">Purged entirely of unsafe DOM injection methods. Every element is constructed through safe browser programmatic APIs.</p>
+          <p class="feature-desc">Runtime cards and labels use programmatic DOM creation and text APIs instead of inserting course data as HTML.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-box">💾</div>
-          <h3 class="feature-title">100% Offline Database</h3>
-          <p class="feature-desc">All 315+ courses and user overrides live locally in <code>chrome.storage.local</code>. Zero telemetry, zero external trackers.</p>
+          <h3 class="feature-title">Local Extension Catalog</h3>
+          <p class="feature-desc">The extension uses bundled data and local overrides. Catalog updates are manual GitHub requests. This web explorer uses separate files and loads Google Fonts.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-box">🔄</div>
           <h3 class="feature-title">Contextual Export &amp; Diff Import</h3>
-          <p class="feature-desc">Export filtered course sets, drag-and-drop JSON catalog backups, and preview line-by-line diffs before committing changes.</p>
+          <p class="feature-desc">In the extension, export course records as JSON and review additions or changes before importing JSON files or pasted data. These exports are not full settings or planner backups.</p>
         </div>
       </div>
     </div>
@@ -357,19 +357,19 @@
     <div class="install-container">
       <div class="section-badge">Get Started</div>
       <h2 class="section-title">Install the Chrome Extension</h2>
-      <p class="section-subtitle">Compatible with Google Chrome, Microsoft Edge, Brave, Opera, and all Chromium browsers.</p>
+      <p class="section-subtitle">Developed for Chrome Manifest V3. Other browser compatibility and store availability should be checked for the version you install.</p>
 
       <div class="install-cards-row">
         <!-- Official Web Store Option -->
         <div class="install-card highlighted">
           <div class="install-card-badge">Recommended</div>
           <h3 class="install-card-title">Chrome Web Store</h3>
-          <p class="install-card-desc">1-click automatic installation with automatic background updates when the university catalog updates.</p>
+          <p class="install-card-desc">Check the store listing for the available release. Inside the extension, catalog updates are checked manually and reviewed before applying.</p>
           <a href="https://chromewebstore.google.com/detail/ikanaopbbjfndbioklieinponjkagkdi" target="_blank" rel="noopener noreferrer" class="btn-primary btn-block">
             <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
             </svg>
-            Add to Chrome (Free)
+            View Chrome listing
           </a>
         </div>
 
@@ -377,24 +377,24 @@
         <div class="install-card">
           <div class="install-card-badge alt">Developer / Offline</div>
           <h3 class="install-card-title">Load from GitHub</h3>
-          <p class="install-card-desc">Download the latest release ZIP directly from GitHub and install via Developer Mode in seconds.</p>
+          <p class="install-card-desc">Use a repository checkout or an available release archive, then load its extension folder through Chrome Developer mode.</p>
           <a href="https://github.com/litch07/uiu-course-decoder/releases/latest" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-block">
             <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
             </svg>
-            Download Release ZIP
+            View GitHub releases
           </a>
         </div>
       </div>
 
       <!-- Quick manual steps -->
       <div class="manual-steps-box">
-        <h4 class="steps-heading">Quick Setup Instructions for Manual ZIP:</h4>
+        <h4 class="steps-heading">Manual Setup:</h4>
         <ol class="steps-list">
-          <li>Download and extract <code>uiu-course-code-decoder-v2.0.0.zip</code>.</li>
+          <li>Download and extract the selected source or extension archive.</li>
           <li>Open <code>chrome://extensions</code> in your browser and enable <strong>Developer mode</strong> in the top-right corner.</li>
-          <li>Click <strong>Load unpacked</strong> and select the extracted folder.</li>
-          <li>Pin the extension and navigate to UCAM (<code>ucam.uiu.ac.bd</code>) to start decoding!</li>
+          <li>Click <strong>Load unpacked</strong> and select the folder containing <code>manifest.json</code>.</li>
+          <li>Pin the extension, open UCAM (<code>ucam.uiu.ac.bd</code>), and check its enabled-site switch and browser access.</li>
         </ol>
       </div>
     </div>
