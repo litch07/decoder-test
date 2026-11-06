@@ -2574,7 +2574,7 @@
 
     lines.push("");
     lines.push("---");
-    lines.push("*Exported via [UIU Course Companion](https://github.com/litch07/uiu-course-decoder)*");
+    lines.push("*Exported via [UIU Course Companion](https://github.com/litch07/uiu-course-companion)*");
     lines.push("");
 
     return lines.join("\n");
@@ -3673,7 +3673,7 @@
   function openCourseReport(kind, code, course, button) {
     const baseline = kind === "update" ? getCatalogReportBaseline(code, bundledCourses, remoteCourses) : null;
     const report = buildCourseReport(kind, code, course, baseline);
-    const url = "https://github.com/litch07/uiu-course-decoder/issues/new?title=" + encodeURIComponent(report.title)
+    const url = "https://github.com/litch07/uiu-course-companion/issues/new?title=" + encodeURIComponent(report.title)
       + "&body=" + encodeURIComponent(report.body) + "&labels=" + encodeURIComponent(report.labels);
     const failed = () => showToast("Could not open GitHub. Try again.", "error");
     try {

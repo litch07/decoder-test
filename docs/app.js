@@ -410,7 +410,7 @@
 
     // Update GitHub issue report prefill link
     const report = buildCourseReport("correction", code, data);
-    els.modalReportBtn.href = "https://github.com/litch07/uiu-course-decoder/issues/new?title=" + encodeURIComponent(report.title)
+    els.modalReportBtn.href = "https://github.com/litch07/uiu-course-companion/issues/new?title=" + encodeURIComponent(report.title)
       + "&body=" + encodeURIComponent(report.body) + "&labels=" + encodeURIComponent(report.labels);
 
     // Reset copy feedback

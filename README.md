@@ -6,6 +6,8 @@ A Manifest V3 Chrome extension for UIU students, with a separate web course expl
 
 This documentation describes the repository source with manifest version **2.0.0**, reviewed on **6 November 2026**. It does not certify that a store listing, hosted site or packaged ZIP contains the same revision.
 
+Production repository: [litch07/uiu-course-companion](https://github.com/litch07/uiu-course-companion). `litch07/decoder-test` remains the staging repository; production deployment is separate from local source changes.
+
 ## What is included
 
 - **Website decoding:** Highlight, Tooltip and Inline modes; optional exam and prerequisite details; dynamic-page scanning and selected SVG/Highcharts support.

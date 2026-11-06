@@ -6,7 +6,7 @@ Read [EXTENSION_CURRENT_STATE.md](EXTENSION_CURRENT_STATE.md) for architecture, 
 
 The project is a Manifest V3 extension written in vanilla JavaScript, HTML and CSS, with a separate public explorer under `docs/`. No extension build step, CDN or package install is required. The master Node runner contains 24 suites.
 
-For branding and release-repository migration, read [REBRAND_RELEASE_GUIDE.md](REBRAND_RELEASE_GUIDE.md). `decoder-test` remains staging; production links stay at their existing addresses until the main repository is renamed.
+For branding and release-repository migration, read [REBRAND_RELEASE_GUIDE.md](REBRAND_RELEASE_GUIDE.md). `decoder-test` remains staging; the main repository has been renamed to `litch07/uiu-course-companion`, and local production links now use that address. This checkout's Git remote still points to staging. Production transfer and deployment remain pending.
 
 ## Working boundaries
 

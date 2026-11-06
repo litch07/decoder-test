@@ -219,7 +219,7 @@ module.exports = async function productQualityChecks(assert) {
 
   const home = html.slice(html.indexOf('class="view main-view"'), html.indexOf('class="view courses-view"'));
   assert('Home places planner navigation before website preferences', home.indexOf('id="openCoursesBtn"') < home.indexOf('id="homeEnrolledCard"') && home.indexOf('id="homeEnrolledCard"') < home.indexOf('class="card site-card"'));
-  assert('Home retains author credit and repository access without a duplicate notification dot', home.includes('class="footer"') && home.includes('Sadid Ahmed') && home.includes('https://github.com/litch07/uiu-course-decoder') && !home.includes('id="settingsBadge"'));
+  assert('Home retains author credit and repository access without a duplicate notification dot', home.includes('class="footer"') && home.includes('Sadid Ahmed') && home.includes('https://github.com/litch07/uiu-course-companion') && !home.includes('id="settingsBadge"'));
   assert('Catalog update action is a keyboard-accessible button within its card', /<button[^>]*id="homeSyncAlert"/.test(home) && home.indexOf('id="homeSyncAlert"') < home.indexOf('id="homeEnrolledCard"'));
   assert('Display switches have explicit visible labels', home.includes('for="showExamInfoToggle"') && home.includes('for="showPrerequisitesToggle"'));
   const siteAttributes = {};

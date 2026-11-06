@@ -34,7 +34,7 @@ JSON downloads contain selected course records. Markdown downloads contain the p
 ## Network activity and external actions
 
 - Bundled decoding data is loaded from the extension package and queried locally.
-- **Manual catalog updates** fetch public JSON from `https://raw.githubusercontent.com/litch07/uiu-course-decoder/main/courses.json`. No explicit student identifier or local course data is added to that request. The server still receives ordinary request/network information. The response is size-checked after it has been read; this is not a streaming download limit.
+- **Manual catalog updates** fetch public JSON from `https://raw.githubusercontent.com/litch07/uiu-course-companion/main/courses.json`. No explicit student identifier or local course data is added to that request. The server still receives ordinary request/network information. The response is size-checked after it has been read; this is not a streaming download limit.
 - **GitHub drafts** put course details and, for suggested edits, before/after values into a prefilled URL. Opening the draft sends that URL data to GitHub even before submission. Review local notes or custom course data before choosing this action. Submitting the issue is a separate user action on GitHub.
 - About, profile, repository, release and store links open external websites with their own privacy policies.
 

@@ -61,7 +61,7 @@ async function syncCourses(previewOnly = true, candidate = null, expectedRevisio
   try {
     let text;
     if (candidate === null) {
-      const response = await fetch("https://raw.githubusercontent.com/litch07/uiu-course-decoder/main/courses.json", { cache: "no-cache" });
+      const response = await fetch("https://raw.githubusercontent.com/litch07/uiu-course-companion/main/courses.json", { cache: "no-cache" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       text = await response.text();
     } else { text = JSON.stringify(candidate); }

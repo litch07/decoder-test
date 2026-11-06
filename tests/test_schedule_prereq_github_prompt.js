@@ -91,7 +91,7 @@ assert.ok(JS.includes("Suggest this course"), "popup.js contains Suggest this co
 assert.ok(JS.includes("Suggest this update"), "popup.js contains Suggest this update for edited courses");
 assert.ok(JS.includes("Report a course error"), "popup.js contains Report a course error for catalog courses");
 assert.ok(JS.includes("els.detailSaveContribGithubBtn"), "popup.js references els.detailSaveContribGithubBtn");
-assert.ok(JS.includes("https://github.com/litch07/uiu-course-decoder/issues/new"), "popup.js generates GitHub issue URL");
+assert.ok(JS.includes("https://github.com/litch07/uiu-course-companion/issues/new"), "popup.js generates GitHub issue URL");
 
 // Ensure no innerHTML was introduced in new handlers
 const contribBlockIdx = JS.indexOf("els.contribSubmitGithubBtn?.addEventListener");

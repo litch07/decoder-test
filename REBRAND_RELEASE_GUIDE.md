@@ -1,13 +1,14 @@
 # UIU Course Companion: repository rename and release guide
 
-Prepared 6 November 2026 for the current 2.0.0 source. These are migration instructions, not a record of a completed repository rename or store deployment.
+Prepared 6 November 2026 for the current 2.0.0 source. The main repository rename and local link migration are complete. Production transfer, site deployment and store publication remain separate follow-up steps.
 
 ## Current state and agreed branding
 
 - `litch07/decoder-test` is staging. This checkout's `origin` still points there.
-- `litch07/uiu-course-decoder` is the release repository currently used by catalog updates and contribution links.
-- Proposed release repository name: **`uiu-course-companion`**. Confirm GitHub accepts the name when renaming; availability has not been verified here.
-- Visible branding has been updated locally. Release URLs intentionally remain at the current repository until the rename is complete.
+- `litch07/uiu-course-companion` is the renamed release repository. Local catalog-update and contribution links now use it.
+- The owner confirmed the rename from `litch07/uiu-course-decoder`; a read-only HTTP check returned 200 for the new repository.
+- Visible branding and production URLs have been updated locally. The staging remote and installed-extension identities are unchanged.
+- Both old and new raw catalog URLs returned valid 315-record JSON during the link check. This does not certify that the deployed catalog matches every local source change.
 
 | Placement | Value |
 |---|---|
@@ -17,24 +18,21 @@ Prepared 6 November 2026 for the current 2.0.0 source. These are migration instr
 | Store short description / manifest description | Decode UIU course codes on any webpage, explore prerequisite trees, and build clash-free exam routines. |
 | GitHub repository name | `uiu-course-companion` |
 | GitHub About description | A browser extension for UIU course decoding, prerequisite roadmaps, and personal exam planning. |
-| Suggested GitHub topics | `uiu`, `browser-extension`, `course-catalog`, `prerequisites`, `exam-planner`, `javascript` |
+| Suggested GitHub topics | `united-international-university`, `browser-extension`, `course-catalog`, `course-planner`, `prerequisites`, `exam-schedule`, `javascript` |
 | GitHub About website, after a successful default Pages deployment | `https://litch07.github.io/uiu-course-companion/` |
 | New archive naming convention | `uiu-course-companion-v<VERSION>.zip` (substitute the actual manifest version) |
 
 Use accurate detail in the longer store description: decoding applies to enabled, accessible page content; restricted pages/canvas documents are not universal targets. Exam planning uses saved day/slot data, so students must recheck UCAM dates/times. The approved short description does not replace these limitations.
 
-## 1. Rename the existing release repository on GitHub
+## 1. Completed: release repository rename
 
-1. Open the **release repository**, currently `https://github.com/litch07/uiu-course-decoder`. Check the owner/name before changing settings. Leave `decoder-test` unchanged.
-2. Open **Settings > General**. In **Repository name**, enter `uiu-course-companion`, then choose **Rename**.
-3. Check the existing issues, releases and branches in the renamed repository. Rename the existing repository rather than creating an empty replacement.
-4. In the repository's **About** panel, use the description/topics above. Set the website field only after Pages has deployed successfully, using its reported URL if different.
+The main repository is now `https://github.com/litch07/uiu-course-companion`. The owner also confirmed updating its About description. Leave `decoder-test` unchanged. Review the suggested topics above; set the website field only after Pages has deployed successfully, using its reported URL if different.
 
 GitHub redirects ordinary repository/Git traffic, but its project-site URLs are an exception. Do not assume an old Pages URL redirects. Do not reuse the old repository name for a different repository, because that replaces its redirect. See [GitHub's rename documentation](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository).
 
-## 2. Update release links in the staging source after the rename
+## 2. Completed: release links in the staging source
 
-Replace the repository path `litch07/uiu-course-decoder` with `litch07/uiu-course-companion` in these files, preserving any trailing path, query and encoding:
+The repository path was changed from `litch07/uiu-course-decoder` to `litch07/uiu-course-companion` in these files, preserving trailing paths, query parameters and encoding:
 
 | File | References to change |
 |---|---|
@@ -47,7 +45,7 @@ Replace the repository path `litch07/uiu-course-decoder` with `litch07/uiu-cours
 | `tests/product_quality_checks.js` | Expected release repository link |
 | `tests/test_schedule_prereq_github_prompt.js` | Expected GitHub draft URL |
 
-The new targets will be:
+The local source now targets:
 
 ```text
 Repository: https://github.com/litch07/uiu-course-companion
@@ -129,4 +127,4 @@ Suggested opening: **UIU Course Companion is the new name for UIU Course Code De
 
 ## Not completed by this guide
 
-GitHub rename, remote changes, production transfer, hosted deployment, published-store identity/version checks, screenshot refresh and package publication are manual follow-up steps. This document is not evidence that those actions succeeded.
+The GitHub rename is confirmed and local source links are updated. No production-clone remote change, production source transfer, hosted deployment, published-store identity/version inspection, screenshot refresh or package publication was performed. This guide is not evidence that those remaining actions succeeded.

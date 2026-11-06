@@ -86,6 +86,16 @@ const popupJs = fs.readFileSync('popup.js', 'utf8');
 assert.ok(popupJs.includes('MAX_IMPORT_BYTES = 2 * 1024 * 1024'), "popup.js must enforce 2MB batch upload cap");
 
 const backgroundJs = fs.readFileSync('background.js', 'utf8');
+
+const productionRepo = 'https://github.com/litch07/uiu-course-companion';
+assert.ok(backgroundJs.includes('https://raw.githubusercontent.com/litch07/uiu-course-companion/main/courses.json'), 'Catalog updates use the renamed production repository');
+for (const file of ['popup.html', 'popup.js', 'docs/index.html', 'docs/app.js']) {
+  const source = fs.readFileSync(file, 'utf8');
+  assert.ok(source.includes(productionRepo), file + ' links to the production repository');
+  assert.ok(!source.includes('github.com/litch07/uiu-course-decoder'), file + ' has no stale production links');
+  assert.ok(!source.includes('github.com/litch07/decoder-test'), file + ' does not send release users to staging');
+}
+
 assert.ok(backgroundJs.includes('MAX_SYNC_BYTES = 2 * 1024 * 1024'), "background.js must enforce 2MB catalog sync cap");
 console.log("  ✓ 2 MB safety cap active in popup batch upload and background sync\n");
 
