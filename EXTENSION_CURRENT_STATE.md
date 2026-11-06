@@ -404,3 +404,15 @@ node tests/run_all.js
 - Adjacent slash-separated catalog codes with matching normalized names retain independent markers, links, and course identities, while the last marker shows the shared name once. Alias details remain accessible per code, including differing credits and exam schedules. Different names are not grouped.
 - Original surrounding text is inspected without decoder-added text. A complete course name already present on the page is not inserted again. Source text, section suffixes, and unknown codes are preserved; extension-inserted line breaks are tagged and removed on mode changes/disable.
 - `tests/fixtures/inline_alias_tables.html` adds 25 browser checks for linked aliases, native names, differing metadata, bounded HTML widths/heights, Sheets exclusion, and exact mode-switch restoration. Existing 35 layout/tooltip/Highlight browser checks remain passing.
+
+
+### Curriculum-aware prerequisite integrity
+- Full normalized course codes are the sole identities in CourseData's shared merge, validation and forward/reverse graph. Popup/public explorer graph adapters use this module; website display alias grouping remains separate.
+- Shared CSE 2215–2218 defaults follow the current BSCSE plan. Verified BSDS-233 prerequisite arrays remain in source-backed `prerequisiteVariants`, selected for DS-rooted roadmaps and retained when following shared-course badges. Other historic curricula are not inferred.
+- Missing references, duplicate edges, self-dependencies and cycles are checked, including recorded variants. CSE/DS cross-prefix relationships are review warnings, not blanket exclusions; other cross-subject edges are preserved.
+- Source layers retain bundled < remote < user precedence. A stale derived cache is rebuilt on popup loading. Differing remote/local prerequisites are preserved with `catalogDiagnostics` and contextual review messages. Imports, exports and sync preserve curriculum metadata; newly introduced structural errors block application.
+- Public `course-data.js` is synchronized with the extension copy by `scripts/sync_catalog.js`; CI checks both module and JSON copies. Production integration checks run inside the existing prerequisite suite. See `PREREQUISITE_AUDIT.md` for the root cause, six-edge audit, source comparisons and limitations.
+
+
+### Deferred curriculum selection limitation
+The current four shared-course variants do not provide complete BSCSE/BSDS curriculum coverage. Fresh CSE-coded entries default to BSCSE; that does not identify a BSDS student's applicable curriculum. Explicit program/version selection, coverage states and override-scope migration are deferred to the next minor feature version. Keep current behavior and review notes for now. Read [the handoff](</D:/New Works/uiu-course-code-decoder-extension/CURRICULUM_PREREQUISITES_HANDOFF.md>) before starting that work.

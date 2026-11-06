@@ -1,0 +1,38 @@
+<!doctype html><meta charset="utf-8"><title>Public prerequisite integration</title>
+<pre id="results">Running…</pre><iframe id="app" src="../../docs/index.html" style="width:900px;height:750px;border:0"></iframe>
+<script>
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+document.getElementById('app').addEventListener('load',async()=>{
+ const checks=[];const check=(ok,msg)=>{if(!ok)throw Error(msg);checks.push(msg)};
+ const frame=document.getElementById('app'),w=frame.contentWindow,d=frame.contentDocument;
+ const codes=id=>[...d.querySelectorAll('#'+id+' .prereq-badge')].map(el=>/^[A-Z]+ \d/.test(el.title)?el.title:el.textContent.trim());
+ const open=async code=>{w.location.hash=code.replace(/ /g,'-');await pause(100);};
+ try {
+  for(let i=0;i<25&&!d.querySelector('.course-card');i++)await pause(80);
+  check(!!w.CourseData,'Shared graph module loads in public explorer');
+  check(d.querySelectorAll('.course-card').length===315,'All catalog cards render');
+  await open('CSE 4813');let list=codes('modalChainBody');
+  check(list.includes('CSE 4889'),'CSE Deep Learning requires CSE Machine Learning');
+  check(!list.some(code=>code.startsWith('DS ')),'Default CSE full chain has no DS contamination');
+  await open('DS 4211');list=codes('modalChainBody');
+  check(list.includes('DS 4889')&&!list.includes('CSE 4889'),'DS Deep Learning uses separate DS Machine Learning');
+  await open('CSE 4889');check(codes('modalUnlocksBody').includes('CSE 4813')&&!codes('modalUnlocksBody').includes('DS 4211'),'CSE reverse unlocks stay separate');
+  await open('DS 4889');check(codes('modalUnlocksBody').includes('DS 4211')&&!codes('modalUnlocksBody').includes('CSE 4813'),'DS reverse unlocks stay separate');
+  await open('DS 4817');list=codes('modalChainBody');
+  check(list.includes('CSE 3521')&&list.includes('DS 1115'),'Legitimate shared CSE course remains in DS curriculum');
+  check(d.getElementById('modalPrereqNote').textContent.includes('cross-program'),'Cross-program review warning is visible');
+  const badge=[...d.querySelectorAll('#modalChainBody .prereq-badge')].find(el=>(el.textContent+' '+el.title).includes('CSE 2215'));
+  badge.click();await pause(100);
+  check(d.getElementById('modalCourseCode').textContent==='CSE 2215','Shared course navigation works');
+  check(codes('modalChainBody').includes('DS 1115')&&!codes('modalChainBody').includes('CSE 1111'),'Navigation retains BSDS curriculum context');
+  check(d.getElementById('modalPrereqNote').textContent.includes('BSDS 233'),'Selected context is explained');
+  await open('CSE 2215');
+  d.getElementById('courseModalOverlay').dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  w.location.hash='';await pause(80);
+  const card=[...d.querySelectorAll('.course-card')].find(el=>el.getAttribute('aria-label').startsWith('CSE 2215 -'));
+  card.click();await pause(80);
+  check(codes('modalChainBody').includes('CSE 1111')&&!codes('modalChainBody').includes('DS 1115'),'Fresh catalog entry uses documented BSCSE default');
+  document.getElementById('results').textContent=JSON.stringify({passed:true,checks});
+ }catch(error){document.getElementById('results').textContent=JSON.stringify({passed:false,error:error.message,checks});}
+});
+</script>

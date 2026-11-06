@@ -376,25 +376,25 @@
         els.viewWrapper.classList.add("show-welcome");
       }
     }
-    courses = stored.courses || {};
-    userCourses = stored.userCourses || {};
-    softDeletedCourses = stored.softDeletedCourses || [];
-    hardDeletedCourses = stored.hardDeletedCourses || [];
+    courses = CourseData.normalizeMap(stored.courses || {});
+    userCourses = CourseData.normalizeMap(stored.userCourses || {});
+    softDeletedCourses = [...new Set((stored.softDeletedCourses || []).map(CourseData.code))];
+    hardDeletedCourses = [...new Set((stored.hardDeletedCourses || []).map(CourseData.code))];
     currentMode = stored.mode || "highlight";
     allowedSites = stored.allowedSites || [];
     showExamInfo = stored.showExamInfo || false;
     showPrerequisites = stored.showPrerequisites || false;
     lastSyncedAt = stored.lastSyncedAt || null;
-    remoteCourses = stored.remoteCourses || {};
+    remoteCourses = CourseData.normalizeMap(stored.remoteCourses || {});
     lastSyncResult = stored.lastSyncResult || null;
     currentThemePreference = stored.themePreference || "system";
-    enrolledCourses = Array.isArray(stored.enrolledCourses) ? [...new Set(stored.enrolledCourses.filter(code => typeof code === "string"))] : [];
+    enrolledCourses = Array.isArray(stored.enrolledCourses) ? [...new Set(stored.enrolledCourses.filter(code => typeof code === "string").map(CourseData.code))] : [];
     applyTheme(currentThemePreference);
 
     try {
       const res = await fetch(chrome.runtime.getURL("courses.json"));
       if (res.ok) {
-        bundledCourses = await res.json();
+        bundledCourses = CourseData.normalizeMap(await res.json());
       }
     } catch (e) {
       console.warn("Failed to load bundled courses", e);
@@ -402,15 +402,21 @@
 
     // Prune any userCourses overrides that are identical to official data
     let cleanedUserCourses = false;
+    const officialCatalog = CourseData.mergeCatalog(bundledCourses, remoteCourses);
     for (const code in userCourses) {
-      const official = remoteCourses[code] || bundledCourses[code];
-      if (official && areCourseDataEqual(userCourses[code], official)) {
+      const official = officialCatalog[code];
+      if (official && areCourseDataEqual(CourseData.mergeEntry(official, userCourses[code]), official)) {
         delete userCourses[code];
         cleanedUserCourses = true;
       }
     }
     if (cleanedUserCourses) {
       await chrome.storage.local.set({ userCourses });
+    }
+    if (Object.keys(bundledCourses).length) {
+      courses = CourseData.mergeCatalog(bundledCourses, remoteCourses, userCourses, softDeletedCourses, hardDeletedCourses);
+      const catalogDiagnostics = [...CourseData.audit(courses), ...CourseData.overrideIssues(bundledCourses, remoteCourses, userCourses)];
+      await chrome.storage.local.set({ courses, catalogDiagnostics });
     }
   }
 
@@ -890,7 +896,7 @@
     const examSlot = /^T[123]$/.test(rawSlot) && examDay !== "In-Class" ? rawSlot : "";
     const prerequisiteNote = typeof val.prerequisiteNote === "string" ? val.prerequisiteNote.trim() : "";
     const prerequisites = Array.isArray(val.prerequisites)
-      ? [...new Set(val.prerequisites.filter(p => typeof p === "string").map(p => /^none$/i.test(p.trim()) ? "None" : p.trim().toUpperCase().replace(/\s+/g, " ")).filter(Boolean))].sort()
+      ? [...new Set(val.prerequisites.filter(p => typeof p === "string").map(p => /^none$/i.test(p.trim()) ? "None" : CourseData.code(p)).filter(Boolean))].sort()
       : [];
     let credits = null;
     if (val.credits !== undefined && val.credits !== null && val.credits !== "") {
@@ -901,6 +907,7 @@
   }
 
   function areCourseDataEqual(val1, val2) {
+    if (CourseData.variantSignature(val1) !== CourseData.variantSignature(val2)) return false;
     const a = normalizeCourseData(val1);
     const b = normalizeCourseData(val2);
     if (a.name !== b.name) return false;
@@ -921,7 +928,7 @@
       bVal = { examDay: "", examSlot: "", prerequisites: [], name: bVal };
     }
     if (overrideValue && typeof overrideValue === "object") {
-      return { ...bVal, ...overrideValue };
+      return CourseData.mergeEntry(bVal, overrideValue);
     } else if (typeof overrideValue === "string") {
       return { ...bVal, name: overrideValue };
     }
@@ -962,6 +969,7 @@
       out.prerequisiteNote = norm.prerequisiteNote;
     }
     if (norm.credits !== null) out.credits = norm.credits;
+    if (courseData && typeof courseData === "object" && courseData.prerequisiteVariants) out.prerequisiteVariants = JSON.parse(JSON.stringify(courseData.prerequisiteVariants));
     return out;
   }
 
@@ -1316,6 +1324,10 @@
       const existing = Object.hasOwn(currentCourses, code) ? currentCourses[code] : null;
       if (isNameOnly && existing) incoming = normalizeCourseData(mergeCourseEntry(existing, incoming.name));
       else incoming = normalizeCourseData(incoming);
+      incoming.prerequisites = incoming.prerequisites.map(p => /^none$/i.test(p) ? "None" : CourseData.code(p));
+      if (!isNameOnly && v.prerequisiteVariants) incoming.prerequisiteVariants = v.prerequisiteVariants;
+      else if (existing && (!isNameOnly || incoming.name) && existing.prerequisiteVariants &&
+        JSON.stringify(normalizeCourseData(existing).prerequisites) === JSON.stringify(incoming.prerequisites)) incoming.prerequisiteVariants = existing.prerequisiteVariants;
       if (!existing) {
         toAdd.push({ code, incoming, isNameOnly });
       } else {
@@ -1352,7 +1364,13 @@
     for (const item of [...toAdd, ...toUpdate]) prospective[item.code] = item.incoming;
     const cycle = CourseData.cycle(prospective);
     if (cycle && (toAdd.length || toUpdate.length)) return { toAdd: [], toUpdate: [], unchanged, errors: [...errors, { code: cycle, reason: "Prerequisite cycle detected" }] };
-    return { toAdd, toUpdate, unchanged, errors };
+    const introduced = new Set([...toAdd, ...toUpdate].map(item => item.code));
+    const diagnostics = CourseData.audit(prospective);
+    const issueKey = issue => JSON.stringify([issue.type, issue.code, issue.prerequisite, issue.curriculum]);
+    const existingIssues = new Set(CourseData.audit(currentCourses).map(issueKey));
+    const invalid = diagnostics.filter(issue => issue.severity === "error" && introduced.has(issue.code) && !existingIssues.has(issueKey(issue)));
+    if (invalid.length) return {toAdd: [], toUpdate: [], unchanged, errors: [...errors, ...invalid.map(issue => ({code:issue.code, reason:issue.message}))], warnings: []};
+    return { toAdd, toUpdate, unchanged, errors, warnings: diagnostics.filter(issue => issue.severity === "warning" && introduced.has(issue.code)) };
   }
 
   function renderImportPreview(diff) {
@@ -1395,6 +1413,14 @@
       els.previewSummaryRow.appendChild(
         createSummaryPill("pill-invalid", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z", diff.errors.length + " skipped")
       );
+    }
+
+    if (diff.warnings && diff.warnings.length) {
+      els.previewSummaryRow.appendChild(createSummaryPill("pill-invalid", "M12 9v4m0 4h.01", diff.warnings.length + " to review"));
+      const warning = document.createElement("p");
+      warning.className = "diff-card";
+      warning.textContent = diff.warnings.map(issue => issue.message).join("; ");
+      els.previewDiffList.appendChild(warning);
     }
 
     // Dynamic confirm button updates
@@ -1770,7 +1796,7 @@
 
     for (const item of diff.toAdd) {
       const key = item.code;
-      const val = item.incoming;
+      const val = CourseData.mergeEntry(nextCourses[key], item.incoming);
 
       if (nextSoft.includes(key)) {
         nextSoft = nextSoft.filter(c => c !== key);
@@ -1786,7 +1812,7 @@
 
     for (const item of diff.toUpdate) {
       const key = item.code;
-      const val = item.incoming;
+      const val = CourseData.mergeEntry(nextCourses[key], item.incoming);
 
       if (nextSoft.includes(key)) {
         nextSoft = nextSoft.filter(c => c !== key);
@@ -1800,7 +1826,9 @@
       if (item.isNameOnly) nameOnlyCount++;
     }
 
-    await chrome.storage.local.set({ courses: nextCourses, userCourses: nextUser, softDeletedCourses: nextSoft, hardDeletedCourses: nextHard });
+    const catalogDiagnostics = CourseData.audit(nextCourses);
+    if (typeof bundledCourses !== "undefined") catalogDiagnostics.push(...CourseData.overrideIssues(bundledCourses, remoteCourses, nextUser));
+    await chrome.storage.local.set({ courses: nextCourses, userCourses: nextUser, softDeletedCourses: nextSoft, hardDeletedCourses: nextHard, catalogDiagnostics });
     courses = nextCourses; userCourses = nextUser; softDeletedCourses = nextSoft; hardDeletedCourses = nextHard;
 
     updateCourseCount();
@@ -2063,11 +2091,11 @@
 
   async function reloadLocalCoursesState() {
     const data = await chrome.storage.local.get(["courses", "softDeletedCourses", "userCourses", "remoteCourses", "hardDeletedCourses"]);
-    courses = data.courses || {};
-    softDeletedCourses = data.softDeletedCourses || [];
-    userCourses = data.userCourses || {};
-    remoteCourses = data.remoteCourses || {};
-    hardDeletedCourses = data.hardDeletedCourses || [];
+    courses = CourseData.normalizeMap(data.courses || {});
+    softDeletedCourses = [...new Set((data.softDeletedCourses || []).map(CourseData.code))];
+    userCourses = CourseData.normalizeMap(data.userCourses || {});
+    remoteCourses = CourseData.normalizeMap(data.remoteCourses || {});
+    hardDeletedCourses = [...new Set((data.hardDeletedCourses || []).map(CourseData.code))];
     updateCourseCount();
   }
 
@@ -3191,49 +3219,20 @@
    * @param {Object} catalog  - The merged courses catalog
    * @returns {{ directCodes: string[], levels: Array<{codes: string[], depth: number}> }}
    */
+  function prerequisiteCatalog(rootCode, catalog) {
+    const origin = typeof roadmapNavigationStack !== "undefined" && roadmapNavigationStack.length &&
+      typeof currentEditingCode !== "undefined" && currentEditingCode === rootCode ? roadmapNavigationStack[0].code : rootCode;
+    return CourseData.graph(catalog, {curriculum: CourseData.code(origin).startsWith("DS ") ? "BSDS-233" : "BSCSE-current"});
+  }
+
   function buildPrereqChain(rootCode, catalog) {
-    var directCodes = [];
-    var levels = [];
-    var visited = new Set();
-    visited.add(rootCode);
-
-    var rootData = normalizeCourseData(catalog[rootCode]);
-    var rootPrereqs = (Array.isArray(rootData.prerequisites) ? rootData.prerequisites : []).filter(function(c) {
-      return c && c.toUpperCase() !== "NONE";
-    });
-    directCodes = rootPrereqs.slice();
-
-    var currentLevel = rootPrereqs.filter(function(c) {
-      if (visited.has(c)) return false;
-      visited.add(c);
-      return true;
-    });
-
-    var depth = 1;
-    while (currentLevel.length > 0) {
-      levels.push({ codes: currentLevel.slice(), depth: depth });
-      depth++;
-      var nextLevel = [];
-      for (var i = 0; i < currentLevel.length; i++) {
-        var c = currentLevel[i];
-        var cData = normalizeCourseData(catalog[c]);
-        var cPrereqs = Array.isArray(cData.prerequisites) ? cData.prerequisites : [];
-        for (var j = 0; j < cPrereqs.length; j++) {
-          var p = cPrereqs[j];
-          if (p && p.toUpperCase() !== "NONE" && !visited.has(p)) {
-            visited.add(p);
-            nextLevel.push(p);
-          }
-        }
-      }
-      currentLevel = nextLevel;
-    }
-    return { directCodes: directCodes, levels: levels };
+    return prerequisiteCatalog(rootCode, catalog).chain(rootCode);
   }
 
   // Topological stages preserve shared dependencies even when a foundation is
   // also a direct prerequisite. Reversing BFS levels cannot guarantee this.
   function buildPrereqStages(rootCode, catalog) {
+    catalog = prerequisiteCatalog(rootCode, catalog).catalog;
     var chain = buildPrereqChain(rootCode, catalog);
     var pending = new Set(chain.levels.flatMap(function(level) { return level.codes; }));
     var completed = new Set();
@@ -3266,17 +3265,7 @@
    * @returns {string[]}
    */
   function findUnlocks(code, catalog) {
-    var result = [];
-    var keys = Object.keys(catalog);
-    for (var i = 0; i < keys.length; i++) {
-      var k = keys[i];
-      var data = normalizeCourseData(catalog[k]);
-      if (Array.isArray(data.prerequisites) && data.prerequisites.indexOf(code) !== -1) {
-        result.push(k);
-      }
-    }
-    result.sort();
-    return result;
+    return prerequisiteCatalog(code, catalog).unlocks(code);
   }
 
   /**
@@ -3287,6 +3276,8 @@
    * @param {string} code - The course code currently shown in View 3
    */
   function renderPrereqTree(code) {
+    var graph = prerequisiteCatalog(code, courses);
+    var viewCatalog = graph.catalog;
     var section = els.prereqTreeSection;
     var chainBody = els.prereqChainBody;
     var chainCount = els.prereqChainCount;
@@ -3309,8 +3300,8 @@
     chainBody.textContent = "";
     unlocksBody.textContent = "";
 
-    var chain = buildPrereqChain(code, courses);
-    var unlocks = findUnlocks(code, courses);
+    var chain = graph.chain(code);
+    var unlocks = graph.unlocks(code);
 
     var hasChain = chain.levels.length > 0 || chain.directCodes.length > 0;
     var hasUnlocks = unlocks.length > 0;
@@ -3339,7 +3330,7 @@
       els.flowOriginBadge.textContent = origin.label;
       els.flowOriginBadge.setAttribute("aria-label", "Course type: " + origin.label);
     }
-    var cData = normalizeCourseData(courses[code]);
+    var cData = normalizeCourseData(viewCatalog[code]);
     if (els.flowCourseSubtitle) {
       els.flowCourseSubtitle.textContent = code + (cData.name ? " · " + cData.name : "");
     }
@@ -3351,7 +3342,11 @@
       els.flowHeroCredits.textContent = !isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) + " Cr" : "Credits unlisted";
     }
     if (els.flowPrereqNoteCard && els.flowPrereqNoteText) {
-      var note = (cData.prerequisiteNote || "").trim();
+      var reachable = new Set([CourseData.code(code), ...graph.chain(code).levels.flatMap(level => level.codes)]);
+      var issues = CourseData.audit(courses, {curriculum: graph.curriculum});
+      if (typeof bundledCourses !== "undefined") issues.push(...CourseData.overrideIssues(bundledCourses, remoteCourses, userCourses));
+      var review = issues.filter(issue => reachable.has(issue.code)).map(issue => issue.message);
+      var note = [graph.curriculum === "BSDS-233" && !code.startsWith("DS ") ? "Roadmap uses the BSDS 233 curriculum." : "", (cData.prerequisiteNote || "").trim(), ...new Set(review)].filter(Boolean).join(" · ");
       if (note) {
         els.flowPrereqNoteText.textContent = note;
         els.flowPrereqNoteCard.style.display = "flex";
@@ -3367,11 +3362,11 @@
      * Missing codes: always label = code, tooltip indicates not in catalog
      */
     function badgeContent(courseCode) {
-      var inCatalog = !!courses[courseCode];
+      var inCatalog = !!viewCatalog[courseCode];
       if (!inCatalog) {
         return { label: courseCode, tooltip: courseCode + " — not in catalog", nameMode: false };
       }
-      var data = normalizeCourseData(courses[courseCode]);
+      var data = normalizeCourseData(viewCatalog[courseCode]);
       var name = data.name || "";
       if (showPrereqNames && name) {
         return { label: name, tooltip: courseCode, nameMode: true };
@@ -3388,14 +3383,14 @@
       emptyIcon.textContent = "✓";
       emptyState.appendChild(emptyIcon);
       var emptyTitle = document.createElement("strong");
-      emptyTitle.textContent = normalizeCourseData(courses[code]).prerequisites.some(function(p) { return p.toLowerCase() === "none"; }) ? "No prerequisites" : "Prerequisites not listed";
+      emptyTitle.textContent = normalizeCourseData(viewCatalog[code]).prerequisites.some(function(p) { return p.toLowerCase() === "none"; }) ? "No prerequisites" : "Prerequisites not listed";
       emptyState.appendChild(emptyTitle);
       var emptyDesc = document.createElement("span");
       emptyDesc.textContent = "Check any additional enrollment requirements below.";
       emptyState.appendChild(emptyDesc);
       chainBody.appendChild(emptyState);
     } else {
-      buildPrereqStages(code, courses).forEach(function(stage, stageIndex) {
+      buildPrereqStages(code, viewCatalog).forEach(function(stage, stageIndex) {
         var tier = document.createElement("section");
         tier.className = "roadmap-stage";
         var heading = document.createElement("h3");
@@ -3414,8 +3409,8 @@
           tier.appendChild(warning);
         }
         stage.codes.forEach(function(prereqCode) {
-          var inCatalog = !!courses[prereqCode];
-          var pData = inCatalog ? normalizeCourseData(courses[prereqCode]) : null;
+          var inCatalog = !!viewCatalog[prereqCode];
+          var pData = inCatalog ? normalizeCourseData(viewCatalog[prereqCode]) : null;
           var pName = pData ? (pData.name || "") : "";
           var numCr = pData && pData.credits ? parseFloat(pData.credits) : NaN;
           var pCr = !isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) + " Cr" : "Credits unlisted";
@@ -3459,7 +3454,7 @@
 
           if (inCatalog) {
             card.addEventListener("click", (function(c) {
-              return function() { openCourseDetails(c, courses[c], "flow"); };
+              return function() { openCourseDetails(c, viewCatalog[c], "flow"); };
             })(prereqCode));
           } else {
             card.setAttribute("aria-disabled", "true");
@@ -3487,8 +3482,8 @@
       unlocksBody.appendChild(emptyUnlocks);
     } else {
       unlocks.forEach(function(unlockCode) {
-        var inCatalog = !!courses[unlockCode];
-        var uData = inCatalog ? normalizeCourseData(courses[unlockCode]) : null;
+        var inCatalog = !!viewCatalog[unlockCode];
+        var uData = inCatalog ? normalizeCourseData(viewCatalog[unlockCode]) : null;
         var uName = uData ? (uData.name || "") : "";
         var numCr = uData && uData.credits ? parseFloat(uData.credits) : NaN;
         var uCr = !isNaN(numCr) && numCr > 0 ? numCr.toFixed(1) + " Cr" : "Credits unlisted";
@@ -3529,7 +3524,7 @@
 
         if (inCatalog) {
           card.addEventListener("click", (function(c) {
-            return function() { openCourseDetails(c, courses[c], "flow"); };
+            return function() { openCourseDetails(c, viewCatalog[c], "flow"); };
           })(unlockCode));
         } else {
           card.setAttribute("aria-disabled", "true");
@@ -3899,6 +3894,7 @@
   function commitCourseSave(code, newVal, savedSnapshot) {
     return (async () => {
       const catalogData = getCatalogReportBaseline(code, bundledCourses, remoteCourses);
+      newVal = CourseData.mergeEntry(catalogData, newVal);
       const nextUserCourses = { ...userCourses };
       if (catalogData && areCourseDataEqual(newVal, catalogData)) delete nextUserCourses[code];
       else nextUserCourses[code] = newVal;

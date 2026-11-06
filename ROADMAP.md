@@ -204,3 +204,10 @@ flowchart TD
   - **Hierarchical Escape Retreat**: `Escape` key dismisses top modals first, then retreats through navigation history (Details &rarr; Flow &rarr; Catalog &rarr; Home).
   - **High-Contrast Visible Focus Rings**: Fully compliant `:focus-visible` outlines across both light and OLED palettes.
   - **Automated Regression Suite**: `tests/test_keyboard_accessibility.js` — 32 assertions, 32 passing.
+
+
+## Deferred: explicit program and curriculum prerequisites
+
+Target: next minor feature version; exact version/date unassigned. Keep the current integrity fixes and review warnings as an interim state. Complete curriculum coverage and explicit student selection remain unfinished.
+
+See [curriculum prerequisite handoff](</D:/New Works/uiu-course-code-decoder-extension/CURRICULUM_PREREQUISITES_HANDOFF.md>) for the decision, seven tracked issues, evidence requirements, migration scope and acceptance tests. This work is separate from the completed prerequisite graph feature above and is not marked complete.

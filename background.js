@@ -4,23 +4,6 @@ importScripts("course-data.js");
 
 const COURSES_URL = chrome.runtime.getURL("courses.json");
 
-// Helper to defensively merge a single course entry, handling legacy string formats
-function mergeCourseEntry(baseValue, overrideValue) {
-  let bVal = baseValue || { examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "" };
-  // If baseValue itself happens to be a string, normalize it first
-  if (typeof bVal === "string") {
-    bVal = { examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", name: bVal };
-  }
-
-  if (overrideValue && typeof overrideValue === "object") {
-    return { ...bVal, ...overrideValue };
-  } else if (typeof overrideValue === "string") {
-    return { ...bVal, name: overrideValue };
-  }
-  
-  return bVal;
-}
-
 // Grabs the default courses and mixes in any custom ones the user added.
 // Custom courses overwrite defaults if the codes match.
 async function loadAndStoreCourses() {
@@ -65,29 +48,9 @@ async function loadAndStoreCourses() {
     const remote = remoteCourses || {};
     const hardDeleted = hardDeletedCourses || [];
     
-    const merged = { ...bundled };
-
-    // Merge remoteCourses over bundled courses (remote takes precedence)
-    for (const code in remote) {
-      merged[code] = mergeCourseEntry(merged[code], remote[code]);
-    }
-
-    // Merge userCourses over the result (user takes precedence)
-    for (const code in user) {
-      merged[code] = mergeCourseEntry(merged[code], user[code]);
-    }
-
-    // Exclude soft-deleted courses from the merged dictionary
-    for (const code of softDeleted) {
-      delete merged[code];
-    }
-
-    // Exclude permanently deleted courses from the merged dictionary
-    for (const code of hardDeleted) {
-      delete merged[code];
-    }
-
-    await chrome.storage.local.set({ courses: merged });
+    const merged = CourseData.mergeCatalog(bundled, remote, user, softDeleted, hardDeleted);
+    const catalogDiagnostics = [...CourseData.audit(merged), ...CourseData.overrideIssues(bundled, remote, user)];
+    await chrome.storage.local.set({ courses: merged, catalogDiagnostics });
   } catch (err) {
     console.error("[CourseDecoder] Failed to load courses.json:", err);
   }
@@ -158,7 +121,7 @@ async function syncCourses(previewOnly = true, candidate = null, expectedRevisio
         if (Number(prev?.credits || 0) !== Number(curr?.credits || 0)) changedFields.push("Credits");
         if (prevName !== currName) changedFields.push("Title");
         if (prevDay !== currDay || prevSlot !== currSlot) changedFields.push("Exam Schedule");
-        if (prevPrereq !== currPrereq) changedFields.push("Prerequisites");
+        if (prevPrereq !== currPrereq || CourseData.variantSignature(prev) !== CourseData.variantSignature(curr)) changedFields.push("Prerequisites");
         if (prevNote !== currNote) changedFields.push("Prerequisite Note");
 
         if (changedFields.length > 0) {
@@ -187,6 +150,7 @@ async function syncCourses(previewOnly = true, candidate = null, expectedRevisio
       removedCodes,
       updatedDetails,
       total: Object.keys(data).length,
+      warnings: CourseData.audit(data).filter(issue => issue.severity === "warning"),
       timestamp
     };
 

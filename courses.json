@@ -285,40 +285,76 @@
     "examDay": "Day 4",
     "examSlot": "T2",
     "prerequisites": [
-      "DS 1115",
-      "DS 1116"
+      "CSE 1111"
     ],
-    "credits": 3
+    "credits": 3,
+    "prerequisiteVariants": {
+      "BSDS-233": {
+        "prerequisites": [
+          "DS 1115",
+          "DS 1116"
+        ],
+        "source": "https://datascience.uiu.ac.bd/ug-program/course-plan/"
+      }
+    },
+    "prerequisiteNote": "Default: current BSCSE course plan (CSE 1111). BSDS 233 uses DS 1115 and DS 1116. Earlier curricula differ; verify the curriculum that applies to you."
   },
   "CSE 2216": {
     "name": "Data Structure and Algorithms I Laboratory",
     "examDay": "",
     "examSlot": "",
     "prerequisites": [
-      "DS 1115",
-      "DS 1116"
+      "CSE 1112"
     ],
-    "credits": 1
+    "credits": 1,
+    "prerequisiteVariants": {
+      "BSDS-233": {
+        "prerequisites": [
+          "DS 1115",
+          "DS 1116"
+        ],
+        "source": "https://datascience.uiu.ac.bd/ug-program/course-plan/"
+      }
+    },
+    "prerequisiteNote": "Default: current BSCSE course plan (CSE 1112). BSDS 233 uses DS 1115 and DS 1116. Earlier curricula differ; verify the curriculum that applies to you."
   },
   "CSE 2217": {
     "name": "Data Structure and Algorithms II",
     "examDay": "Day 5",
     "examSlot": "T2",
     "prerequisites": [
-      "CSE 2215",
-      "CSE 2216"
+      "CSE 2215"
     ],
-    "credits": 3
+    "credits": 3,
+    "prerequisiteVariants": {
+      "BSDS-233": {
+        "prerequisites": [
+          "CSE 2215",
+          "CSE 2216"
+        ],
+        "source": "https://datascience.uiu.ac.bd/ug-program/course-plan/"
+      }
+    },
+    "prerequisiteNote": "Default: current BSCSE course plan (CSE 2215). BSDS 233 uses CSE 2215 and CSE 2216. Earlier curricula differ; verify the curriculum that applies to you."
   },
   "CSE 2218": {
     "name": "Data Structure and Algorithms II Laboratory",
     "examDay": "",
     "examSlot": "",
     "prerequisites": [
-      "CSE 2215",
       "CSE 2216"
     ],
-    "credits": 1
+    "credits": 1,
+    "prerequisiteVariants": {
+      "BSDS-233": {
+        "prerequisites": [
+          "CSE 2215",
+          "CSE 2216"
+        ],
+        "source": "https://datascience.uiu.ac.bd/ug-program/course-plan/"
+      }
+    },
+    "prerequisiteNote": "Default: current BSCSE course plan (CSE 2216). BSDS 233 uses CSE 2215 and CSE 2216. Earlier curricula differ; verify the curriculum that applies to you."
   },
   "CSE 2233": {
     "name": "Theory of Computation",

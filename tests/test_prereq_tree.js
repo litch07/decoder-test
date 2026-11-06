@@ -266,9 +266,9 @@ assert('popup.js handles flow origin in openSettings and exitCourseDetails',
   JS.includes('settingsOriginView = "flow"') && JS.includes('detailsOriginView === "flow"'));
 
 // Exercise the production traversal and renderer, rather than a copied algorithm.
-const runtime = new Function('normalizeCourseData', 'document', 'els', 'courses',
+const runtime = new Function('CourseData', 'normalizeCourseData', 'document', 'els', 'courses',
   'showPrereqNames', 'openCourseDetails',
-  JS.slice(JS.indexOf('  function buildPrereqChain('), JS.indexOf('  // ── End Task 2.4 helpers')) +
+  JS.slice(JS.indexOf('  function prerequisiteCatalog('), JS.indexOf('  // ── End Task 2.4 helpers')) +
   '\nreturn { buildPrereqChain, buildPrereqStages, renderPrereqTree };');
 class TreeNode {
   constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.style = {}; this.classList = { toggle() {} }; }
@@ -290,7 +290,7 @@ const sharedCatalog = {
   NEXT: { prerequisites: ['TARGET', 'OTHER'] }
 };
 let navigated;
-const production = runtime(normalizeCourseData, treeDocument, treeEls, sharedCatalog, false,
+const production = runtime(require('../course-data.js'), normalizeCourseData, treeDocument, treeEls, sharedCatalog, false,
   code => { navigated = code; });
 const stages = production.buildPrereqStages('TARGET', sharedCatalog);
 assert('Production stages put shared foundation before its dependents',
@@ -414,7 +414,7 @@ assert('A removed source course falls back safely to the catalog',
   classes.has('show-courses') && navigation.state().depth === 0);
 
 // Run asynchronous persistence checks before reporting the suite result.
-require('./product_quality_checks')(assert).then(() => {
+require('./product_quality_checks')(assert).then(() => require('./prerequisite_integrity_checks')()).then(() => {
   console.log(`\n  Results: ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exitCode = 1;
 }).catch(error => {

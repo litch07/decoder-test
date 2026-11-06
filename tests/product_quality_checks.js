@@ -158,11 +158,11 @@ module.exports = async function productQualityChecks(assert) {
   }
   assert('Reserved dictionary keys are rejected', !!CourseData.validate('__proto__', { name: 'Bad key' }));
   assert('Multi-course prerequisite cycles are detected', !!CourseData.cycle({ 'CSE 1001': { prerequisites: ['CSE 1002'] }, 'CSE 1002': { prerequisites: ['CSE 1001'] } }));
-  const failedImport = vm.createContext({ courses: structuredClone(previous), userCourses: {}, softDeletedCourses: [canonical], hardDeletedCourses: [], chrome: { storage: { local: { set: async () => { throw Error('Quota'); } } } } });
+  const failedImport = vm.createContext({ CourseData, courses: structuredClone(previous), userCourses: {}, softDeletedCourses: [canonical], hardDeletedCourses: [], chrome: { storage: { local: { set: async () => { throw Error('Quota'); } } } } });
   vm.runInContext(js.slice(js.indexOf('  async function executeCommitImportDiff('), js.indexOf('  function triggerDropZoneError(')), failedImport);
   try { await failedImport.executeCommitImportDiff(renamed); } catch (_) {}
   assert('Failed imports leave active data, overrides and Trash untouched', failedImport.courses[canonical].name === 'Original' && !Object.hasOwn(failedImport.userCourses, canonical) && failedImport.softDeletedCourses.includes(canonical));
-  const examChecks = vm.createContext({});
+  const examChecks = vm.createContext({ CourseData });
   vm.runInContext(normalization + js.slice(js.indexOf('  function detectSameDayExams('), js.indexOf('  function computeEnrolledCredits(')), examChecks);
   const aliasCourses = { A: { name: 'A', examDay: 'Day 5', examSlot: 'T3' }, B: { name: 'B', examDay: 'D5', examSlot: 't3' } };
   assert('Exam aliases and letter case resolve to one actual conflict', examChecks.detectExamClashes(['A', 'B'], aliasCourses).length === 1);
@@ -327,7 +327,7 @@ module.exports = async function productQualityChecks(assert) {
   assert('Successful saves disable Save until another edit', els.detailSaveBtn.disabled);
   let failStorage = true;
   const persisted = {};
-  const save = vm.createContext({ getCatalogReportBaseline: reports.getCatalogReportBaseline,
+  const save = vm.createContext({ CourseData, getCatalogReportBaseline: reports.getCatalogReportBaseline,
     bundledCourses: { A: { name: 'Original title', credits: 3 } }, remoteCourses: {}, userCourses: {},
     softDeletedCourses: [], hardDeletedCourses: [], courses: { A: { name: 'Original title', credits: 3 } },
     currentEditingCode: null, isTrashMode: false, searchQuery: '',

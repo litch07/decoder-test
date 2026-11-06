@@ -24,6 +24,7 @@
     sort: 'CODE_ASC'
   };
   let activeModalCourse = null;
+  let modalCurriculum = null;
   let showPrereqNames = false; // Code/Name toggle preference
 
   // ── Department Prefix Categorization ─────────────────────────────────────
@@ -113,7 +114,7 @@
     const examSlot = /^T[123]$/.test(rawSlot) && examDay !== "In-Class" ? rawSlot : "";
     const prerequisiteNote = typeof val.prerequisiteNote === "string" ? val.prerequisiteNote.trim() : "";
     const prerequisites = Array.isArray(val.prerequisites)
-      ? [...new Set(val.prerequisites.filter(p => typeof p === "string").map(p => /^none$/i.test(p.trim()) ? "None" : p.trim().toUpperCase().replace(/\s+/g, " ")).filter(Boolean))].sort()
+      ? [...new Set(val.prerequisites.filter(p => typeof p === "string").map(p => /^none$/i.test(p.trim()) ? "None" : CourseData.code(p)).filter(Boolean))].sort()
       : [];
     let credits = null;
     if (val.credits !== undefined && val.credits !== null && val.credits !== "") {
@@ -129,52 +130,21 @@
    * Builds a cycle-safe, level-by-level ancestry tree.
    * Direct prerequisites are depth 1; transitive are depth 2+.
    */
+  function prerequisiteCatalog(rootCode, catalog) {
+    const curriculum = typeof activeModalCourse !== "undefined" && activeModalCourse === rootCode &&
+      typeof modalCurriculum !== "undefined" && modalCurriculum ? modalCurriculum : CourseData.code(rootCode).startsWith("DS ") ? "BSDS-233" : "BSCSE-current";
+    return CourseData.graph(catalog, {curriculum});
+  }
+
   function buildPrereqChain(rootCode, cat) {
-    const directCodes = [];
-    const levels = [];
-    const visited = new Set();
-    visited.add(rootCode);
-
-    const rootData = normalizeCourseData(cat[rootCode]);
-    const rootPrereqs = rootData.prerequisites || [];
-    directCodes.push(...rootPrereqs);
-
-    let currentLevel = rootPrereqs.filter(c => !visited.has(c));
-    currentLevel.forEach(c => visited.add(c));
-
-    let depth = 1;
-    while (currentLevel.length > 0) {
-      levels.push({ codes: currentLevel.slice(), depth: depth });
-      depth++;
-      const nextLevel = [];
-      for (const c of currentLevel) {
-        const cData = normalizeCourseData(cat[c]);
-        const cPrereqs = cData.prerequisites || [];
-        for (const p of cPrereqs) {
-          if (!visited.has(p)) {
-            visited.add(p);
-            nextLevel.push(p);
-          }
-        }
-      }
-      currentLevel = nextLevel;
-    }
-    return { directCodes, levels };
+    return prerequisiteCatalog(rootCode, cat).chain(rootCode);
   }
 
   /**
    * Finds all courses in the catalog that list `code` as a prerequisite.
    */
   function findUnlocks(code, cat) {
-    const results = [];
-    for (const [k, val] of Object.entries(cat)) {
-      const data = normalizeCourseData(val);
-      if (Array.isArray(data.prerequisites) && data.prerequisites.includes(code)) {
-        results.push(k);
-      }
-    }
-    results.sort();
-    return results;
+    return prerequisiteCatalog(code, cat).unlocks(code);
   }
 
   // ── UI Rendering: Course Cards Grid ──────────────────────────────────────
@@ -388,8 +358,9 @@
 
   // ── Course Inspector Modal ───────────────────────────────────────────────
 
-  function openCourseModal(code) {
+  function openCourseModal(code, preserveCurriculum = false) {
     if (!catalog[code]) return;
+    if (!preserveCurriculum || !modalCurriculum) modalCurriculum = code.startsWith("DS ") ? "BSDS-233" : "BSCSE-current";
     activeModalCourse = code;
     const data = normalizeCourseData(catalog[code]);
     const dept = getCourseDept(code);
@@ -418,9 +389,12 @@
       if (els.modalCreditsPill) els.modalCreditsPill.style.display = 'none';
     }
 
-    if (data.prerequisiteNote) {
+    const reachable = new Set([code, ...buildPrereqChain(code, catalog).levels.flatMap(level => level.codes)]);
+    const review = CourseData.audit(catalog, {curriculum: prerequisiteCatalog(code, catalog).curriculum}).filter(issue => reachable.has(issue.code)).map(issue => issue.message);
+    const prerequisiteNote = [modalCurriculum === "BSDS-233" && !code.startsWith("DS ") ? "Roadmap uses the BSDS 233 curriculum." : "", data.prerequisiteNote, ...new Set(review)].filter(Boolean).join(" · ");
+    if (prerequisiteNote) {
       els.modalPrereqNotePill.style.display = 'flex';
-      els.modalPrereqNote.textContent = data.prerequisiteNote;
+      els.modalPrereqNote.textContent = prerequisiteNote;
     } else {
       els.modalPrereqNotePill.style.display = 'none';
     }
@@ -533,7 +507,7 @@
           badge.title = content.tooltip;
 
           if (inCatalog) {
-            badge.addEventListener('click', () => openCourseModal(prereqCode));
+            badge.addEventListener('click', () => openCourseModal(prereqCode, true));
           } else {
             badge.setAttribute('aria-disabled', 'true');
           }
@@ -558,7 +532,7 @@
         badge.className = 'prereq-badge is-direct' + (content.isNameMode ? ' is-name-mode' : '');
         badge.textContent = content.label;
         badge.title = content.tooltip;
-        badge.addEventListener('click', () => openCourseModal(unlockCode));
+        badge.addEventListener('click', () => openCourseModal(unlockCode, true));
 
         unlocksBody.appendChild(badge);
       });
@@ -738,8 +712,9 @@
       return;
     }
     // Match code format (e.g. CSE-2215 -> CSE 2215)
-    const normalizedCode = decodeURIComponent(hash).replace(/-/g, ' ').toUpperCase();
+    const normalizedCode = CourseData.code(decodeURIComponent(hash).replace(/-/g, ' '));
     if (catalog[normalizedCode]) {
+      if (activeModalCourse === normalizedCode) return;
       openCourseModal(normalizedCode);
     }
   }
@@ -778,6 +753,7 @@
       }
     }
 
+    catalog = CourseData.normalizeMap(catalog);
     courseKeys = Object.keys(catalog).sort();
 
     // Hide loader

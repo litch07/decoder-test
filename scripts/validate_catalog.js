@@ -11,3 +11,6 @@ for (const [code, value] of Object.entries(catalog)) {
 }
 assert.equal(text, fs.readFileSync('docs/courses.json', 'utf8'), 'Catalog copies differ');
 console.log('Catalog validated: ' + Object.keys(catalog).length + ' courses; no cycles or missing references.');
+
+assert.equal(fs.readFileSync('course-data.js', 'utf8'), fs.readFileSync('docs/course-data.js', 'utf8'), 'Shared graph copies differ');
+for (const issue of schema.audit(catalog)) if (issue.severity === 'warning') console.warn('REVIEW: ' + issue.message);
