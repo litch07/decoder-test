@@ -52,7 +52,7 @@ async function loadAndStoreCourses() {
     const catalogDiagnostics = [...CourseData.audit(merged), ...CourseData.overrideIssues(bundled, remote, user)];
     await chrome.storage.local.set({ courses: merged, catalogDiagnostics });
   } catch (err) {
-    console.error("[CourseDecoder] Failed to load courses.json:", err);
+    console.error("[CourseCompanion] Failed to load courses.json:", err);
   }
 }
 
@@ -167,7 +167,7 @@ async function syncCourses(previewOnly = true, candidate = null, expectedRevisio
     
     return { success: true, lastSyncedAt: timestamp, stats: lastSyncResult };
   } catch (err) {
-    console.warn("[CourseDecoder] Sync failed:", err.message || err);
+    console.warn("[CourseCompanion] Sync failed:", err.message || err);
     return { success: false, error: err.message || "Failed to fetch remote courses" };
   }
 }
@@ -308,7 +308,7 @@ async function syncRegisteredContentScripts() {
       ]);
     }
   } catch (err) {
-    console.warn("[CourseDecoder] Failed to sync registered content scripts:", err);
+    console.warn("[CourseCompanion] Failed to sync registered content scripts:", err);
   }
 }
 

@@ -53,6 +53,14 @@ console.log("  ✓ Zero innerHTML or insertAdjacentHTML calls in content.js and 
 console.log("[TEST 3] Manifest V3 & Permissions Model");
 const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
 assert.strictEqual(manifest.manifest_version, 3);
+assert.strictEqual(manifest.name, 'UIU Course Companion', 'Manifest uses the current product name');
+assert.strictEqual(manifest.description, 'Decode UIU course codes on any webpage, explore prerequisite trees, and build clash-free exam routines.', 'Manifest uses the approved store description');
+assert.strictEqual(manifest.browser_specific_settings.gecko.id, 'uiu-course-decoder@ssadidahmed01', 'Rebranding preserves the existing Firefox update identity');
+for (const file of ['popup.html', 'docs/index.html']) {
+  const branding = fs.readFileSync(file, 'utf8');
+  assert.ok(branding.includes('<title>UIU Course Companion'), file + ' uses the current product name');
+  assert.ok(!/UIU Course (Code )?Decoder/.test(branding), file + ' has no stale visible product name');
+}
 assert.ok(manifest.optional_host_permissions, "Manifest must have optional_host_permissions");
 assert.ok(manifest.optional_host_permissions.includes("*://*/*"), "optional_host_permissions must include *://*/*");
 

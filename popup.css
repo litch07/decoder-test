@@ -377,6 +377,8 @@ button { appearance: none; -webkit-appearance: none; border: 1px solid transpare
   transform: scale(0.95);
 }
 
+.main-view .brand-tagline { line-height: 1.4; }
+
 .header-text h1 {
   font-size: 0.95rem;
   font-weight: 700;

@@ -1,6 +1,6 @@
-# UIU Course Code Decoder
+# UIU Course Companion
 
-Decode courses. Map prerequisites. Plan exams.
+Decode courses. Map prerequisites. Avoid exam clashes.
 
 A Manifest V3 Chrome extension for UIU students, with a separate web course explorer. The extension decodes course codes on enabled websites, manages a local course catalog and helps compare exam workloads. It does not register courses in UCAM.
 
@@ -77,6 +77,7 @@ The master runner has **24 suites**. Catalog validation reports structural error
 - [Architecture and storage](EXTENSION_CURRENT_STATE.md)
 - [Contribution and data workflow](CONTRIBUTING.md)
 - [Implemented scope and future work](ROADMAP.md)
+- [Repository rename and release guide](REBRAND_RELEASE_GUIDE.md)
 - [Screenshot maintenance](SCREENSHOTS_GUIDE.md)
 - [Developer entry point](context.md)
 

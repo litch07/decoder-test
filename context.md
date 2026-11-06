@@ -6,6 +6,8 @@ Read [EXTENSION_CURRENT_STATE.md](EXTENSION_CURRENT_STATE.md) for architecture, 
 
 The project is a Manifest V3 extension written in vanilla JavaScript, HTML and CSS, with a separate public explorer under `docs/`. No extension build step, CDN or package install is required. The master Node runner contains 24 suites.
 
+For branding and release-repository migration, read [REBRAND_RELEASE_GUIDE.md](REBRAND_RELEASE_GUIDE.md). `decoder-test` remains staging; production links stay at their existing addresses until the main repository is renamed.
+
 ## Working boundaries
 
 - Preserve full normalized course codes as identity, including prefix and suffix. Titles and numeric portions do not identify graph nodes.

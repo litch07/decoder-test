@@ -1,5 +1,5 @@
 /**
- * UIU Course Code Decoder — Public Web Catalog & Prerequisite Explorer
+ * UIU Course Companion — Public Web Catalog & Prerequisite Explorer
  * File: docs/app.js
  *
  * Implementation overview:
@@ -854,7 +854,7 @@
     }
     lines.push("", "## Source", "", "Add an official syllabus, routine, or UCAM reference. For exam updates, include the trimester/year and routine date.",
       "", "Remove student IDs and other personal information from any screenshots before attaching them.",
-      "", "---", "Prepared with UIU Course Code Decoder for the community-maintained catalog.");
+      "", "---", "Prepared with UIU Course Companion for the community-maintained catalog.");
     return { title, body: lines.join("\n"), labels: addition ? "course-addition" : "data-correction" };
   }
 
