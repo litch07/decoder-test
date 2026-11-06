@@ -173,3 +173,5 @@ console.log("==================================================");
 console.log("  ALL ALLOWED DOMAINS TESTS PASSED (6 / 6)        ");
 console.log("==================================================");
 
+
+require('./content_registration_checks')().catch(error => { console.error(error); process.exitCode = 1; });

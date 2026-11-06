@@ -125,4 +125,4 @@ async function runTest() {
   console.log("All official course hard-delete tests passed!");
 }
 
-runTest().catch(console.error);
+runTest().catch(error => { console.error(error); process.exitCode = 1; });

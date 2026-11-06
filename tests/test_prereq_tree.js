@@ -261,7 +261,7 @@ assert('CSS styles .flow-hero-card and .flow-hero-pill',
 assert('popup.js has openPrereqFlowView and exitPrereqFlowView functions',
   JS.includes('function openPrereqFlowView') && JS.includes('function exitPrereqFlowView'));
 assert('popup.js caches launcher card & flow view elements in els',
-  JS.includes('detailPrereqLauncherCard:') && JS.includes('btnOpenPrereqFlow:') && JS.includes('prereqFlowView:'));
+  JS.includes('btnOpenPrereqFlow?.addEventListener("click"') && JS.includes('btnOpenPrereqFlow:') && JS.includes('prereqFlowView:'));
 assert('popup.js handles flow origin in openSettings and exitCourseDetails',
   JS.includes('settingsOriginView = "flow"') && JS.includes('detailsOriginView === "flow"'));
 

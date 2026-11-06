@@ -27,7 +27,6 @@
     domainSelectAllText: document.getElementById("domainSelectAllText"),
     bulkRemoveDomainsBtn: document.getElementById("bulkRemoveDomainsBtn"),
     bulkRemoveDomainsBtnText: document.getElementById("bulkRemoveDomainsBtnText"),
-    displaySettingsCard: document.getElementById("displaySettingsCard"),
     modeRadios: document.querySelectorAll('input[name="mode"]'),
     showExamInfoToggle: document.getElementById("showExamInfoToggle"),
     showPrerequisitesToggle: document.getElementById("showPrerequisitesToggle"),
@@ -64,10 +63,7 @@
     welcomeActionBtn: document.getElementById("welcomeActionBtn"),
     contribModalDoneBtn: document.getElementById("contribModalDoneBtn"),
     openContribModalBtn: document.getElementById("openContribModalBtn"),
-    detailsInfoBtn: document.getElementById("detailsInfoBtn"),
-    importInfoBtn: document.getElementById("importInfoBtn"),
     contribReportIssueBtn: document.getElementById("contribReportIssueBtn"),
-    importContribLink: document.getElementById("importContribLink"),
     previewSummaryRow: document.getElementById("previewSummaryRow"),
     previewDiffList: document.getElementById("previewDiffList"),
     trashActionsRow: document.getElementById("trashActionsRow"),
@@ -82,7 +78,6 @@
     courseFilterRow: document.getElementById("courseFilterRow"),
     filterBtns: document.querySelectorAll("#courseFilterRow .filter-btn"),
     jsonInput: document.getElementById("jsonInput"),
-    importSection: document.getElementById("importSection"),
     importBtn: document.getElementById("importBtn"),
     clearBtn: document.getElementById("clearBtn"),
     importMsg: document.getElementById("importMsg"),
@@ -142,7 +137,6 @@
     homeSameDayBadge: document.getElementById("homeSameDayBadge"),
     homeExamSummary: document.getElementById("homeExamSummary"),
     homeEnrolledStatusHint: document.getElementById("homeEnrolledStatusHint"),
-    mycoursesView: document.querySelector(".mycourses-view"),
     myCoursesBackBtn: document.getElementById("myCoursesBackBtn"),
     myCoursesHeaderSubtitle: document.getElementById("myCoursesHeaderSubtitle"),
     myCoursesAddCard: document.getElementById("myCoursesAddCard"),
@@ -152,11 +146,7 @@
     myCoursesList: document.getElementById("myCoursesList"),
     myCoursesEmptyState: document.getElementById("myCoursesEmptyState"),
     browseCatalogFromMyCoursesBtn: document.getElementById("browseCatalogFromMyCoursesBtn"),
-    filterEnrolledBtn: document.getElementById("filterEnrolledBtn"),
-    enrolledCountBadge: document.getElementById("enrolledCountBadge"),
     enrolledSummaryCard: document.getElementById("enrolledSummaryCard"),
-    enrolledTotalCourses: document.getElementById("enrolledTotalCourses"),
-    enrolledTotalCredits: document.getElementById("enrolledTotalCredits"),
     clearEnrolledBtn: document.getElementById("clearEnrolledBtn"),
     clashAlertBox: document.getElementById("clashAlertBox"),
     clashAlertTitle: document.getElementById("clashAlertTitle"),
@@ -177,17 +167,11 @@
     detailDelBtn: document.getElementById("detailDelBtn"),
     reportIssueBtn: document.getElementById("reportIssueBtn"),
     detailReportCard: document.getElementById("detailReportCard"),
-    detailReportTitle: document.getElementById("detailReportTitle"),
-    detailReportBody: document.getElementById("detailReportBody"),
-    detailReportBtnText: document.getElementById("detailReportBtnText"),
-    detailReportFooterHint: document.getElementById("detailReportFooterHint"),
     detailSaveContribPrompt: document.getElementById("detailSaveContribPrompt"),
     detailSaveContribGithubBtn: document.getElementById("detailSaveContribGithubBtn"),
     detailSaveContribDoneBtn: document.getElementById("detailSaveContribDoneBtn"),
     detailSaveContribClose: document.getElementById("detailSaveContribClose"),
-    detailPrereqLauncherCard: document.getElementById("detailPrereqLauncherCard"),
     btnOpenPrereqFlow: document.getElementById("btnOpenPrereqFlow"),
-    btnOpenPrereqFlowText: document.getElementById("btnOpenPrereqFlowText"),
     roadmapButtonCounts: document.getElementById("roadmapButtonCounts"),
     prereqFlowView: document.getElementById("prereqFlowView"),
     flowBackBtn: document.getElementById("flowBackBtn"),
@@ -211,7 +195,6 @@
     modalCancelBtn: document.getElementById("modalCancelBtn"),
     modalConfirmBtn: document.getElementById("modalConfirmBtn"),
     resetDefaultsBtn: document.getElementById("resetDefaultsBtn"),
-    resetDefaultsBtnText: document.getElementById("resetDefaultsBtnText"),
     resetResultBox: document.getElementById("resetResultBox"),
     resetResultDot: document.getElementById("resetResultDot"),
     resetResultTitle: document.getElementById("resetResultTitle"),
@@ -234,7 +217,6 @@
   let pendingAction = null;
   let pendingDetailsNavigation = null;
   let lastAddedCourseForContrib = null;
-  let pendingSaveVal = null;
   let pendingTarget = null;
   let isTrashMode = false;
   let bundledCourses = {};
@@ -452,89 +434,6 @@
     if (ageLabel && isOverdue) {
       const days = Math.floor((Date.now() - lastSyncedAt) / (24 * 60 * 60 * 1000));
       ageLabel.textContent = "Last synced " + days + " days ago";
-    }
-  }
-
-  const UIU_PORTALS = [
-    { domain: "ucam.uiu.ac.bd", label: "UCAM Portal" },
-    { domain: "elms.uiu.ac.bd", label: "eLMS / LMS" },
-    { domain: "docs.google.com", label: "Google Docs (Optional)" }
-  ];
-
-  async function checkOnboarding() {
-    const stored = await chrome.storage.local.get(["onboardingDone", "allowedSites"]);
-    const isFirstRun = !stored.onboardingDone;
-    const savedSites = stored.allowedSites || [];
-
-    const regrantBanner = document.getElementById("regrantBanner");
-    const onboardingCard = document.getElementById("onboardingCard");
-
-    if (isFirstRun && savedSites.length === 0) {
-      if (onboardingCard) {
-        onboardingCard.style.display = "block";
-        const grantBtns = document.getElementById("onboardingGrantBtns");
-        if (grantBtns) {
-          grantBtns.textContent = "";
-          for (const portal of UIU_PORTALS) {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.style.cssText = "display:flex; align-items:center; gap:6px; background:var(--accent-light); color:var(--accent); border:1px solid var(--accent); border-radius:8px; padding:6px 10px; font-size:0.72rem; cursor:pointer; width:100%; font-weight:600;";
-            btn.textContent = `Enable on ${portal.label} (${portal.domain})`;
-            btn.addEventListener("click", async () => {
-              const origin = `*://${portal.domain}/*`;
-              try {
-                const granted = await chrome.permissions.request({ origins: [origin] });
-                if (granted) {
-                  if (!allowedSites.includes(portal.domain)) {
-                    allowedSites.push(portal.domain);
-                    await chrome.storage.local.set({ allowedSites });
-                    renderAllowlist();
-                    updateToggleAndStatus();
-                  }
-                  btn.textContent = `✓ ${portal.label} enabled`;
-                  btn.disabled = true;
-                  btn.style.opacity = "0.6";
-                }
-              } catch (e) {
-                console.warn("Permission request failed:", e);
-              }
-            });
-            grantBtns.appendChild(btn);
-          }
-        }
-      }
-    } else if (savedSites.length > 0) {
-      const needsRegrant = [];
-      for (const site of savedSites) {
-        const origin = `*://${site.replace(/^\*\./, "")}/*`;
-        try {
-          const hasPermission = await chrome.permissions.contains({ origins: [origin] });
-          if (!hasPermission) needsRegrant.push(site);
-        } catch (_) {}
-      }
-      if (needsRegrant.length > 0 && regrantBanner) {
-        regrantBanner.style.display = "flex";
-        const regrantLink = document.getElementById("regrantLink");
-        if (regrantLink) {
-          regrantLink.addEventListener("click", async () => {
-            for (const site of needsRegrant) {
-              const origin = `*://${site.replace(/^\*\./, "")}/*`;
-              try {
-                await chrome.permissions.request({ origins: [origin] });
-              } catch (_) {}
-            }
-            regrantBanner.style.display = "none";
-          });
-        }
-      }
-    }
-
-    const dismissBtn = document.getElementById("onboardingDismissBtn");
-    if (dismissBtn) {
-      dismissBtn.addEventListener("click", async () => {
-        if (onboardingCard) onboardingCard.style.display = "none";
-        await chrome.storage.local.set({ onboardingDone: true });
-      });
     }
   }
 
@@ -883,28 +782,7 @@
     els.modalText.appendChild(titleEl); els.modalText.appendChild(description);
   }
 
-  function normalizeCourseData(val) {
-    if (!val) return { name: "", examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", credits: null };
-    if (typeof val === "string") {
-      return { name: val.trim(), examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", credits: null };
-    }
-    const name = typeof val.name === "string" ? val.name.trim() : "";
-    let examDay = typeof val.examDay === "string" ? val.examDay.trim() : "";
-    const dayMatch = examDay.match(/^(?:day\s*|d)?([1-9]\d*)$/i);
-    examDay = dayMatch ? "Day " + Number(dayMatch[1]) : /^in-class$/i.test(examDay) ? "In-Class" : "";
-    const rawSlot = typeof val.examSlot === "string" ? val.examSlot.trim().toUpperCase() : "";
-    const examSlot = /^T[123]$/.test(rawSlot) && examDay !== "In-Class" ? rawSlot : "";
-    const prerequisiteNote = typeof val.prerequisiteNote === "string" ? val.prerequisiteNote.trim() : "";
-    const prerequisites = Array.isArray(val.prerequisites)
-      ? [...new Set(val.prerequisites.filter(p => typeof p === "string").map(p => /^none$/i.test(p.trim()) ? "None" : CourseData.code(p)).filter(Boolean))].sort()
-      : [];
-    let credits = null;
-    if (val.credits !== undefined && val.credits !== null && val.credits !== "") {
-      const parsed = Number(val.credits);
-      if (typeof val.credits !== "boolean" && Number.isFinite(parsed) && parsed > 0) credits = parsed;
-    }
-    return { name, examDay, examSlot, prerequisites, prerequisiteNote, credits };
-  }
+  const { normalizeCourseData } = CourseData;
 
   function areCourseDataEqual(val1, val2) {
     if (CourseData.variantSignature(val1) !== CourseData.variantSignature(val2)) return false;
@@ -1163,35 +1041,6 @@
       }
     });
     els.exportOptionsList.appendChild(customCard);
-  }
-
-  /**
-   * Contextual course exporter.
-   * Exports custom courses if available, or opens the Course Catalog export options.
-   * @param {string} [type="catalog"] - 'custom' or 'catalog'
-   */
-  function exportCoursesContextual(type) {
-    const dateStr = getExportDateString();
-    if (type === "custom") {
-      const customEntries = Object.entries(userCourses)
-        .filter(([code]) => !softDeletedCourses.includes(code) && !hardDeletedCourses.includes(code))
-        .sort((a, b) => a[0].localeCompare(b[0]));
-
-      if (customEntries.length > 0) {
-        const payload = {};
-        for (const [code, data] of customEntries) {
-          const finalData = courses[code] || data;
-          payload[code] = formatCourseForExport(finalData);
-        }
-        return downloadJsonFile(`uiu-custom-courses-${dateStr}.json`, payload);
-
-      } else {
-        openExportModal();
-        showToast("No custom courses or edits to export.", "info");
-      }
-    } else {
-      openExportModal();
-    }
   }
 
   // ── Task 3.5: Keyboard Navigation & Focus Trap Engine ───────────────────
@@ -1790,11 +1639,11 @@
 
     const nextCourses = { ...courses }, nextUser = { ...userCourses };
     let nextSoft = softDeletedCourses.slice(), nextHard = hardDeletedCourses.slice();
-    let addedCount = 0;
-    let updatedCount = 0;
+    const addedCount = diff.toAdd.length;
+    const updatedCount = diff.toUpdate.length;
     let nameOnlyCount = 0;
 
-    for (const item of diff.toAdd) {
+    for (const item of [...diff.toAdd, ...diff.toUpdate]) {
       const key = item.code;
       const val = CourseData.mergeEntry(nextCourses[key], item.incoming);
 
@@ -1806,23 +1655,6 @@
       }
       nextCourses[key] = val;
       nextUser[key] = val;
-      addedCount++;
-      if (item.isNameOnly) nameOnlyCount++;
-    }
-
-    for (const item of diff.toUpdate) {
-      const key = item.code;
-      const val = CourseData.mergeEntry(nextCourses[key], item.incoming);
-
-      if (nextSoft.includes(key)) {
-        nextSoft = nextSoft.filter(c => c !== key);
-      }
-      if (nextHard.includes(key)) {
-        nextHard = nextHard.filter(c => c !== key);
-      }
-      nextCourses[key] = val;
-      nextUser[key] = val;
-      updatedCount++;
       if (item.isNameOnly) nameOnlyCount++;
     }
 
@@ -2398,13 +2230,6 @@
     els.courseList.appendChild(frag);
   }
 
-  function escapeHtml(str) {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
-
   let detailsOriginView = "courses";
   const roadmapNavigationStack = [];
   let showPrereqNames = false; // Task 2.4 Enhancement: Code/Name toggle preference
@@ -2421,37 +2246,24 @@
    */
   function getExamSlotTiming(slot) {
     if (!slot) return null;
-    var s = String(slot).trim().toUpperCase();
-    if (s.indexOf("T1") !== -1 || s.indexOf("SLOT 1") !== -1 || s === "1") {
-      return {
-        label: "T1",
-        time: "09:00 AM – 11:00 AM",
-        start: "09:00 AM",
-        end: "11:00 AM"
-      };
+    const value = String(slot).trim().toUpperCase();
+    const times = [
+      ["09:00 AM", "11:00 AM"],
+      ["11:30 AM", "01:30 PM"],
+      ["02:00 PM", "03:00 PM"],
+    ];
+    for (const [index, [start, end]] of times.entries()) {
+      const number = String(index + 1);
+      if (value.includes("T" + number) || value.includes("SLOT " + number) || value === number) {
+        return {
+          label: "T" + number,
+          time: `${start} – ${end}`,
+          start,
+          end
+        };
+      }
     }
-    if (s.indexOf("T2") !== -1 || s.indexOf("SLOT 2") !== -1 || s === "2") {
-      return {
-        label: "T2",
-        time: "11:30 AM – 01:30 PM",
-        start: "11:30 AM",
-        end: "01:30 PM"
-      };
-    }
-    if (s.indexOf("T3") !== -1 || s.indexOf("SLOT 3") !== -1 || s === "3") {
-      return {
-        label: "T3",
-        time: "02:00 PM – 03:00 PM",
-        start: "02:00 PM",
-        end: "03:00 PM"
-      };
-    }
-    return {
-      label: slot,
-      time: slot,
-      start: "",
-      end: ""
-    };
+    return { label: slot, time: slot, start: "", end: "" };
   }
 
   /**
@@ -2850,8 +2662,6 @@
     if (els.myCoursesHeaderSubtitle) {
       els.myCoursesHeaderSubtitle.textContent = totalEnrolled + (totalEnrolled === 1 ? " course · " : " courses · ") + creditSummary.label;
     }
-    if (els.enrolledTotalCourses) els.enrolledTotalCourses.textContent = String(totalEnrolled);
-    if (els.enrolledTotalCredits) els.enrolledTotalCredits.textContent = creditSummary.label;
     if (els.clearEnrolledBtn) els.clearEnrolledBtn.style.display = totalEnrolled > 0 ? "inline-flex" : "none";
 
     // 3. Clash & Same-Day Alert Box in My Courses (Sleek Executive Redesign)
@@ -3584,81 +3394,7 @@
   });
 
   // Pure report builder shared by all popup submission paths.
-  function buildCourseReport(kind, code = "", course = null, baseline = null) {
-    const addition = kind === "addition" || kind === "missing";
-    const proposed = kind === "update";
-    const record = typeof course === "string" ? { name: course } : (course || {});
-    // Keep course text on one Markdown line; do not let user input create sections.
-    const clean = value => String(value ?? "").replace(/[\r\n]+/g, " ")
-      .replace(/([\\`*_{}\[\]<>|])/g, "\\$1").trim();
-    const titleCode = String(code).replace(/[\r\n]+/g, " ").trim();
-    const titleName = String(record.name || "").replace(/[\r\n]+/g, " ").trim();
-    const prefix = addition ? "Course addition" : "Course correction";
-    const title = kind === "missing" ? "[Missing course] Enter course code and name"
-      : `[${prefix}] ${titleCode || "Enter course code"}${titleName ? " — " + titleName : ""}`;
-    let routine = "Not listed";
-    const day = String(record.examDay || "").trim();
-    const slot = String(record.examSlot || "").trim();
-    if (/^in-class$/i.test(day)) routine = "In-class evaluation";
-    else if (day || slot) {
-      const dayNumber = day.match(/^(?:day\s*|d)(\d+)$/i);
-      routine = [dayNumber ? "Day " + dayNumber[1] : day, slot].filter(Boolean).join(" · ");
-    }
-    const prereqs = Array.isArray(record.prerequisites) ? record.prerequisites.filter(Boolean) : [];
-    const prerequisiteText = prereqs.length ? prereqs.join(", ") : "Not listed";
-    const lines = [];
-    if (proposed) {
-      const asRecord = value => typeof value === "string" ? { name: value } : (value || {});
-      const fields = value => {
-        const item = asRecord(value);
-        const dayText = String(item.examDay || "").trim();
-        const dayMatch = dayText.match(/^(?:day\s*|d)?(\d+)$/i);
-        const dayValue = dayMatch ? "Day " + Number(dayMatch[1]) : /^in-class$/i.test(dayText) ? "In-class evaluation" : dayText;
-        const codes = Array.isArray(item.prerequisites) ? [...new Set(item.prerequisites.map(v => String(v).trim().toUpperCase()).filter(Boolean))].sort() : [];
-        const credits = Number(item.credits);
-        return [
-          ["Course name", String(item.name || "").trim()],
-          ["Credits", Number.isFinite(credits) && credits > 0 ? String(credits) : ""],
-          ["Exam day", dayValue],
-          ["Exam slot", /^in-class$/i.test(dayText) ? "" : String(item.examSlot || "").trim().toUpperCase()],
-          ["Prerequisites", codes.length === 1 && codes[0] === "NONE" ? "No prerequisites" : codes.join(", ")],
-          ["Prerequisite note", String(item.prerequisiteNote || "").trim()]
-        ];
-      };
-      const before = fields(baseline);
-      const after = fields(record);
-      const changes = after.filter((field, index) => baseline === null || field[1] !== before[index][1]);
-      lines.push("## Course", "", "- **Course code:** " + (clean(code) || "Enter course code"),
-        "- **Course name:** " + (clean(record.name) || "Not listed"), "", "## Proposed changes", "");
-      if (baseline === null) lines.push("Current catalog details are not available for comparison.", "");
-      if (changes.length) {
-        lines.push("| Field | Current catalog | Your proposed change |", "| --- | --- | --- |");
-        for (const [label, value] of changes) {
-          const previous = before.find(field => field[0] === label)[1];
-          lines.push("| " + label + " | " + (baseline === null ? "Not available" : clean(previous) || "Not listed")
-            + " | " + (clean(value) || "Not listed") + " |");
-        }
-      } else {
-        lines.push("Your saved details already match the current shared catalog. No field changes were found.");
-      }
-      lines.push("", "## Reason for change", "", "Explain why these changes are needed.");
-    } else {
-      lines.push("## Course details", "",
-        "- **Course code:** " + (clean(code) || "Enter course code"),
-        "- **Course name:** " + (clean(record.name) || "Enter course name"),
-        "- **Credits:** " + (clean(record.credits) || "Not listed"),
-        "- **Exam routine:** " + clean(routine),
-        "- **Prerequisites:** " + clean(prerequisiteText));
-      if (record.prerequisiteNote) lines.push("- **Prerequisite note:** " + clean(record.prerequisiteNote));
-      if (addition) lines.push("- **Department / program:** Enter department or program");
-      if (!addition) lines.push("", "## What needs changing?", "", "Describe the incorrect or missing information.",
-        "", "## Proposed correction", "", "Enter the correct details, if known.");
-    }
-    lines.push("", "## Source", "", "Add an official syllabus, routine, or UCAM reference. For exam updates, include the trimester/year and routine date.",
-      "", "Remove student IDs and other personal information from any screenshots before attaching them.",
-      "", "---", "Prepared with UIU Course Companion for the community-maintained catalog.");
-    return { title, body: lines.join("\n"), labels: addition ? "course-addition" : "data-correction" };
-  }
+  const buildCourseReport = CourseData.buildCourseReport;
 
   // Resolve the shared catalog before local edits, following storage merge precedence.
   function getCatalogReportBaseline(code, bundled, remote) {
@@ -4459,12 +4195,6 @@
     });
 
     els.openContribModalBtn?.addEventListener("click", openContributionModal);
-    els.detailsInfoBtn?.addEventListener("click", openContributionModal);
-    els.importInfoBtn?.addEventListener("click", openContributionModal);
-    els.importContribLink?.addEventListener("click", (e) => {
-      e.preventDefault();
-      openContributionModal();
-    });
 
     els.contribModalCloseBtn?.addEventListener("click", closeContributionModal);
     els.contribModalDoneBtn?.addEventListener("click", closeContributionModal);
@@ -4542,7 +4272,6 @@
         } else if (els.confirmModal?.classList.contains("show")) {
           closeModalSafely(els.confirmModal);
           pendingAction = null;
-          pendingSaveVal = null;
           pendingDetailsNavigation = null;
           if (els.modalCancelBtn) els.modalCancelBtn.textContent = "Cancel";
         } else if (els.viewWrapper.classList.contains("show-flow")) {
@@ -5092,7 +4821,6 @@
     els.modalCancelBtn?.addEventListener("click", () => {
       closeModalSafely(els.confirmModal);
       pendingAction = null;
-      pendingSaveVal = null;
       pendingDetailsNavigation = null;
       if (els.modalCancelBtn) els.modalCancelBtn.textContent = "Cancel";
     });
@@ -5189,7 +4917,6 @@
       }
 
       pendingAction = null;
-      pendingSaveVal = null;
       pendingTarget = null;
     });
 

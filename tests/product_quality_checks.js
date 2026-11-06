@@ -9,9 +9,10 @@ module.exports = async function productQualityChecks(assert) {
   const js = fs.readFileSync(path.join(root, 'popup.js'), 'utf8');
   const html = fs.readFileSync(path.join(root, 'popup.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'popup.css'), 'utf8');
-  const reports = vm.createContext({});
-  const reportBuilder = js.slice(js.indexOf('  function buildCourseReport('), js.indexOf('  function openCourseReport('));
+  const reports = vm.createContext({CourseData});
+  const reportBuilder = js.slice(js.indexOf('  const buildCourseReport = CourseData.buildCourseReport;'), js.indexOf('  function openCourseReport('));
   vm.runInContext(reportBuilder, reports);
+  reports.buildCourseReport = vm.runInContext("buildCourseReport", reports);
   const current = { name: 'Cloud Computing', credits: 3, examDay: 'Day 5', examSlot: 'T3', prerequisites: [] };
   const correction = reports.buildCourseReport('correction', 'CSE 4587', current);
   assert('Correction drafts identify the course and include the correct issue label', correction.title === '[Course correction] CSE 4587 — Cloud Computing' && correction.labels === 'data-correction');
@@ -25,7 +26,7 @@ module.exports = async function productQualityChecks(assert) {
   assert('Legacy D-style days are normalized', reports.buildCourseReport('correction', 'X', { examDay: 'D2' }).body.includes('**Exam routine:** Day 2'));
   const injected = reports.buildCourseReport('addition', 'X', { name: 'Title\n## Fake section', prerequisiteNote: '<script>bad</script>' });
   assert('Course input cannot insert Markdown sections or raw HTML', !injected.body.includes('\n## Fake') && injected.body.includes('\\<script\\>'));
-  const docsReports = vm.createContext({});
+  const docsReports = vm.createContext({CourseData});
   const docsJs = fs.readFileSync(path.join(root, 'docs/app.js'), 'utf8');
   vm.runInContext(docsJs.slice(docsJs.indexOf('  function buildCourseReport(')), docsReports);
   assert('Public explorer uses identical correction templates', JSON.stringify(docsReports.buildCourseReport('correction', 'CSE 4587', current)) === JSON.stringify(correction));
@@ -49,7 +50,7 @@ module.exports = async function productQualityChecks(assert) {
   assert('Comparison cells escape pipes and prevent injected Markdown rows', hostile.body.includes('Old \\| name') && hostile.body.includes('New \\| name ## Heading') && !hostile.body.includes('\n## Heading'));
   const opened = [];
   const notices = [];
-  const launcher = vm.createContext({ bundledCourses: { "CSE 4587": catalogBase }, remoteCourses: { "CSE 4587": { examSlot: "T1" } }, chrome: { tabs: { create: (options, cb) => { opened.push(options.url); cb(); } }, runtime: {} }, showToast: message => notices.push(message), setTimeout: fn => fn() });
+  const launcher = vm.createContext({ CourseData, bundledCourses: { "CSE 4587": catalogBase }, remoteCourses: { "CSE 4587": { examSlot: "T1" } }, chrome: { tabs: { create: (options, cb) => { opened.push(options.url); cb(); } }, runtime: {} }, showToast: message => notices.push(message), setTimeout: fn => fn() });
   vm.runInContext(reportBuilder + js.slice(js.indexOf('  function openCourseReport('), js.indexOf('  // Context-aware course reporting action')), launcher);
   launcher.openCourseReport('addition', 'CSE 4587', current);
   const draft = new URL(opened[0]);
@@ -115,7 +116,7 @@ module.exports = async function productQualityChecks(assert) {
   const applied = await service.syncCourses(false, reviewed.catalog, reviewed.baselineRevision);
   assert('Only explicit approval applies the reviewed data and updates the timestamp', applied.success && catalogWrites === 1 && merges === 1 && catalogStore.remoteCourses['TST 1001'].credits === 4 && catalogStore.lastSyncedAt !== 123);
   assert('Catalog application preserves local course overrides', catalogStore.userCourses['TST 1001'].name === 'My title');
-  const normalization = js.slice(js.indexOf('  function normalizeCourseData('), js.indexOf('  function getSoftDeletedCourseData('));
+  const normalization = js.slice(js.indexOf('  const { normalizeCourseData } = CourseData;'), js.indexOf('  function getSoftDeletedCourseData('));
   const totals = js.slice(js.indexOf('  function computeEnrolledCredits('), js.indexOf('  function examCourseLabel('));
   const data = vm.createContext({ CourseData });
   vm.runInContext(normalization + totals, data);
@@ -168,7 +169,7 @@ module.exports = async function productQualityChecks(assert) {
   assert('Exam aliases and letter case resolve to one actual conflict', examChecks.detectExamClashes(['A', 'B'], aliasCourses).length === 1);
   assert('Unknown times do not create time conflicts', examChecks.detectExamClashes(['A', 'B'], { A: { name: 'A', examDay: 'Day 5', examSlot: 'TBA' }, B: { name: 'B', examDay: 'Day 5', examSlot: 'TBA' } }).length === 0);
   assert('Duplicate selections cannot create a same-day warning', examChecks.detectSameDayExams(['A', 'A'], aliasCourses).length === 0);
-  assert('Malformed stored field types do not crash normalization', examChecks.normalizeCourseData({ name: 2, examDay: 5, examSlot: [] }).examDay === '');
+  assert('Malformed stored field types do not crash normalization', CourseData.normalizeCourseData({ name: 2, examDay: 5, examSlot: [] }).examDay === '');
   const matcher = vm.createContext({});
   const content = fs.readFileSync(path.join(root, 'content.js'), 'utf8');
   vm.runInContext(content.slice(content.indexOf('  function buildRegex('), content.indexOf('  // Matches the text')), matcher);
@@ -239,7 +240,7 @@ module.exports = async function productQualityChecks(assert) {
 
   const syncNodes = Object.fromEntries(['syncReminderBanner', 'homeSyncAlert', 'homeSyncAge'].map(key => [key, { style: {}, textContent: '' }]));
   const sync = vm.createContext({ lastSyncedAt: Date.now() - 80 * 24 * 60 * 60 * 1000, document: { getElementById: id => syncNodes[id] } });
-  vm.runInContext(js.slice(js.indexOf('  function checkSyncReminder('), js.indexOf('  const UIU_PORTALS')), sync);
+  vm.runInContext(js.slice(js.indexOf('  function checkSyncReminder('), js.indexOf('  function setupUI(')), sync);
   sync.checkSyncReminder();
   assert('Compact catalog reminder describes the real download age', syncNodes.homeSyncAlert.style.display === 'flex' && syncNodes.homeSyncAge.textContent === 'Last synced 80 days ago');
   sync.lastSyncedAt = Date.now();

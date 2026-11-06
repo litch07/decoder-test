@@ -265,51 +265,48 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 
 // Synchronizes dynamically registered content scripts with user's allowedSites and granted permissions
-async function syncRegisteredContentScripts() {
-  if (!chrome.scripting || !chrome.scripting.registerContentScripts) return;
-
-  try {
-    const { allowedSites = [] } = await chrome.storage.local.get("allowedSites");
+let contentScriptRegistration = Promise.resolve();
+function syncRegisteredContentScripts() {
+  // All triggers share one queue; each pass reads the latest saved sites.
+  contentScriptRegistration = contentScriptRegistration.then(async () => {
+    if (!chrome.scripting || !chrome.scripting.registerContentScripts) return;
 
     try {
-      await chrome.scripting.unregisterContentScripts({ ids: ["cce-dynamic-content-script"] });
-    } catch (_) {}
+      const { allowedSites = [] } = await chrome.storage.local.get("allowedSites");
 
-    if (allowedSites.length === 0) return;
+      const validMatches = [];
+      for (const site of allowedSites) {
+        const matchPattern = site.startsWith("*.")
+          ? `*://${site}/*`
+          : (site.includes("://") ? site : `*://${site}/*`);
 
-    const validMatches = [];
-    for (const site of allowedSites) {
-      const matchPattern = site.startsWith("*.")
-        ? `*://${site}/*`
-        : (site.includes("://") ? site : `*://${site}/*`);
+        try {
+          const hasPerm = await chrome.permissions.contains({ origins: [matchPattern] });
+          if (hasPerm) {
+            validMatches.push(matchPattern);
+          }
+        } catch (_) {}
+      }
 
-      try {
-        const hasPerm = await chrome.permissions.contains({ origins: [matchPattern] });
-        if (hasPerm) {
-          validMatches.push(matchPattern);
-        }
-      } catch (_) {}
+      const registration = {
+        id: "cce-dynamic-content-script",
+        js: ["content.js"],
+        matches: [...new Set(validMatches)].sort(),
+        excludeMatches: ["*://*/*.pdf", "*://*/*.svg", "*://*/*.xml"],
+        allFrames: true,
+        runAt: "document_idle"
+      };
+      const [current] = await chrome.scripting.getRegisteredContentScripts({ ids: [registration.id] });
+      const unchanged = current && Object.entries(registration).every(([key, value]) =>
+        Array.isArray(value) ? JSON.stringify([...(current[key] || [])].sort()) === JSON.stringify([...value].sort()) : current[key] === value);
+      if (unchanged) return;
+      if (current) await chrome.scripting.unregisterContentScripts({ ids: [registration.id] });
+      if (registration.matches.length) await chrome.scripting.registerContentScripts([registration]);
+    } catch (err) {
+      console.warn("[CourseCompanion] Failed to sync registered content scripts:", err);
     }
-
-    if (validMatches.length > 0) {
-      await chrome.scripting.registerContentScripts([
-        {
-          id: "cce-dynamic-content-script",
-          js: ["content.js"],
-          matches: validMatches,
-          excludeMatches: [
-            "*://*/*.pdf",
-            "*://*/*.svg",
-            "*://*/*.xml"
-          ],
-          allFrames: true,
-          runAt: "document_idle"
-        }
-      ]);
-    }
-  } catch (err) {
-    console.warn("[CourseCompanion] Failed to sync registered content scripts:", err);
-  }
+  });
+  return contentScriptRegistration;
 }
 
 // Update registered scripts whenever allowedSites changes

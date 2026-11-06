@@ -83,25 +83,7 @@ assert('popup.js els does not contain redundant detailsCreditsBadge', !popupJs.i
 assert('popup.js els has singleCourseCredits', popupJs.includes('singleCourseCredits: document.getElementById("singleCourseCredits")'));
 
 // Functional tests for normalizeCourseData logic
-function normalizeCourseData(val) {
-  if (!val) return { name: "", examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", credits: null };
-  if (typeof val === "string") {
-    return { name: val.trim(), examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", credits: null };
-  }
-  const name = (val.name || "").trim();
-  const examDay = (val.examDay || "").trim();
-  const examSlot = (val.examSlot || "").trim();
-  const prerequisiteNote = (val.prerequisiteNote || "").trim();
-  const prerequisites = Array.isArray(val.prerequisites)
-    ? val.prerequisites.map(p => String(p).trim()).filter(Boolean).sort()
-    : [];
-  let credits = null;
-  if (val.credits !== undefined && val.credits !== null && val.credits !== "") {
-    const parsed = parseFloat(val.credits);
-    if (!isNaN(parsed) && parsed > 0) credits = parsed;
-  }
-  return { name, examDay, examSlot, prerequisites, prerequisiteNote, credits };
-}
+const { normalizeCourseData } = require('../course-data.js');
 
 assert('normalizeCourseData handles number credit (3)', normalizeCourseData({ name: 'CS', credits: 3 }).credits === 3);
 assert('normalizeCourseData parses string float ("1.5")', normalizeCourseData({ name: 'Lab', credits: '1.5' }).credits === 1.5);
@@ -145,7 +127,7 @@ const docsJs   = fs.readFileSync(path.join(ROOT, 'docs', 'app.js'), 'utf8');
 
 assert('docs/index.html has #modalCreditsPill', docsHtml.includes('id="modalCreditsPill"'));
 assert('docs/index.html has #modalCredits', docsHtml.includes('id="modalCredits"'));
-assert('docs/app.js handles credits in normalizeCourseData', docsJs.includes('Number(val.credits)') && docsJs.includes('Number.isFinite(parsed)'));
+assert('docs/app.js handles credits in normalizeCourseData', docsJs.includes('const { normalizeCourseData } = CourseData;') && normalizeCourseData({name: 'Lab', credits: '1.5'}).credits === 1.5);
 assert('docs/app.js renders credit chip on course cards', docsJs.includes('creditChip.textContent = `${data.credits} Cr`'));
 assert('docs/app.js populates modalCredits text', docsJs.includes('els.modalCredits.textContent = `${data.credits} Credits`'));
 

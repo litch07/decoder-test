@@ -3,6 +3,28 @@
   "use strict";
   const codePattern = /^[A-Z]+ [0-9]+[A-Z]*$/;
   function code(value) { return String(value).trim().toUpperCase().replace(/\s+/g, " ").replace(/^([A-Z]+)\s*([0-9]+)\s*([A-Z]*)$/, "$1 $2$3"); }
+  function normalizeCourseData(val) {
+    if (!val) return { name: "", examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", credits: null };
+    if (typeof val === "string") {
+      return { name: val.trim(), examDay: "", examSlot: "", prerequisites: [], prerequisiteNote: "", credits: null };
+    }
+    const name = typeof val.name === "string" ? val.name.trim() : "";
+    let examDay = typeof val.examDay === "string" ? val.examDay.trim() : "";
+    const dayMatch = examDay.match(/^(?:day\s*|d)?([1-9]\d*)$/i);
+    examDay = dayMatch ? "Day " + Number(dayMatch[1]) : /^in-class$/i.test(examDay) ? "In-Class" : "";
+    const rawSlot = typeof val.examSlot === "string" ? val.examSlot.trim().toUpperCase() : "";
+    const examSlot = /^T[123]$/.test(rawSlot) && examDay !== "In-Class" ? rawSlot : "";
+    const prerequisiteNote = typeof val.prerequisiteNote === "string" ? val.prerequisiteNote.trim() : "";
+    const prerequisites = Array.isArray(val.prerequisites)
+      ? [...new Set(val.prerequisites.filter(p => typeof p === "string").map(p => /^none$/i.test(p.trim()) ? "None" : code(p)).filter(Boolean))].sort()
+      : [];
+    let credits = null;
+    if (val.credits !== undefined && val.credits !== null && val.credits !== "") {
+      const parsed = Number(val.credits);
+      if (typeof val.credits !== "boolean" && Number.isFinite(parsed) && parsed > 0) credits = parsed;
+    }
+    return { name, examDay, examSlot, prerequisites, prerequisiteNote, credits };
+  }
   function validate(key, value) {
     if (!codePattern.test(code(key))) return "Invalid course code";
     if (typeof value === "string") return value.trim() ? null : "Course name is required";
@@ -186,7 +208,82 @@
     }
     return data;
   }
-  const api = { code, validate, normalizeMap, graph, audit, cycle, validateCatalog, mergeEntry, mergeCatalog, overrideIssues, variantSignature, parse };
+  function buildCourseReport(kind, code = "", course = null, baseline = null) {
+    const addition = kind === "addition" || kind === "missing";
+    const proposed = kind === "update";
+    const record = typeof course === "string" ? { name: course } : (course || {});
+    // Keep course text on one Markdown line; do not let user input create sections.
+    const clean = value => String(value ?? "").replace(/[\r\n]+/g, " ")
+      .replace(/([\\`*_{}\[\]<>|])/g, "\\$1").trim();
+    const titleCode = String(code).replace(/[\r\n]+/g, " ").trim();
+    const titleName = String(record.name || "").replace(/[\r\n]+/g, " ").trim();
+    const prefix = addition ? "Course addition" : "Course correction";
+    const title = kind === "missing" ? "[Missing course] Enter course code and name"
+      : `[${prefix}] ${titleCode || "Enter course code"}${titleName ? " — " + titleName : ""}`;
+    let routine = "Not listed";
+    const day = String(record.examDay || "").trim();
+    const slot = String(record.examSlot || "").trim();
+    if (/^in-class$/i.test(day)) routine = "In-class evaluation";
+    else if (day || slot) {
+      const dayNumber = day.match(/^(?:day\s*|d)(\d+)$/i);
+      routine = [dayNumber ? "Day " + dayNumber[1] : day, slot].filter(Boolean).join(" · ");
+    }
+    const prereqs = Array.isArray(record.prerequisites) ? record.prerequisites.filter(Boolean) : [];
+    const prerequisiteText = prereqs.length ? prereqs.join(", ") : "Not listed";
+    const lines = [];
+    if (proposed) {
+      const asRecord = value => typeof value === "string" ? { name: value } : (value || {});
+      const fields = value => {
+        const item = asRecord(value);
+        const dayText = String(item.examDay || "").trim();
+        const dayMatch = dayText.match(/^(?:day\s*|d)?(\d+)$/i);
+        const dayValue = dayMatch ? "Day " + Number(dayMatch[1]) : /^in-class$/i.test(dayText) ? "In-class evaluation" : dayText;
+        const codes = Array.isArray(item.prerequisites) ? [...new Set(item.prerequisites.map(v => String(v).trim().toUpperCase()).filter(Boolean))].sort() : [];
+        const credits = Number(item.credits);
+        return [
+          ["Course name", String(item.name || "").trim()],
+          ["Credits", Number.isFinite(credits) && credits > 0 ? String(credits) : ""],
+          ["Exam day", dayValue],
+          ["Exam slot", /^in-class$/i.test(dayText) ? "" : String(item.examSlot || "").trim().toUpperCase()],
+          ["Prerequisites", codes.length === 1 && codes[0] === "NONE" ? "No prerequisites" : codes.join(", ")],
+          ["Prerequisite note", String(item.prerequisiteNote || "").trim()]
+        ];
+      };
+      const before = fields(baseline);
+      const after = fields(record);
+      const changes = after.filter((field, index) => baseline === null || field[1] !== before[index][1]);
+      lines.push("## Course", "", "- **Course code:** " + (clean(code) || "Enter course code"),
+        "- **Course name:** " + (clean(record.name) || "Not listed"), "", "## Proposed changes", "");
+      if (baseline === null) lines.push("Current catalog details are not available for comparison.", "");
+      if (changes.length) {
+        lines.push("| Field | Current catalog | Your proposed change |", "| --- | --- | --- |");
+        for (const [label, value] of changes) {
+          const previous = before.find(field => field[0] === label)[1];
+          lines.push("| " + label + " | " + (baseline === null ? "Not available" : clean(previous) || "Not listed")
+            + " | " + (clean(value) || "Not listed") + " |");
+        }
+      } else {
+        lines.push("Your saved details already match the current shared catalog. No field changes were found.");
+      }
+      lines.push("", "## Reason for change", "", "Explain why these changes are needed.");
+    } else {
+      lines.push("## Course details", "",
+        "- **Course code:** " + (clean(code) || "Enter course code"),
+        "- **Course name:** " + (clean(record.name) || "Enter course name"),
+        "- **Credits:** " + (clean(record.credits) || "Not listed"),
+        "- **Exam routine:** " + clean(routine),
+        "- **Prerequisites:** " + clean(prerequisiteText));
+      if (record.prerequisiteNote) lines.push("- **Prerequisite note:** " + clean(record.prerequisiteNote));
+      if (addition) lines.push("- **Department / program:** Enter department or program");
+      if (!addition) lines.push("", "## What needs changing?", "", "Describe the incorrect or missing information.",
+        "", "## Proposed correction", "", "Enter the correct details, if known.");
+    }
+    lines.push("", "## Source", "", "Add an official syllabus, routine, or UCAM reference. For exam updates, include the trimester/year and routine date.",
+      "", "Remove student IDs and other personal information from any screenshots before attaching them.",
+      "", "---", "Prepared with UIU Course Companion for the community-maintained catalog.");
+    return { title, body: lines.join("\n"), labels: addition ? "course-addition" : "data-correction" };
+  }
+  const api = { code, normalizeCourseData, buildCourseReport, validate, normalizeMap, graph, audit, cycle, validateCatalog, mergeEntry, mergeCatalog, overrideIssues, variantSignature, parse };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.CourseData = api;
 })(globalThis);

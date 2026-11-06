@@ -84,7 +84,7 @@ module.exports = async function prerequisiteIntegrityChecks() {
   // Production import previews and commits, including metadata round trips.
   const store={}, imports=vm.createContext({CourseData:D,courses:plain(catalog),userCourses:{},softDeletedCourses:[],hardDeletedCourses:[],searchQuery:'',els:{},
     chrome:{storage:{local:{set:async value=>Object.assign(store,plain(value))}}},updateCourseCount(){},renderCourseList(){},updateJsonBadge(){},clearDropZoneFileInfo(){},closeImportPreviewModal(){},showImportMsg(){},showToast(){}});
-  vm.runInContext(popup.slice(popup.indexOf('  function normalizeCourseData('),popup.indexOf('  function getSoftDeletedCourseData('))+
+  vm.runInContext(popup.slice(popup.indexOf('  const { normalizeCourseData } = CourseData;'),popup.indexOf('  function getSoftDeletedCourseData('))+
     popup.slice(popup.indexOf('  function computeImportDiff('),popup.indexOf('  function renderImportPreview('))+
     popup.slice(popup.indexOf('  async function executeCommitImportDiff('),popup.indexOf('  function triggerDropZoneError('))+
     popup.slice(popup.indexOf('  function formatCourseForExport('),popup.indexOf('  function getExportDateString(')),imports);
@@ -122,7 +122,7 @@ module.exports = async function prerequisiteIntegrityChecks() {
   const popupStore={courses:cached,userCourses:{},remoteCourses:{}};
   const state=vm.createContext({CourseData:D,els:{},bundledCourses:{},applyTheme(){},console,
     fetch:async()=>({ok:true,json:async()=>plain(catalog)}),chrome:{runtime:{getURL:()=> 'bundle'},storage:{local:{get:async()=>popupStore,set:async value=>Object.assign(popupStore,plain(value))}}}});
-  vm.runInContext(popup.slice(popup.indexOf('  function normalizeCourseData('),popup.indexOf('  function getSoftDeletedCourseData('))+
+  vm.runInContext(popup.slice(popup.indexOf('  const { normalizeCourseData } = CourseData;'),popup.indexOf('  function getSoftDeletedCourseData('))+
     popup.slice(popup.indexOf('  async function loadStorageData('),popup.indexOf('  function formatRelativeTime(')),state);
   await state.loadStorageData();
   assert.deepEqual(popupStore.courses['CSE 2215'].prerequisites,['CSE 1111']);

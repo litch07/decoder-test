@@ -10,7 +10,7 @@ The extension is Manifest V3, using vanilla JavaScript, HTML and CSS. No build t
 |---|---|
 | `manifest.json` | Permissions, service worker, popup, icons and bundled catalog resource |
 | `background.js` | Catalog loading/merging, legacy deletion migration, manual sync preview/apply, enabled-site injection |
-| `course-data.js` | Shared full-code identity, parsing, validation, merges, diagnostics and graph construction/traversal |
+| `course-data.js` | Shared full-code identity, record normalization, contribution draft text, parsing, validation, merges, diagnostics and graphs |
 | `courses.json` | Bundled catalog, currently 315 records |
 | `popup.html`, `popup.css`, `popup.js` | Popup views, navigation, forms, planner, review/confirmation dialogs and contribution drafts |
 | `content.js` | Dynamic page scanning, mode-specific rendering, tooltips, chart adaptation and cleanup |
@@ -53,6 +53,8 @@ prerequisiteNote: free-text condition
 prerequisiteVariants: curriculum ID -> { prerequisites: [...], source: nonempty text }
 ```
 
+Popup and explorer share `CourseData.normalizeCourseData` for display/comparison records and `CourseData.buildCourseReport` for GitHub draft text. Display normalization does not replace schema validation or storage-layer merging. The public explorer retains its global report entry point as a compatibility adapter.
+
 Canonical storage/import normalization is path-specific. A title-only JSON import preserves existing metadata. Full-object imports normalize omitted optional fields to empty/null. Partial stored overrides use field merging; an explicit changed prerequisite list without variants removes inherited variants for that edit. Do not treat a partial record as interchangeable with a full-object import.
 
 Credits are known for 94 bundled courses and unknown for 221. Do not infer credits, curricula or exam schedules from course titles.
@@ -75,7 +77,8 @@ All extension persistence uses `chrome.storage.local`; there is no cloud account
 | `enrolledCourses` | Local planner code array |
 | `lastSyncedAt`, `lastSyncResult` | Update time, counts/change details and warnings |
 | `catalogDiagnostics` | Structural/cross-program/override review issues |
-| `welcomeDismissed`, `onboardingDone` | First-use state |
+| `welcomeDismissed` | Current first-use welcome state |
+| `onboardingDone` | Legacy onboarding value; retained in existing storage but no longer read/written |
 | `prereqShowNames` | Written by hidden popup toggle; not loaded as a visible startup option |
 
 Effective catalog:
@@ -108,9 +111,9 @@ The current bundled audit has zero structural errors and six cross-program revie
 
 ## Website injection and display
 
-The manifest declares `storage`, `activeTab`, `scripting`, `tabs`, UIU/Google Docs/GitHub raw hosts, plus optional hosts for additional websites. Enabled-site state and browser access both gate dynamic injection. Content injection has a duplication guard; dynamic registration and tab handling preserve operation across supported reloads. Browser-internal pages are restricted. The bundled JSON's `<all_urls>` web-accessible-resource match is not blanket host permission.
+The manifest declares `storage`, `activeTab`, `scripting`, `tabs`, UIU/Google Docs/GitHub raw hosts, plus optional hosts for additional websites. Enabled-site state and browser access both gate dynamic injection. Content injection uses a document-identity guard. Registration refreshes are serialized and skip unchanged browser registrations; tab handling preserves immediate operation across supported reloads. Browser-internal pages are restricted. The bundled JSON's `<all_urls>` web-accessible-resource match is not blanket host permission.
 
-`content.js` scans text and supported SVG structures, watches DOM mutations, and cleans up extension-owned changes when mode/settings change. It skips editable/form/script/style/code/preformatted and unsupported content. Accessible same-origin frames are supported; inaccessible frames and canvas-only document surfaces are not universal targets.
+`content.js` scans text and supported SVG structures, watches DOM mutations, and cleans up extension-owned changes when mode/settings change. It skips editable/form/script/style/code/preformatted and unsupported content. Same-origin fallback frames are owned by one controller, share its observer and receive the same update/cleanup lifecycle. Independently injected frames keep their own controller. Document replacement, removal and reattachment release or renew ownership. Inaccessible frames and canvas-only document surfaces are not universal targets.
 
 - Highlight adds a background while preserving the code's text color/weight. Hover/focus opens a card.
 - Tooltip uses a dotted underline and hover/focus card.
@@ -118,7 +121,7 @@ The manifest declares `storage`, `activeTab`, `scripting`, `tabs`, UIU/Google Do
 - Supported slash aliases share an inserted name only when the catalog name agrees; original codes and distinct records remain accessible. Existing page names are not duplicated in supported contexts.
 - Normal HTML table titles use compact bounded formatting and row separation. Constrained grid/clipped layouts can truncate inserted text with full hover/focus access. Spreadsheet contexts are excluded from the new alias/bounded-layout rules.
 - SVG labels do not expand inline; Inline falls back to Highlight. Tooltip avoids highlight colors on chart labels.
-- Recognized Highcharts cards adapt native course/attendance information, hide the overlapping native card and support hover plus click pinning. Remaining/Absent/Present use blue/red/green, with bounded prerequisite scrolling so attendance remains visible.
+- Recognized Highcharts cards use native SVG text only as a course/attendance data source. The HTML card is the sole extension detail renderer; no SVG expansion or custom background sizing runs. Hover refreshes changed source data, click pins the card, and unmatched native chart items remain visible. Remaining/Absent/Present use blue/red/green, with bounded prerequisite scrolling so attendance remains visible.
 
 Tooltips have viewport-aware positioning, delayed hover/immediate focus, keyboard dismissal and outside/scroll/resize/blur cleanup. Scrolling inside a card preserves it. These paths are covered by targeted fixtures, not a guarantee for every third-party website.
 

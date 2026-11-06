@@ -118,7 +118,7 @@ flush();
 assert.equal(visible(), false, 'Removed course nodes cannot reopen a tooltip');
 console.log('  Tooltip positioning, hover, focus, dismissal, and ARIA checks passed.');
 
-// Render the actual inline and SVG builders, including long prerequisite text.
+// Render Inline details and verify that chart source text is not a second presentation.
 function domNode(tag) {
   return {
     tagName: tag, children: [], dataset: {}, attrs: {},
@@ -136,8 +136,7 @@ const renderDoc = {
   createTextNode: text => ({ textContent: text })
 };
 context.document = renderDoc;
-vm.runInContext(source.slice(source.indexOf('  function buildInlineDom('), source.indexOf('  function buildExtendedData(')) +
-  source.slice(source.indexOf('  function splitTextToLines('), source.indexOf('  function updateAllDecoratedElements(')), context);
+vm.runInContext(source.slice(source.indexOf('  function buildInlineDom('), source.indexOf('  function buildExtendedData(')), context);
 const inline = domNode('span');
 inline.dataset.cceSuffix = ' (E)';
 context.buildInlineDom('CSE 3421', { name: 'Software Engineering', exam: 'Day 5, Slot T1',
@@ -145,16 +144,31 @@ context.buildInlineDom('CSE 3421', { name: 'Software Engineering', exam: 'Day 5,
 assert.ok(inline.children[0].textContent.endsWith(' (E)'), 'Section stays beside the course title');
 assert.equal(inline.children[2].textContent, 'Prerequisites:CSE 3411', 'Routine rows use compact prerequisite codes');
 assert.equal(inline.children.some(child => child.tagName === 'br'), false, 'Layout uses rows instead of forced breaks');
-const svg = domNode('tspan'); svg.ownerDocument = renderDoc;
-context.renderSvgTooltip(svg, '', 'CSE 3421', ' (E)', { name: 'Software Engineering',
-  exam: 'Day 5, Slot T1', prereq: 'System Analysis and Design (CSE 3411), Structured Programming (CSE 1111)' });
-assert.equal(svg.children[0].textContent.trim(), 'CSE 3421 (E)');
-assert.equal(svg.children[1].textContent.trim(), 'Software Engineering');
-assert.ok(svg.children.length > 4, 'Long prerequisites wrap across SVG lines');
-assert.ok(svg.children.slice(1).every(child => child.attrs.dy), 'Added SVG lines have explicit spacing');
-console.log('  Inline routine and chart detail rendering checks passed.');
+const svgParent = {
+  nodeType: 1, tagName: 'SVG', parentElement: null,
+  classList: {contains: name => name === 'highcharts-tooltip'},
+  closest: () => null, hasAttribute: () => false
+};
+const scanDoc = {...renderDoc, documentElement: {}, createDocumentFragment: () => domNode('fragment')};
+const scanner = vm.createContext({document: scanDoc, Node: {ELEMENT_NODE: 1, TEXT_NODE: 3},
+  PROCESSED_ATTR: 'data-cce-done', mode: 'tooltip', courseRegex: /CSE 3421|CSE 3411/g,
+  resolve: code => ({key: code}), buildExtendedData: () => ({name: 'Do not render into native SVG'})});
+vm.runInContext(source.slice(source.indexOf('  const SKIP_TAGS'), source.indexOf('  // Some sites are tricky')) +
+  source.slice(source.indexOf('  function processTextNode('), source.indexOf('  // Walk through the DOM')), scanner);
+for (const code of ['CSE 3421', 'CSE 3421', 'CSE 3411']) {
+  const fragment = scanner.processTextNode({nodeValue: code + ' (E)', parentElement: svgParent});
+  assert.equal(fragment.children.length, 1, 'Each chart source has one marker');
+  const marker = fragment.children[0];
+  assert.equal(marker.dataset.cceKey, code, 'Consecutive updates preserve distinct course identity');
+  assert.equal(marker.textContent, code + ' (E)', 'Native source contains no extension detail rows');
+  marker.parentElement = svgParent;
+  marker.hasAttribute = key => key in marker.attrs;
+  assert.equal(scanner.processTextNode({nodeValue: code, parentElement: marker}), null,
+    'Extension-owned chart text is not decorated again by mutation callbacks');
+}
+console.log('  Single chart source marker, repeated SVG updates, and self-mutation checks passed.');
 
-const nativeChartTip = {};
+const nativeChartTip = {textContent: 'Course A'};
 const chart = { isConnected: true, querySelector: () => nativeChartTip };
 const point = element();
 point.closest = selector => selector.includes('highcharts-container') ? chart : point;
@@ -162,7 +176,7 @@ let hoverRefreshes = 0;
 context.processNode = () => { hoverRefreshes++; };
 context.requestAnimationFrame = fn => context.setTimeout(fn);
 context.buildChartTooltipDom = (native, target) => {
-  target.textContent = 'Chart attendance';
+  target.textContent = 'Chart attendance: ' + native.textContent;
   return {details: {style: {}}, history: {style: {}, getBoundingClientRect: () => ({height: 70})}};
 };
 event('mousemove', point);
@@ -171,6 +185,15 @@ flush();
 assert.equal(hoverRefreshes, 1, 'Hover refreshes course details once per frame');
 assert.equal(visible(), true, 'Chart hover opens the shared HTML tooltip');
 assert.equal(tip.classList.contains('cce-chart-popup'), true);
+event('mousemove', point);
+flush();
+assert.equal(hoverRefreshes, 1, 'Unchanged native content does not rebuild the visible card');
+nativeChartTip.textContent = 'Course B';
+event('mousemove', point);
+flush();
+assert.equal(hoverRefreshes, 2, 'An async update on the same point refreshes the authoritative card');
+assert.ok(tip.textContent.includes('Course B'));
+
 event('click', point);
 flush();
 event('mouseout', tip);
@@ -218,10 +241,6 @@ context.document = renderDoc;
 context.buildInlineDom('CSE 1000', {name: 'Example', exam: 'Schedule Pending / TBA', prereq: 'Prerequisites not listed'}, unknownInline);
 assert.equal(unknownInline.children[1].textContent, 'Exam:Not listed in catalog');
 assert.equal(unknownInline.children[2].textContent, 'Prerequisites:Not listed in catalog');
-
-const detailRow = svg.children.find(child => child.attrs.class === 'cce-chart-row');
-assert.equal(detailRow.children[0].attrs.x, '8');
-assert.equal(detailRow.children[1].attrs.x, '96', 'Chart values align in their own column');
 
 vm.runInContext(source.slice(source.indexOf('  function chartHistoryLines('), source.indexOf('  function buildChartTooltipDom(')), context);
 function historyText(value) { return {nodeType: 3, nodeValue: value}; }

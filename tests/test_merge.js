@@ -76,4 +76,4 @@ async function testMerge() {
   console.log("All assertions passed.");
 }
 
-testMerge().catch(console.error);
+testMerge().catch(error => { console.error(error); process.exitCode = 1; });

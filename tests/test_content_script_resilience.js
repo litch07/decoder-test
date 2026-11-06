@@ -181,3 +181,4 @@ console.log("==================================================");
 
 
 require('./tooltip_interaction_checks');
+require('./content_frame_checks');

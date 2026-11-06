@@ -72,42 +72,9 @@ assert('Zero innerHTML assignment in Task 3.3 helpers',
 
 // ── 4. Functional algorithm tests ──────────────────────────────────────────
 
-function getExamSlotTiming(slot) {
-  if (!slot) return null;
-  var s = String(slot).trim().toUpperCase();
-  if (s.indexOf("T1") !== -1 || s.indexOf("SLOT 1") !== -1 || s === "1") {
-    return {
-      label: "T1",
-      time: "09:00 AM – 11:00 AM",
-      start: "09:00 AM",
-      end: "11:00 AM"
-    };
-  }
-  if (s.indexOf("T2") !== -1 || s.indexOf("SLOT 2") !== -1 || s === "2") {
-    return {
-      label: "T2",
-      time: "11:30 AM – 01:30 PM",
-      start: "11:30 AM",
-      end: "01:30 PM"
-    };
-  }
-  if (s.indexOf("T3") !== -1 || s.indexOf("SLOT 3") !== -1 || s === "3") {
-    return {
-      label: "T3",
-      time: "02:00 PM – 03:00 PM",
-      start: "02:00 PM",
-      end: "03:00 PM"
-    };
-  }
-  return {
-    label: slot,
-    time: slot,
-    start: "",
-    end: ""
-  };
-}
+const slotHelper = popupJs.slice(helperStart, popupJs.indexOf('  /**', helperStart)).trim();
+const getExamSlotTiming = require('vm').runInNewContext('(' + slotHelper + ')');
 
-// Slot timing tests
 const t1 = getExamSlotTiming('T1');
 assert('T1 maps to 09:00 AM – 11:00 AM', t1 && t1.time === '09:00 AM – 11:00 AM');
 
