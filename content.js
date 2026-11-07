@@ -718,13 +718,70 @@
   function tooltipPosition(rect, width, height, viewportWidth, viewportHeight) {
     const margin = 12;
     const gap = 9;
+    const minReadable = 60;
     const center = rect.left + rect.width / 2;
     const left = Math.max(margin, Math.min(center - width / 2, viewportWidth - width - margin));
-    const above = rect.top >= height + gap + margin || rect.top > viewportHeight - rect.bottom;
-    const top = Math.max(margin, Math.min(above ? rect.top - height - gap : rect.bottom + gap,
-      viewportHeight - height - margin));
-    return { left, top, placement: above ? "above" : "below",
-      arrow: Math.max(12, Math.min(width - 12, center - left)) };
+
+    const spaceAbove = rect.top - gap - margin;
+    const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+
+    const fitsAbove = spaceAbove >= height;
+    const fitsBelow = spaceBelow >= height;
+
+    let above;
+    if (fitsAbove && fitsBelow) {
+      // When it fits comfortably on both sides, prefer "above" so subsequent rows/content aren't obscured
+      above = true;
+    } else if (fitsAbove) {
+      above = true;
+    } else if (fitsBelow) {
+      // Fits below, but only place below if spaceBelow is actually readable (> minReadable)
+      // or if spaceAbove has less room
+      above = spaceBelow < minReadable && spaceAbove > spaceBelow;
+    } else {
+      // Neither fits completely: pick whichever side has more available room
+      above = spaceAbove >= spaceBelow;
+    }
+
+    const top = Math.max(margin, Math.min(
+      above ? rect.top - height - gap : rect.bottom + gap,
+      viewportHeight - height - margin
+    ));
+
+    return {
+      left,
+      top,
+      placement: above ? "above" : "below",
+      arrow: Math.max(12, Math.min(width - 12, center - left))
+    };
+  }
+
+  function getEffectiveViewport(target, win, doc) {
+    let vWidth = (win.visualViewport && win.visualViewport.width) || win.innerWidth || 360;
+    let vHeight = (win.visualViewport && win.visualViewport.height) || win.innerHeight || 500;
+
+    if (doc && doc.documentElement && doc.documentElement.clientHeight) {
+      vHeight = Math.min(vHeight, doc.documentElement.clientHeight);
+    }
+
+    let parent = target && (target.parentElement || target.parentNode);
+    while (parent && parent !== doc.body && parent !== doc.documentElement) {
+      if (parent.nodeType === 1) {
+        const style = win.getComputedStyle ? win.getComputedStyle(parent) : null;
+        if (style) {
+          const overflowY = style.overflowY || style.overflow || "";
+          if (overflowY === "auto" || overflowY === "scroll" || overflowY === "hidden") {
+            const pRect = parent.getBoundingClientRect();
+            if (pRect.height > 0 && pRect.bottom > 0) {
+              vHeight = Math.min(vHeight, pRect.bottom);
+            }
+          }
+        }
+      }
+      parent = parent.parentElement || parent.parentNode;
+    }
+
+    return { width: Math.max(200, vWidth), height: Math.max(100, vHeight) };
   }
 
   function attachTooltipListeners(doc, win) {
@@ -784,12 +841,26 @@
         ? inlineTooltipData(data, target.dataset.cceCompact === "1" || target.dataset.cceAlias === "1" || clipped) : data;
       if (!tooltipData.name && !tooltipData.credits && !tooltipData.exam && !tooltipData.prereq) return;
       buildTooltipDom(tooltipData, globalTooltip);
+      if (globalTooltip.firstChild && globalTooltip.firstChild.style) {
+        globalTooltip.firstChild.style.maxHeight = "";
+      }
       const rect = target.getBoundingClientRect();
-      const height = Math.max(40, Math.max(rect.top, win.innerHeight - rect.bottom) - 47);
-      globalTooltip.firstChild.style.maxHeight = height + "px";
+      const viewport = getEffectiveViewport(target, win, doc);
+      const vWidth = viewport.width;
+      const vHeight = viewport.height;
       const tipRect = globalTooltip.getBoundingClientRect();
-      const position = tooltipPosition(rect, tipRect.width, tipRect.height,
-        win.innerWidth, win.innerHeight);
+      const position = tooltipPosition(rect, tipRect.width, tipRect.height, vWidth, vHeight);
+      const availableSpace = (position.placement === "above" ? rect.top : vHeight - rect.bottom) - 47;
+      if (globalTooltip.firstChild && globalTooltip.firstChild.style) {
+        if (availableSpace > 0 && tipRect.height > availableSpace + 26) {
+          globalTooltip.firstChild.style.maxHeight = Math.max(40, availableSpace) + "px";
+          const adjustedRect = globalTooltip.getBoundingClientRect();
+          const adjustedPos = tooltipPosition(rect, adjustedRect.width, adjustedRect.height, vWidth, vHeight);
+          position.top = adjustedPos.top;
+          position.left = adjustedPos.left;
+          position.arrow = adjustedPos.arrow;
+        }
+      }
       globalTooltip.style.left = position.left + "px";
       globalTooltip.style.top = position.top + "px";
       globalTooltip.style.setProperty("--cce-arrow-left", position.arrow + "px");
@@ -873,7 +944,8 @@
       const historyHeight = content.history.getBoundingClientRect().height;
       content.details.style.maxHeight = Math.max(40, Math.min(280, win.innerHeight - historyHeight - 64)) + "px";
       const bounds = globalTooltip.getBoundingClientRect();
-      const position = tooltipPosition(point.getBoundingClientRect(), bounds.width, bounds.height, win.innerWidth, win.innerHeight);
+      const chartVp = getEffectiveViewport(point, win, doc);
+      const position = tooltipPosition(point.getBoundingClientRect(), bounds.width, bounds.height, chartVp.width, chartVp.height);
       globalTooltip.style.left = position.left + "px";
       globalTooltip.style.top = position.top + "px";
       globalTooltip.style.setProperty("--cce-arrow-left", position.arrow + "px");

@@ -59,6 +59,9 @@ for (const viewport of [280, 360, 1000]) {
 }
 assert.equal(place({ left: 50, top: 0, bottom: 20, width: 40 }, 240, 80, 360, 500).placement, 'below');
 assert.equal(place({ left: 50, top: 470, bottom: 490, width: 40 }, 240, 80, 360, 500).placement, 'above');
+assert.equal(place({ left: 50, top: 115, bottom: 135, width: 60 }, 240, 130, 800, 250).placement, 'above');
+assert.equal(place({ left: 260, top: 97, bottom: 111, width: 55 }, 240, 80, 487, 142).placement, 'above');
+assert.equal(place({ left: 500, top: 100, bottom: 120, width: 60 }, 240, 90, 1024, 142).placement, 'above');
 context.attachTooltipListeners(doc, win);
 const a = element('CSE 3411');
 const b = element('CSE 3421');
