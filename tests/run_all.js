@@ -5,6 +5,7 @@ const { execSync } = require('child_process');
 const path = require('path');
 
 const testFiles = [
+  'tests/test_popup_regressions.js',
   'tests/test_batch_upload.js',
   'tests/test_empty_trash_all.js',
   'tests/test_merge.js',

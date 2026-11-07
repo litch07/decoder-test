@@ -60,7 +60,7 @@ module.exports = async function productQualityChecks(assert) {
   assert('Actual edited draft uses the latest shared catalog baseline', updateDraft.searchParams.get('body').includes('| Exam slot | T1 | T3 |') && updateDraft.searchParams.get('labels') === 'data-correction');
   const laterEdit = reports.buildCourseReport('update', 'CSE 4587', { ...edited, credits: 4 }, catalogBase);
   assert('Repeated edits retain the full comparison against the catalog', laterEdit.body.includes('| Credits | 3 | 4 |') && laterEdit.body.includes('| Exam slot | T2 | T3 |'));
-  assert('Edited action explains the comparison without adding another control', js.includes('Compare catalog details and your changes on GitHub') && html.includes('Review your saved changes against the shared catalog in a GitHub draft.'));
+  assert('Edited action explains the comparison in the existing reporting control', js.includes('Compare catalog details and your changes on GitHub') && html.includes('class="catalog-report-action"'));
   launcher.getCourseOrigin = code => ({ class: code });
   assert('All course-specific draft buttons distinguish additions, updates and reports', launcher.courseReportKind('user-added') === 'addition' && launcher.courseReportKind('edited') === 'update' && launcher.courseReportKind('official') === 'correction');
   launcher.chrome.runtime.lastError = { message: 'Tab failed' };
@@ -100,22 +100,35 @@ module.exports = async function productQualityChecks(assert) {
   assert('Restoring or deleting the final course clears the glow, dot and badge state', !trashClasses.has('has-trash') && trashEls.trashBadge.style.display === 'none' && toggleAttributes['aria-label'] === 'More catalog options' && trashEls.restoreAllBtn.disabled && trashEls.emptyTrashBtn.disabled);
   const background = fs.readFileSync(path.join(root, 'background.js'), 'utf8');
   let catalogWrites = 0;
-  let merges = 0;
+  let failStorage = false;
   const previousRemote = { 'TST 1001': { name: 'Course A', credits: 3 }, 'TST 1002': { name: 'Old course' } };
   const downloaded = { 'TST 1001': { name: 'Course A', credits: 4 }, 'TST 1003': { name: 'New course' } };
   const catalogStore = { remoteCourses: previousRemote, lastSyncedAt: 123, userCourses: { 'TST 1001': { name: 'My title' } } };
-  const service = vm.createContext({ CourseData, Blob, console: { warn() {} }, COURSES_URL: 'bundled', fetch: async url => url === 'bundled' ? { ok: true, json: async () => ({ 'TST 1001': { name: 'Course A', credits: 3 } }) } : { ok: true, text: async () => JSON.stringify(downloaded) }, chrome: { storage: { local: { get: async () => ({ remoteCourses: catalogStore.remoteCourses }), set: async value => { catalogWrites++; Object.assign(catalogStore, value); } } } }, loadAndStoreCourses: async () => { merges++; } });
-  vm.runInContext(background.slice(background.indexOf('async function syncCourses('), background.indexOf('const DEFAULT_ALLOWED_SITES')), service);
+  const service = vm.createContext({
+    CourseData, Blob, console: { warn() {}, error() {} }, COURSES_URL: 'bundled',
+    fetch: async url => url === 'bundled'
+      ? { ok: true, json: async () => ({ 'TST 1001': { name: 'Course A', credits: 3 } }) }
+      : { ok: true, text: async () => JSON.stringify(downloaded) },
+    chrome: { storage: { local: {
+      get: async () => structuredClone(catalogStore),
+      set: async value => {
+        if (failStorage) throw new Error('Simulated storage failure');
+        catalogWrites++;
+        Object.assign(catalogStore, structuredClone(value));
+      }
+    } } }
+  });
+  vm.runInContext(background.slice(background.indexOf('let catalogWrites'), background.indexOf('const DEFAULT_ALLOWED_SITES')), service);
   const reviewed = await service.syncCourses(true);
-  assert('Checking catalog updates does not write storage, merge courses or advance the timestamp', reviewed.success && catalogWrites === 0 && merges === 0 && catalogStore.lastSyncedAt === 123);
+  assert('Checking catalog updates does not write storage, merge courses or advance the timestamp', reviewed.success && catalogWrites === 0 && catalogStore.lastSyncedAt === 123);
   assert('Review includes additions, removals and credit-only changes', reviewed.stats.added === 1 && reviewed.stats.removed === 1 && reviewed.stats.updatedDetails['TST 1001'].includes('Credits'));
   catalogStore.remoteCourses = { ...previousRemote, 'TST 1004': { name: 'Concurrent update' } };
   const stale = await service.syncCourses(false, reviewed.catalog, reviewed.baselineRevision);
   assert('Applying a stale catalog preview is rejected without writes', !stale.success && catalogWrites === 0);
   catalogStore.remoteCourses = previousRemote;
   const applied = await service.syncCourses(false, reviewed.catalog, reviewed.baselineRevision);
-  assert('Only explicit approval applies the reviewed data and updates the timestamp', applied.success && catalogWrites === 1 && merges === 1 && catalogStore.remoteCourses['TST 1001'].credits === 4 && catalogStore.lastSyncedAt !== 123);
-  assert('Catalog application preserves local course overrides', catalogStore.userCourses['TST 1001'].name === 'My title');
+  assert('Only explicit approval applies the reviewed data and updates the timestamp', applied.success && catalogWrites === 1 && catalogStore.remoteCourses['TST 1001'].credits === 4 && catalogStore.lastSyncedAt !== 123);
+  assert('Catalog application preserves local course overrides', catalogStore.userCourses['TST 1001'].name === 'My title' && catalogStore.courses['TST 1001'].name === 'My title');
   const normalization = js.slice(js.indexOf('  const { normalizeCourseData } = CourseData;'), js.indexOf('  function getSoftDeletedCourseData('));
   const totals = js.slice(js.indexOf('  function computeEnrolledCredits('), js.indexOf('  function examCourseLabel('));
   const data = vm.createContext({ CourseData });
@@ -139,7 +152,7 @@ module.exports = async function productQualityChecks(assert) {
   const resetUser = { 'TST 1001': { name: 'My edit', credits: 4 }, CUSTOM: { name: 'Keep me' } };
   const plan = data.buildCatalogResetPlan(resetBundled, { 'TST 1001': { credits: 2 } }, resetUser, ['TST 1002', 'CUSTOM'], ['TST 1001', 'CUSTOM-HARD']);
   assert('Reset preview includes restored courses once and shows fields discarded against merged defaults', plan.count === 2 && plan.restoredCodes.length === 2 && plan.diff.toUpdate[0].changes.some(change => change.field === 'Credits' && change.newVal === '2'));
-  assert('Reset preserves custom courses and their deleted/excluded states', plan.nextUser.CUSTOM.name === 'Keep me' && !plan.nextUser['TST 1001'] && plan.nextSoft.includes('CUSTOM') && plan.nextHard.includes('CUSTOM-HARD'));
+  assert('The reset review only targets official catalog courses', !plan.restoredCodes.includes('CUSTOM') && !plan.restoredCodes.includes('CUSTOM-HARD') && !plan.revertedCodes.includes('CUSTOM'));
   assert('Preparing a reset review does not mutate source storage objects', resetUser['TST 1001'].name === 'My edit' && resetBundled['TST 1001'].credits === 3);
   assert('Unmodified catalogs have no reset work', data.buildCatalogResetPlan(resetBundled, {}, { CUSTOM: 'Custom' }, ['CUSTOM'], []).count === 0);
   assert('Reset revisions detect edits made after opening the review', plan.revision !== data.buildCatalogResetPlan(resetBundled, { 'TST 1001': { credits: 2 } }, { ...resetUser, 'TST 1001': 'Later edit' }, ['TST 1002', 'CUSTOM'], ['TST 1001', 'CUSTOM-HARD']).revision);
@@ -159,10 +172,11 @@ module.exports = async function productQualityChecks(assert) {
   }
   assert('Reserved dictionary keys are rejected', !!CourseData.validate('__proto__', { name: 'Bad key' }));
   assert('Multi-course prerequisite cycles are detected', !!CourseData.cycle({ 'CSE 1001': { prerequisites: ['CSE 1002'] }, 'CSE 1002': { prerequisites: ['CSE 1001'] } }));
-  const failedImport = vm.createContext({ CourseData, courses: structuredClone(previous), userCourses: {}, softDeletedCourses: [canonical], hardDeletedCourses: [], chrome: { storage: { local: { set: async () => { throw Error('Quota'); } } } } });
+  let importRequested = false;
+  const failedImport = vm.createContext({ CourseData, courses: structuredClone(previous), userCourses: {}, softDeletedCourses: [canonical], hardDeletedCourses: [], chrome: { runtime: { sendMessage: async message => { importRequested = message.type === 'ADD_COURSES'; return { ok: false }; } } } });
   vm.runInContext(js.slice(js.indexOf('  async function executeCommitImportDiff('), js.indexOf('  function triggerDropZoneError(')), failedImport);
   try { await failedImport.executeCommitImportDiff(renamed); } catch (_) {}
-  assert('Failed imports leave active data, overrides and Trash untouched', failedImport.courses[canonical].name === 'Original' && !Object.hasOwn(failedImport.userCourses, canonical) && failedImport.softDeletedCourses.includes(canonical));
+  assert('Failed imports leave active data, overrides and Trash untouched', importRequested && failedImport.courses[canonical].name === 'Original' && !Object.hasOwn(failedImport.userCourses, canonical) && failedImport.softDeletedCourses.includes(canonical));
   const examChecks = vm.createContext({ CourseData });
   vm.runInContext(normalization + js.slice(js.indexOf('  function detectSameDayExams('), js.indexOf('  function computeEnrolledCredits(')), examChecks);
   const aliasCourses = { A: { name: 'A', examDay: 'Day 5', examSlot: 'T3' }, B: { name: 'B', examDay: 'D5', examSlot: 't3' } };
@@ -273,6 +287,43 @@ module.exports = async function productQualityChecks(assert) {
   homeSummary.updateHomeExamBadge(badge, null, 'danger');
   assert('Resolved home warnings are hidden and stale details are cleared', badge.style.display === 'none' && badge.textContent === '' && !badgeAttributes['aria-label']);
 
+  // Exercise the shared production message renderer with independent form timers.
+  const messageTimers = new Map();
+  let messageTimerId = 0;
+  function messageNode() {
+    return {
+      style: {}, attributes: {}, children: [],
+      setAttribute(key, value) { this.attributes[key] = value; },
+      appendChild(child) { this.children.push(child); }
+    };
+  }
+  const messages = vm.createContext({
+    document: { createElement: messageNode, createElementNS: messageNode },
+    clearTimeout: id => messageTimers.delete(id),
+    setTimeout: (fn, delay) => {
+      if (delay !== 4500) throw new Error('Unexpected message timeout');
+      messageTimers.set(++messageTimerId, fn);
+      return messageTimerId;
+    }
+  });
+  vm.runInContext(js.slice(js.indexOf('  function showCourseMsg('), js.indexOf('  function updateJsonBadge(')), messages);
+  const importMessage = messageNode(), singleMessage = messageNode();
+  messages.showCourseMsg(importMessage, 'success', '<literal>');
+  messages.showCourseMsg(singleMessage, 'info', 'Second form');
+  assert('Form messages preserve literal text and polite status announcements',
+    importMessage.children[1].textContent === '<literal>' && importMessage.attributes['aria-live'] === 'polite');
+  messages.showCourseMsg(importMessage, 'error', 'Keep this error');
+  assert('Replacing a form message cancels only its own timer and keeps errors persistent',
+    messageTimers.size === 1 && !messageTimers.has(1) && importMessage.attributes.role === 'alert' && importMessage.attributes['aria-live'] === 'assertive');
+  messageTimers.get(2)();
+  assert('The other form expires without dismissing the error',
+    singleMessage.style.display === 'none' && singleMessage.textContent === '' && importMessage.style.display === 'flex');
+  messages.showCourseMsg(importMessage, 'info', 'Retry');
+  messageTimers.get(3)();
+  assert('Replacing an error restores normal auto-dismiss behavior',
+    importMessage.style.display === 'none' && importMessage.className === 'import-msg');
+  messages.showCourseMsg(null, 'info', 'Missing form');
+
   const fields = ['detailName', 'detailDay', 'detailSlot', 'detailPrereq', 'detailPrereqNote', 'detailCredits'];
   const els = Object.fromEntries(fields.map(key => [key, { value: '' }]));
   const saveAttributes = {};
@@ -326,35 +377,34 @@ module.exports = async function productQualityChecks(assert) {
   dirty.openCourseDetails.formSnapshot = dirty.detailsFormSnapshot();
   dirty.updateDetailsSaveState();
   assert('Successful saves disable Save until another edit', els.detailSaveBtn.disabled);
-  let failStorage = true;
-  const persisted = {};
-  const save = vm.createContext({ CourseData, getCatalogReportBaseline: reports.getCatalogReportBaseline,
-    bundledCourses: { A: { name: 'Original title', credits: 3 } }, remoteCourses: {}, userCourses: {},
-    softDeletedCourses: [], hardDeletedCourses: [], courses: { A: { name: 'Original title', credits: 3 } },
-    currentEditingCode: null, isTrashMode: false, searchQuery: '',
+  const code = 'TST 1001';
+  Object.assign(catalogStore, { remoteCourses: {}, userCourses: {}, courses: { [code]: { name: 'Course A', credits: 3 } } });
+  const save = vm.createContext({
+    CourseData, ...structuredClone(catalogStore), currentEditingCode: null, isTrashMode: false, searchQuery: '',
     console, chrome: {
-      storage: { local: { set: async value => {
-        if (failStorage) throw new Error('Simulated storage failure');
-        Object.assign(persisted, value);
-      } } },
-      runtime: { sendMessage: async () => ({ success: true }) }
+      storage: { local: { get: async () => structuredClone(catalogStore) } },
+      runtime: { sendMessage: message => service.loadAndStoreCourses(message) }
     },
-    reloadLocalCoursesState: async () => {}, renderCourseList() {}, renderTrashList() {}, showToast() {}
+    updateCourseCount() {}, renderCourseList() {}, renderTrashList() {}, showToast() {}
   });
-  vm.runInContext(normalization + js.slice(js.indexOf('  function commitCourseSave('), js.indexOf('  function renderMsgDom(')), save);
+  vm.runInContext(normalization +
+    js.slice(js.indexOf('  async function reloadLocalCoursesState('), js.indexOf('  function renderTrashList(')) +
+    js.slice(js.indexOf('  async function commitCourseSave('), js.indexOf('  function showCourseMsg(')), save);
+  const saveCourse = (value, snapshot) => save.commitCourseSave(code, value, snapshot, save.courses[code]);
+  failStorage = true;
   let rejected = false;
-  try { await save.commitCourseSave('A', { name: 'Edited title', credits: 1.5 }); }
+  try { await saveCourse({ name: 'Edited title', credits: 1.5 }); }
   catch (_) { rejected = true; }
   assert('Failed storage writes reject without changing the active catalog',
-    rejected && save.courses.A.name === 'Original title' && save.userCourses.A === undefined);
+    rejected && save.courses[code].name === 'Course A' && save.userCourses[code] === undefined);
   failStorage = false;
-  await save.commitCourseSave('A', { name: 'Edited title', credits: 1.5 });
-  assert('A successful direct save persists edits before updating the active catalog',
-    persisted.userCourses.A.name === 'Edited title' && save.courses.A.name === 'Edited title' && save.courses.A.credits === 1.5);
-  await save.commitCourseSave('A', { name: 'Original title', credits: 3 });
+  await saveCourse({ name: 'Edited title', credits: 1.5 });
+  assert('A successful save persists edits before updating the active catalog',
+    catalogStore.userCourses[code].name === 'Edited title' && save.courses[code].name === 'Edited title' && save.courses[code].credits === 1.5);
+  await saveCourse({ name: 'Course A', credits: 3 });
   assert('Saving catalog defaults removes the custom override',
-    save.userCourses.A === undefined && save.courses.A.name === 'Original title');
-  save.currentEditingCode = 'A';
+    save.userCourses[code] === undefined && save.courses[code].name === 'Course A');
+  save.currentEditingCode = code;
   save.els = {};
   save.document = { getElementById: () => null };
   save.getCourseOrigin = () => ({ class: 'edited', label: 'Edited' });
@@ -364,10 +414,10 @@ module.exports = async function productQualityChecks(assert) {
   save.updateDetailsSaveState = () => {};
   save.openCourseDetails = function() {};
   save.detailsFormSnapshot = () => 'newer unsaved edit';
-  await save.commitCourseSave('A', { name: 'Submitted title', credits: 3 }, 'submitted form');
+  await saveCourse({ name: 'Submitted title', credits: 3 }, 'submitted form');
   assert('Edits made during a pending save are not incorrectly marked as saved', save.openCourseDetails.formSnapshot === 'submitted form' && save.detailsFormSnapshot() !== save.openCourseDetails.formSnapshot);
 
-  await save.commitCourseSave('A', { name: 'Original title', credits: null, examDay: '', examSlot: '', prerequisites: [], prerequisiteNote: '' });
-  assert('Cleared fields override bundled defaults explicitly', save.courses.A.credits === null && save.courses.A.examDay === '' && save.courses.A.prerequisites.length === 0);
+  await saveCourse({ name: 'Course A', credits: null, examDay: '', examSlot: '', prerequisites: [], prerequisiteNote: '' });
+  assert('Cleared fields override bundled defaults explicitly', save.courses[code].credits === null && save.courses[code].examDay === '' && save.courses[code].prerequisites.length === 0);
 
 };

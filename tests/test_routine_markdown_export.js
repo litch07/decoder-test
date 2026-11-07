@@ -5,7 +5,7 @@
  * Verifies:
  *   1. HTML structure: #exportRoutineMdBtn in mycourses-view header
  *   2. HTML hygiene: Zero remnant ICS modals or ICS inputs in popup.html
- *   3. CSS styles: .routine-slot-badge, .routine-slot-time, .routine-export-btn
+ *   3. CSS styles: .routine-slot-badge, .routine-slot-time, .header-export-action
  *   4. JS presence: getExamSlotTiming, generateRoutineMarkdown, downloadMarkdownFile
  *   5. Zero innerHTML: Strict programmatic DOM and safe string manipulation
  *   6. Slot time mapping:
@@ -52,7 +52,7 @@ assert('HTML has zero remnant #downloadIcsBtn (ICS cleanup)', !popupHtml.include
 // ── 2. CSS styles presence ─────────────────────────────────────────────────
 assert('CSS has .routine-slot-badge', popupCss.includes('.routine-slot-badge'));
 assert('CSS has .routine-slot-time', popupCss.includes('.routine-slot-time'));
-assert('CSS has .routine-export-btn', popupCss.includes('.routine-export-btn'));
+assert('CSS styles the current routine export action', popupCss.includes('.header-export-action'));
 assert('CSS has zero remnant .ics-preview-section (ICS cleanup)', !popupCss.includes('.ics-preview-section'));
 
 // ── 3. JS function & state presence ────────────────────────────────────────

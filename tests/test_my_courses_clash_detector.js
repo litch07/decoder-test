@@ -5,7 +5,7 @@
  * Verifies:
  *   1. HTML structure: View 0 quick card, View 1 filter button, summary card, clash alert box
  *   2. HTML structure: View 3 details enrollment toggle button and clash warning banner
- *   3. CSS styles: .enrolled-quick-card, .clash-alert-box, .btn-enroll-toggle, .btn-row-enroll, .is-clashing
+ *   3. CSS styles: .enrolled-quick-card, .clash-alert-box, .btn-enroll-toggle, .btn-card-drop, .is-clashing
  *   4. JS presence: detectExamClashes, computeEnrolledCredits, updateEnrolledUI, toggleEnrollCourse
  *   5. Zero innerHTML: All DOM generation uses safe browser APIs
  *   6. Functional unit test: detectExamClashes detects overlapping Day & Slot
@@ -61,15 +61,14 @@ assert('HTML has #detailClashWarning and #detailClashText in View 3',
 
 // ── 2. CSS styles presence ─────────────────────────────────────────────────
 assert('CSS has .enrolled-quick-card', popupCss.includes('.enrolled-quick-card'));
-assert('CSS has .clash-badge.danger and .clash-badge.ok',
-  popupCss.includes('.clash-badge.danger') && popupCss.includes('.clash-badge.ok'));
+assert('CSS styles the current conflict badge', popupCss.includes('.clash-badge.danger'));
 assert('CSS has .enrolled-summary-card', popupCss.includes('.enrolled-summary-card'));
 assert('CSS has .clash-alert-box', popupCss.includes('.clash-alert-box'));
 assert('CSS has .clash-alert-box.is-warning and .clash-item.warning', popupCss.includes('.clash-alert-box.is-warning') && popupCss.includes('.clash-item.warning'));
 assert('CSS has .clash-badge.warning', popupCss.includes('.clash-badge.warning'));
 assert('CSS has .enrolled-course-card.has-same-day and .enrolled-card-sameday-banner', popupCss.includes('.enrolled-course-card.has-same-day') && popupCss.includes('.enrolled-card-sameday-banner'));
 assert('CSS has .btn-enroll-toggle', popupCss.includes('.btn-enroll-toggle'));
-assert('CSS has .btn-row-enroll', popupCss.includes('.btn-row-enroll'));
+assert('CSS styles the current planner removal control', popupCss.includes('.btn-card-drop'));
 assert('CSS has .course-grid-row.is-clashing', popupCss.includes('.course-grid-row.is-clashing'));
 
 // ── 3. JS function & state presence ────────────────────────────────────────
@@ -308,7 +307,7 @@ mockToggleEnroll('MATH 1151');
 mockToggleEnroll('ENG 1011');
 assert('Newly added courses appear at the top (newest first)',
   mockEnrolled[0] === 'ENG 1011' && mockEnrolled[1] === 'MATH 1151' && mockEnrolled[2] === 'CSE 1111');
-assert('popup.js prepends new additions via unshift', popupJs.includes('enrolledCourses.unshift(code)'));
+assert('The popup sends planner updates to the worker', popupJs.includes('type: "UPDATE_COURSE_PLAN"'));
 
 // Exercise production copy generation, including proposed enrollment.
 const noticeRuntime = new Function('normalizeCourseData',

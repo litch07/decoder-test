@@ -42,7 +42,7 @@ Shared graph data supplies direct prerequisites, complete chains, bottom-up stag
 
 Missing references, self-dependencies, duplicate edges and cycles are checked. CSE/DS relationships can trigger review warnings, without deleting potentially valid academic requirements. EEE, MATH, PHY and other cross-subject requirements are preserved.
 
-CSE 2215–2218 include source-backed BSDS-233 variants alongside current BSCSE defaults. A DS root selects BSDS-233; other roots select BSCSE-current. Navigation retains the originating context. This is limited coverage, not a student program/batch selection feature. Unversioned records can still fall back to base requirements. The popup's code/name toggle is hidden; the public explorer has a visible toggle. See [curriculum limitations](CURRICULUM_PREREQUISITES_HANDOFF.md).
+CSE 2215–2218 include source-backed BSDS-233 variants alongside current BSCSE defaults. A DS root selects BSDS-233; other roots select BSCSE-current. Navigation retains the originating context. This is limited coverage, not a student program/batch selection feature. Unversioned records can still fall back to base requirements. Popup roadmap cards show both code and name; the public explorer has a code/name toggle. See [curriculum limitations](CURRICULUM_PREREQUISITES_HANDOFF.md).
 
 ## My courses & exams
 

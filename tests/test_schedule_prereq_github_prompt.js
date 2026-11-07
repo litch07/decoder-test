@@ -6,7 +6,7 @@
  * 2. Community 1-Click GitHub issue contribution prompt in popup.html & popup.js
  * 3. Content script buildExtendedData discrimination between In-Class, Scheduled, and TBA
  * 4. Content script buildExtendedData discrimination between None and Prerequisites not listed prerequisites
- * 5. Course Details dynamic contribution card & post-edit save banner (User Added vs Edited vs Official)
+ * 5. Course Details context-aware reporting (User Added vs Edited vs Official)
  * 6. Zero innerHTML usage in new logic
  */
 
@@ -23,26 +23,23 @@ const CSS = fs.readFileSync(path.join(ROOT, "popup.css"), "utf8");
 console.log("Running Schedule, Prerequisite & GitHub Prompt Tests...");
 
 // ── 1. HTML Element Existence ────────────────────────────────────────────────
-assert.ok(HTML.includes('id="singleCourseInClass"'), "HTML has #singleCourseInClass checkbox");
+assert.ok(HTML.includes('id="examModeInClass"'), "HTML has the visible in-class radio");
 assert.ok(HTML.includes('id="singleCourseNoPrereq"'), "HTML has #singleCourseNoPrereq checkbox");
 assert.ok(HTML.includes('id="singleCourseContribPrompt"'), "HTML has #singleCourseContribPrompt card");
 assert.ok(HTML.includes('id="contribSubmitGithubBtn"'), "HTML has #contribSubmitGithubBtn button");
 assert.ok(HTML.includes('id="contribDismissBtn"'), "HTML has #contribDismissBtn button");
 assert.ok(HTML.includes('id="detailInClass"'), "HTML has #detailInClass in Details View");
 assert.ok(HTML.includes('id="detailNoPrereq"'), "HTML has #detailNoPrereq in Details View");
-assert.ok(HTML.includes('id="detailSaveContribPrompt"'), "HTML has #detailSaveContribPrompt in Details View");
-assert.ok(HTML.includes('id="detailSaveContribGithubBtn"'), "HTML has #detailSaveContribGithubBtn");
-assert.ok(HTML.includes('id="detailSaveContribDoneBtn"'), "HTML has #detailSaveContribDoneBtn");
 assert.ok(HTML.includes('id="detailReportCard"'), "HTML has #detailReportCard");
+assert.ok(HTML.includes('id="reportIssueBtn"'), "Details retain the active reporting action");
 
 // ── 2. CSS Styling Existence ─────────────────────────────────────────────────
 assert.ok(CSS.includes(".form-checkbox-row"), "CSS has .form-checkbox-row");
 assert.ok(CSS.includes(".form-checkbox-label"), "CSS has .form-checkbox-label");
 assert.ok(CSS.includes(".contrib-prompt-card"), "CSS has .contrib-prompt-card");
-assert.ok(CSS.includes(".btn-contrib-submit"), "CSS has .btn-contrib-submit");
+assert.ok(CSS.includes(".btn-github-submit"), "CSS styles the active GitHub contribution button");
 assert.ok(CSS.includes(".routine-slot-badge.pending-slot"), "CSS has .routine-slot-badge.pending-slot");
-assert.ok(CSS.includes(".detail-contrib-banner"), "CSS has .detail-contrib-banner");
-assert.ok(CSS.includes(".report-card.is-user-added"), "CSS has .report-card.is-user-added");
+assert.ok(CSS.includes(".catalog-report-action"), "CSS styles the current catalog reporting action");
 
 // ── 3. Content Script Extended Data Behavior ─────────────────────────────────
 // Extract buildExtendedData function from content.js for isolated unit testing
@@ -83,14 +80,13 @@ const resEmptyPrereq = testFn({ name: "Senior Course", examDay: "D3", examSlot: 
 assert.strictEqual(resEmptyPrereq.prereq, "Prerequisites not listed", "Empty prerequisites must return 'Prerequisites not listed'");
 
 // ── 4. popup.js Zero-innerHTML and Event Wiring Check ────────────────────────
-assert.ok(JS.includes("els.singleCourseInClass"), "popup.js references els.singleCourseInClass");
+assert.ok(JS.includes("const isInClass = !!els.examModeInClass?.checked"), "Saving uses the visible exam-mode control");
 assert.ok(JS.includes("els.singleCourseNoPrereq"), "popup.js references els.singleCourseNoPrereq");
 assert.ok(JS.includes("els.contribSubmitGithubBtn"), "popup.js references els.contribSubmitGithubBtn");
 assert.ok(JS.includes("updateDetailReportCard("), "popup.js implements updateDetailReportCard");
 assert.ok(JS.includes("Suggest this course"), "popup.js contains Suggest this course for user-added courses");
 assert.ok(JS.includes("Suggest this update"), "popup.js contains Suggest this update for edited courses");
 assert.ok(JS.includes("Report a course error"), "popup.js contains Report a course error for catalog courses");
-assert.ok(JS.includes("els.detailSaveContribGithubBtn"), "popup.js references els.detailSaveContribGithubBtn");
 assert.ok(JS.includes("https://github.com/litch07/uiu-course-companion/issues/new"), "popup.js generates GitHub issue URL");
 
 // Ensure no innerHTML was introduced in new handlers
@@ -127,9 +123,26 @@ assert.ok(CSS.includes(".form-input:focus-visible") && CSS.includes("outline: no
 assert.ok(HTML.includes('id="welcomeCard"'), "HTML has #welcomeCard");
 assert.ok(HTML.includes('id="welcomeDismissBtn"'), "HTML has #welcomeDismissBtn");
 assert.ok(HTML.includes('id="welcomeActionBtn"'), "HTML has #welcomeActionBtn");
-assert.ok(CSS.includes(".welcome-card"), "CSS has .welcome-card styles");
+assert.ok(CSS.includes(".onboarding-layout"), "CSS styles the current onboarding layout");
 assert.ok(CSS.includes(".btn-welcome-dismiss"), "CSS has .btn-welcome-dismiss styles");
-assert.ok(JS.includes("welcomeCard: document.getElementById(\"welcomeCard\")"), "popup.js references #welcomeCard");
 assert.ok(JS.includes("welcomeDismissed"), "popup.js checks and persists welcomeDismissed in storage");
+
+// Exercise the actual exam-mode handler after removing the duplicate hidden state.
+const modeEls = {
+  examModeRoutine: {}, examModeInClass: {}, routineInputsRow: { style: {} },
+  singleCourseDay: { value: "Day 4" }, singleCourseSlot: { value: "T2" }
+};
+const setMode = new Function("els",
+  JS.slice(JS.indexOf("    function setExamMode("), JS.indexOf('    els.examModeRoutine?.addEventListener')) +
+  "return setExamMode;")(modeEls);
+setMode("inclass");
+assert.ok(modeEls.examModeInClass.checked && !modeEls.examModeRoutine.checked);
+assert.strictEqual(modeEls.routineInputsRow.style.display, "none");
+assert.strictEqual(modeEls.singleCourseDay.value, "In-Class");
+assert.strictEqual(modeEls.singleCourseSlot.value, "");
+setMode("routine");
+assert.ok(modeEls.examModeRoutine.checked && !modeEls.examModeInClass.checked);
+assert.strictEqual(modeEls.routineInputsRow.style.display, "grid");
+assert.strictEqual(modeEls.singleCourseDay.value, "");
 
 console.log("All Schedule, Prerequisite & GitHub Prompt Tests Passed! 🎉");

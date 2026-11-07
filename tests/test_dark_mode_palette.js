@@ -75,23 +75,22 @@ assert('CSS styles dark inputs and textareas',
 assert('CSS styles dark allowlist items and search bar',
   popupCss.includes('.allowlist-item') && popupCss.includes('.domain-search-box'));
 assert('CSS styles dark sync card and reminder banners',
-  popupCss.includes('.sync-card') && popupCss.includes('.home-sync-alert'));
+  popupCss.includes('.sync-card') && popupCss.includes('.settings-update-reminder'));
 assert('CSS styles dark danger zone reset card',
   popupCss.includes('#dangerResetCard') && popupCss.includes('rgba(239, 68, 68'));
 assert('CSS styles dark course table and grid rows',
   popupCss.includes('.course-table-card') && popupCss.includes('.course-grid-row'));
 assert('CSS styles dark filter buttons and tabs',
-  popupCss.includes('.filter-btn') && popupCss.includes('.tab-btn'));
+  popupCss.includes('.filter-btn') && popupCss.includes('.import-tab-btn'));
 assert('CSS styles dark enrolled summary and clash alerts',
   popupCss.includes('#enrolledSummaryCard') && popupCss.includes('.clash-alert-box'));
-assert('CSS styles dark prerequisite tree cards and badges',
-  popupCss.includes('.prereq-tree-card') && popupCss.includes('.prereq-badge'));
+assert('CSS styles the current dark roadmap tree and course cards',
+  popupCss.includes(':root[data-theme="dark"] .flow-view .prereq-tree-card') && popupCss.includes(':root[data-theme="dark"] .flow-view .unlock-course-card'));
 assert('CSS styles dark file drop zone and preview diff modal',
   popupCss.includes('.file-drop-zone') && popupCss.includes('.preview-modal-content'));
 
 // ── 4. JS Theme Engine Presence & Listeners ───────────────────────────────
 assert('JS caches theme elements in els',
-  popupJs.includes('themeSettingsCard:') &&
   popupJs.includes('themeSystem:') &&
   popupJs.includes('themeLight:') &&
   popupJs.includes('themeDark:') &&

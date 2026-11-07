@@ -8,7 +8,7 @@
  *   3. HTML: #unlocksBody present in popup.html
  *   4. HTML: #prereqChainCount and #unlocksCount present
  *   5. popup.js contains buildPrereqChain function
- *   6. popup.js contains findUnlocks function
+ *   6. Shared graph provides reverse prerequisite lookup
  *   7. popup.js contains renderPrereqTree function
  *   8. renderPrereqTree is called inside openCourseDetails
  *   9. Zero innerHTML usage in the new tree helpers
@@ -51,7 +51,6 @@ assert('HTML has #prereqChainCount and #unlocksCount',
 
 // ── 5–8: JS function presence ──────────────────────────────────────────────
 assert('popup.js has buildPrereqChain function', JS.includes('function buildPrereqChain'));
-assert('popup.js has findUnlocks function',      JS.includes('function findUnlocks'));
 assert('popup.js has renderPrereqTree function', JS.includes('function renderPrereqTree'));
 assert('renderPrereqTree called in openCourseDetails',
   JS.includes('renderPrereqTree(code)'));
@@ -70,58 +69,11 @@ assert('Zero innerHTML assignment in prereq tree helpers',
 
 // ── 10–14: Algorithm unit tests (extract and run helpers in isolation) ─────
 
-// Minimal stubs for normalizeCourseData
-function normalizeCourseData(val) {
-  if (!val) return { name: '', prerequisites: [], examDay: '', examSlot: '' };
-  if (typeof val === 'string') return { name: val, prerequisites: [], examDay: '', examSlot: '' };
-  return Object.assign({ name: '', prerequisites: [], examDay: '', examSlot: '' }, val);
-}
-
-// Re-implement buildPrereqChain locally (mirrors the popup.js version)
-function buildPrereqChain(rootCode, catalog) {
-  var directCodes = [];
-  var levels = [];
-  var visited = new Set();
-  visited.add(rootCode);
-  var rootData = normalizeCourseData(catalog[rootCode]);
-  var rootPrereqs = Array.isArray(rootData.prerequisites) ? rootData.prerequisites : [];
-  directCodes = rootPrereqs.slice();
-  var currentLevel = rootPrereqs.filter(function(c) { return !visited.has(c); });
-  currentLevel.forEach(function(c) { visited.add(c); });
-  var depth = 1;
-  while (currentLevel.length > 0) {
-    levels.push({ codes: currentLevel.slice(), depth: depth });
-    depth++;
-    var nextLevel = [];
-    for (var i = 0; i < currentLevel.length; i++) {
-      var c = currentLevel[i];
-      var cData = normalizeCourseData(catalog[c]);
-      var cPrereqs = Array.isArray(cData.prerequisites) ? cData.prerequisites : [];
-      for (var j = 0; j < cPrereqs.length; j++) {
-        var p = cPrereqs[j];
-        if (!visited.has(p)) {
-          visited.add(p);
-          nextLevel.push(p);
-        }
-      }
-    }
-    currentLevel = nextLevel;
-  }
-  return { directCodes: directCodes, levels: levels };
-}
-
-// Re-implement findUnlocks locally
-function findUnlocks(code, catalog) {
-  var result = [];
-  Object.keys(catalog).forEach(function(k) {
-    var data = normalizeCourseData(catalog[k]);
-    if (Array.isArray(data.prerequisites) && data.prerequisites.indexOf(code) !== -1) {
-      result.push(k);
-    }
-  });
-  result.sort();
-  return result;
-}
+const CourseData = require('../course-data.js');
+const { normalizeCourseData } = CourseData;
+const buildPrereqChain = new Function('CourseData',
+  JS.slice(JS.indexOf('  function prerequisiteCatalog('), JS.indexOf('  // Topological stages')) +
+  '\nreturn buildPrereqChain;')(CourseData);
 
 // Test 10 — Direct prereqs
 var catalog10 = {
@@ -169,7 +121,7 @@ var catalog13 = {
   'MATH 1151': { prerequisites: ['CSE 1111'] },
   'CSE 2215': { prerequisites: ['CSE 1115'] }
 };
-var unlocks13 = findUnlocks('CSE 1111', catalog13);
+var unlocks13 = require('../course-data.js').graph(catalog13).unlocks('CSE 1111');
 assert('Unlocks finds courses that require the current course',
   unlocks13.length === 2 &&
   unlocks13.includes('CSE 1115') &&
@@ -195,46 +147,6 @@ assert('els has prereqTreeSection entry',  JS.includes('prereqTreeSection: docum
 assert('els has prereqChainBody entry',    JS.includes('prereqChainBody: document.getElementById("prereqChainBody")'));
 assert('els has unlocksBody entry',        JS.includes('unlocksBody: document.getElementById("unlocksBody")'));
 
-// ── 16–18: Code/Name toggle ──────────────────────────────────────────────
-assert('HTML has #prereqViewToggle', HTML.includes('id="prereqViewToggle"'));
-assert('HTML has #prereqToggleCode', HTML.includes('id="prereqToggleCode"'));
-assert('HTML has #prereqToggleName', HTML.includes('id="prereqToggleName"'));
-
-assert('popup.js has showPrereqNames state variable', JS.includes('showPrereqNames'));
-assert('popup.js has badgeContent helper inside renderPrereqTree', JS.includes('function badgeContent'));
-assert('popup.js has setupPrereqToggle IIFE', JS.includes('setupPrereqToggle'));
-assert('popup.js persists toggle preference via prereqShowNames',
-  JS.includes('prereqShowNames'));
-
-// Functional test — badgeContent equivalent
-(function() {
-  function normalizeCourseData(val) {
-    if (!val) return { name: '', prerequisites: [] };
-    if (typeof val === 'string') return { name: val, prerequisites: [] };
-    return Object.assign({ name: '', prerequisites: [] }, val);
-  }
-  var catalog = {
-    'CSE 1111': { name: 'Introduction to CS', prerequisites: [] },
-    'CSE 1115': { name: 'Structured Programming', prerequisites: ['CSE 1111'] }
-  };
-  function badgeContent(courseCode, nameMode) {
-    var inCatalog = !!catalog[courseCode];
-    if (!inCatalog) return { label: courseCode, tooltip: courseCode + ' — not in catalog', nameMode: false };
-    var data = normalizeCourseData(catalog[courseCode]);
-    var name = data.name || '';
-    if (nameMode && name) return { label: name, tooltip: courseCode, nameMode: true };
-    return { label: courseCode, tooltip: name || ('Go to ' + courseCode), nameMode: false };
-  }
-  var codeMode = badgeContent('CSE 1111', false);
-  assert('Code mode: badge label is code', codeMode.label === 'CSE 1111');
-  assert('Code mode: tooltip is name', codeMode.tooltip === 'Introduction to CS');
-  var nameMode = badgeContent('CSE 1111', true);
-  assert('Name mode: badge label is name', nameMode.label === 'Introduction to CS');
-  assert('Name mode: tooltip is code', nameMode.tooltip === 'CSE 1111');
-  var missing = badgeContent('BIO 9999', false);
-  assert('Missing code: label is always the code', missing.label === 'BIO 9999');
-})();
-
 // ── 19–24: Dedicated Flow View & Launcher Card Tests ──────────────────────
 const CSS = fs.readFileSync(path.join(ROOT, 'popup.css'), 'utf8');
 
@@ -255,8 +167,8 @@ assert('CSS defines .view-wrapper.show-flow .flow-view transition',
   CSS.includes('.view-wrapper.show-flow .flow-view'));
 assert('CSS styles .prereq-launcher-card and .btn-open-prereq-flow',
   CSS.includes('.prereq-launcher-card') && CSS.includes('.btn-open-prereq-flow'));
-assert('CSS styles .flow-hero-card and .flow-hero-pill',
-  CSS.includes('.flow-hero-card') && CSS.includes('.flow-hero-pill'));
+assert('CSS styles the current selected course anchor and metadata',
+  CSS.includes('.flow-anchor-card') && CSS.includes('.flow-anchor-meta'));
 
 assert('popup.js has openPrereqFlowView and exitPrereqFlowView functions',
   JS.includes('function openPrereqFlowView') && JS.includes('function exitPrereqFlowView'));
@@ -267,7 +179,7 @@ assert('popup.js handles flow origin in openSettings and exitCourseDetails',
 
 // Exercise the production traversal and renderer, rather than a copied algorithm.
 const runtime = new Function('CourseData', 'normalizeCourseData', 'document', 'els', 'courses',
-  'showPrereqNames', 'openCourseDetails',
+  'openCourseDetails',
   JS.slice(JS.indexOf('  function prerequisiteCatalog('), JS.indexOf('  // ── End Task 2.4 helpers')) +
   '\nreturn { buildPrereqChain, buildPrereqStages, renderPrereqTree };');
 class TreeNode {
@@ -290,7 +202,7 @@ const sharedCatalog = {
   NEXT: { prerequisites: ['TARGET', 'OTHER'] }
 };
 let navigated;
-const production = runtime(require('../course-data.js'), normalizeCourseData, treeDocument, treeEls, sharedCatalog, false,
+const production = runtime(require('../course-data.js'), normalizeCourseData, treeDocument, treeEls, sharedCatalog,
   code => { navigated = code; });
 const stages = production.buildPrereqStages('TARGET', sharedCatalog);
 assert('Production stages put shared foundation before its dependents',
@@ -312,12 +224,13 @@ const advancedCard = treeEls.prereqChainBody.children[1].children[1];
 assert('Renderer displays exact requirements and direct relationship',
   advancedCard.children[2].textContent.includes('Requires: BASE') &&
   advancedCard.children[2].textContent.includes('Required for TARGET'));
-assert('Course titles remain literal text',
+assert('Roadmap cards display full codes alongside literal course titles',
+  advancedCard.children[0].children[0].textContent === 'ADVANCED' &&
   advancedCard.children[1].textContent === sharedCatalog.ADVANCED.name);
 advancedCard.click();
 assert('Prerequisite cards retain course navigation', navigated === 'ADVANCED');
 assert('Renderer shows additional requirements on future courses',
-  treeEls.unlocksBody.children[0].children[2].textContent === 'Requires: TARGET + OTHER');
+  treeEls.unlocksBody.children[0].children[2].textContent === 'Requires: OTHER + TARGET');
 assert('Renderer updates target code and avoids fabricated credits',
   targetCode.textContent === 'TARGET' && treeEls.flowHeroCredits.textContent === 'Credits unlisted');
 assert('HTML reading order is prerequisites, requirements, target, future courses',
@@ -365,7 +278,7 @@ const createNavigation = new Function('els', 'document', 'courses', 'normalizeCo
   'getCourseOrigin', 'updateDetailReportCard', 'updateEnrolledUI', 'renderPrereqTree',
   'let currentEditingCode = null; let detailsOriginView = "courses"; const roadmapNavigationStack = [];\n' +
   JS.slice(JS.indexOf('  function openPrereqFlowView('), JS.indexOf('  els.btnOpenPrereqFlow?.addEventListener')) +
-  JS.slice(JS.indexOf('  function openCourseDetails('), JS.indexOf('  function commitCourseSave(')) +
+  JS.slice(JS.indexOf('  function openCourseDetails('), JS.indexOf('  async function commitCourseSave(')) +
   '\nreturn { openCourseDetails, exitCourseDetails, openPrereqFlowView, exitPrereqFlowView, state: () => ({ code: currentEditingCode, origin: detailsOriginView, depth: roadmapNavigationStack.length }) };');
 const navigation = createNavigation(navEls, navDocument, navCatalog,
   value => Object.assign({ name: '', credits: null, prerequisites: [] }, value),

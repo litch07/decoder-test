@@ -63,12 +63,13 @@ module.exports = async function prerequisiteIntegrityChecks() {
   const contexts=[];
   for (const source of [popup,docs]) {
     const ctx=vm.createContext({CourseData:D});
-    vm.runInContext(source.slice(source.indexOf('  function prerequisiteCatalog('),source.indexOf('  //',source.indexOf('  function buildPrereqChain(')))+
-      source.slice(source.indexOf('  function findUnlocks('), source.indexOf('\n  }',source.indexOf('  function findUnlocks('))+4),ctx);
+    vm.runInContext(source.slice(source.indexOf('  function prerequisiteCatalog('),
+      source.indexOf('  //', source.indexOf('  function buildPrereqChain('))), ctx);
     contexts.push(ctx);
   }
   for(const code of ['CSE 4813','DS 4211','DS 4817']) assert.deepEqual(plain(contexts[0].buildPrereqChain(code,catalog)),plain(contexts[1].buildPrereqChain(code,catalog)));
-  assert.deepEqual(plain(contexts[0].findUnlocks('DS 4889',catalog)),plain(contexts[1].findUnlocks('DS 4889',catalog)));
+  assert.deepEqual(plain(contexts[0].prerequisiteCatalog('DS 4889',catalog).unlocks('DS 4889')),
+    plain(contexts[1].prerequisiteCatalog('DS 4889',catalog).unlocks('DS 4889')));
   contexts[0].roadmapNavigationStack=[{code:'DS 4817'}];contexts[0].currentEditingCode='CSE 2215';
   assert.deepEqual(plain(contexts[0].buildPrereqChain('CSE 2215',catalog).directCodes),['DS 1115','DS 1116']);
   contexts[1].activeModalCourse='CSE 2215';contexts[1].modalCurriculum='BSDS-233';
@@ -81,13 +82,23 @@ module.exports = async function prerequisiteIntegrityChecks() {
   assert.equal(scanner.resolve('CSE4889').key,'CSE 4889');
   assert.equal(scanner.resolve('DS4889').key,'DS 4889');
   scanner.courses={'DS 4889':catalog['DS 4889']};assert.equal(scanner.resolve('CSE4889'),null);
+  const background = read('background.js');
+  function catalogWorker(storage, writes = []) {
+    const service = vm.createContext({CourseData:D,Blob,COURSES_URL:'bundle',console:{warn(){},error(){}},fetch:async()=>({ok:true,json:async()=>plain(catalog)}),chrome:{storage:{local:{
+      get:async()=>plain(storage),set:async value=>{writes.push(value);Object.assign(storage,plain(value));},remove:async()=>{}}}}});
+    vm.runInContext(background.slice(background.indexOf('let catalogWrites'),background.indexOf('// Fetch the latest courses'))+
+      background.slice(background.indexOf('async function syncCourses('),background.indexOf('const DEFAULT_ALLOWED_SITES')),service);
+    return service;
+  }
+  const reload = popup.slice(popup.indexOf('  async function reloadLocalCoursesState('),popup.indexOf('  function renderTrashList('));
   // Production import previews and commits, including metadata round trips.
-  const store={}, imports=vm.createContext({CourseData:D,courses:plain(catalog),userCourses:{},softDeletedCourses:[],hardDeletedCourses:[],searchQuery:'',els:{},
-    chrome:{storage:{local:{set:async value=>Object.assign(store,plain(value))}}},updateCourseCount(){},renderCourseList(){},updateJsonBadge(){},clearDropZoneFileInfo(){},closeImportPreviewModal(){},showImportMsg(){},showToast(){}});
+  const store = {courses: plain(merged), userCourses: plain(stale)}, importWorker = catalogWorker(store);
+  const imports=vm.createContext({CourseData:D,courses:plain(catalog),userCourses:{},softDeletedCourses:[],hardDeletedCourses:[],searchQuery:'',els:{},
+    chrome:{runtime:{sendMessage:message=>importWorker.loadAndStoreCourses(message)},storage:{local:{get:async()=>plain(store)}}},updateCourseCount(){},renderCourseList(){},updateJsonBadge(){},clearDropZoneFileInfo(){},closeImportPreviewModal(){},showCourseMsg(){},showToast(){}});
   vm.runInContext(popup.slice(popup.indexOf('  const { normalizeCourseData } = CourseData;'),popup.indexOf('  function getSoftDeletedCourseData('))+
     popup.slice(popup.indexOf('  function computeImportDiff('),popup.indexOf('  function renderImportPreview('))+
     popup.slice(popup.indexOf('  async function executeCommitImportDiff('),popup.indexOf('  function triggerDropZoneError('))+
-    popup.slice(popup.indexOf('  function formatCourseForExport('),popup.indexOf('  function getExportDateString(')),imports);
+    popup.slice(popup.indexOf('  function formatCourseForExport('),popup.indexOf('  function getExportDateString(')) + reload,imports);
   assert.equal(imports.computeImportDiff({'CSE 9999':{name:'Missing',prerequisites:['DS 9999']}},catalog).toAdd.length,0);
   const corrected=imports.computeImportDiff({'cse2215':catalog['CSE 2215']},merged);
   assert.equal(corrected.toUpdate.length,1);
@@ -98,11 +109,8 @@ module.exports = async function prerequisiteIntegrityChecks() {
   assert.ok(imports.computeImportDiff({'DS 9999':{name:'Review',prerequisites:['CSE 3521']}},catalog).warnings.some(x=>x.code==='DS 9999'));
   assert.equal(imports.computeImportDiff({'cse4889':'First','CSE 4889':'Second'},catalog).errors.length,1);
   // Production service-worker merge and sync: no writes during preview; invalid updates stay rejected.
-  const background=read('background.js'), storage={userCourses:stale,remoteCourses:{}}, writes=[];
-  const service=vm.createContext({CourseData:D,Blob,COURSES_URL:'bundle',console:{warn(){},error(){}},fetch:async()=>({ok:true,json:async()=>plain(catalog)}),chrome:{storage:{local:{
-    get:async()=>storage,set:async value=>{writes.push(value);Object.assign(storage,plain(value));},remove:async()=>{}}}}});
-  vm.runInContext(background.slice(background.indexOf('async function loadAndStoreCourses('),background.indexOf('// Fetch the latest courses'))+
-    background.slice(background.indexOf('async function syncCourses('),background.indexOf('const DEFAULT_ALLOWED_SITES')),service);
+  const storage={userCourses:stale,remoteCourses:{}}, writes=[];
+  const service = catalogWorker(storage, writes);
   await service.loadAndStoreCourses();
   assert.ok(storage.catalogDiagnostics.some(x=>x.source==='userCourses'&&x.code==='CSE 2215'));
   assert.deepEqual(storage.courses['CSE 2215'].prerequisites,['DS 1115','DS 1116']);
@@ -120,10 +128,11 @@ module.exports = async function prerequisiteIntegrityChecks() {
   // A stale denormalized courses cache alone cannot override a new bundled catalog.
   const cached = plain(catalog);cached['CSE 2215'].prerequisites=['DS 1115','DS 1116'];
   const popupStore={courses:cached,userCourses:{},remoteCourses:{}};
-  const state=vm.createContext({CourseData:D,els:{},bundledCourses:{},applyTheme(){},console,
-    fetch:async()=>({ok:true,json:async()=>plain(catalog)}),chrome:{runtime:{getURL:()=> 'bundle'},storage:{local:{get:async()=>popupStore,set:async value=>Object.assign(popupStore,plain(value))}}}});
+  const startupWorker = catalogWorker(popupStore);
+  const state=vm.createContext({CourseData:D,els:{},bundledCourses:{},applyTheme(){},updateCourseCount(){},console,
+    fetch:async()=>({ok:true,json:async()=>plain(catalog)}),chrome:{runtime:{getURL:()=> 'bundle',sendMessage:message=>startupWorker.loadAndStoreCourses(null,message.pruneIdenticalOverrides)},storage:{local:{get:async()=>plain(popupStore)}}}});
   vm.runInContext(popup.slice(popup.indexOf('  const { normalizeCourseData } = CourseData;'),popup.indexOf('  function getSoftDeletedCourseData('))+
-    popup.slice(popup.indexOf('  async function loadStorageData('),popup.indexOf('  function formatRelativeTime(')),state);
+    popup.slice(popup.indexOf('  async function loadStorageData('),popup.indexOf('  function formatRelativeTime(')) + reload,state);
   await state.loadStorageData();
   assert.deepEqual(popupStore.courses['CSE 2215'].prerequisites,['CSE 1111']);
   popupStore.userCourses=stale;await state.loadStorageData();

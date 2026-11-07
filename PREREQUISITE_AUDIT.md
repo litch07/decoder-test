@@ -64,7 +64,7 @@ After the correction, the base catalog has two CSE/DS cross-prefix edges; the BS
 | Website decoder | [content.js](content.js#L42) | Regex and `resolve` match full-prefix codes, including compact spacing. Display alias grouping never merges catalog entries, prerequisite arrays or graph identities. |
 | Search/departments/forms | [popup.js](popup.js#L2092) | Search can match titles and code fragments for discovery; department prefixes are filters. Neither is used as graph identity. Add/edit validation uses CourseData; deletions and enrolled selections retain normalized full codes. |
 
-The public explorer’s name/code badge toggle can show identical titles, but badges retain their original code for lookup, navigation and tooltips. The corresponding popup control is currently hidden, so it is not an available user-facing option. Rendering was not the source of the cross-program paths.
+The public explorer’s name/code badge toggle can show identical titles, but badges retain their original code for lookup, navigation and tooltips. Popup roadmap cards display both code and title without a display-mode toggle. Rendering was not the source of the cross-program paths.
 
 ## Saved records and effective catalog behavior
 

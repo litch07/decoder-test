@@ -479,31 +479,6 @@
           <span id="detailClashText">Exam routine clashes with another enrolled course</span>
         </div>
 
-        <!-- Post-Save Contribution Prompt Banner in Course Details -->
-        <div class="detail-contrib-banner" id="detailSaveContribPrompt" style="display: none;">
-          <div class="detail-contrib-banner-header">
-            <div class="detail-contrib-banner-icon">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-            </div>
-            <div class="detail-contrib-banner-text">
-              <div class="detail-contrib-banner-title">Changes saved on this device</div>
-              <div class="detail-contrib-banner-desc">Review your saved changes against the shared catalog in a GitHub draft.</div>
-            </div>
-            <button type="button" class="detail-contrib-banner-close" id="detailSaveContribClose" aria-label="Dismiss banner" title="Dismiss">&times;</button>
-          </div>
-          <div class="detail-contrib-banner-actions">
-            <button type="button" class="btn-detail-contrib-github" id="detailSaveContribGithubBtn" title="Open a GitHub draft comparing catalog details with your saved changes">
-              <svg class="catalog-report-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8M8 13h5"/></svg>
-              <span>Suggest this update ↗</span>
-            </button>
-            <button type="button" class="btn-detail-contrib-done" id="detailSaveContribDoneBtn" title="Return to Course catalog">
-              <span>Back to Catalog &rarr;</span>
-            </button>
-          </div>
-        </div>
-
         <!-- Directly Editable Course Customization Card (Open & Immediately Accessible) -->
         <div class="detail-form-container" id="detailsFormContainer">
           <div class="details-card">
@@ -604,17 +579,6 @@
           <p id="flowCourseSubtitle">Course code and name</p>
         </div>
         <div class="header-actions">
-          <!-- Code / Name switch in header toolbar -->
-          <div class="prereq-view-toggle" id="prereqViewToggle" role="group" aria-label="Badge display mode" style="display: none;">
-            <button type="button" class="prereq-toggle-btn is-active" id="prereqToggleCode"
-              aria-pressed="true" title="Show course codes">
-              Code
-            </button>
-            <button type="button" class="prereq-toggle-btn" id="prereqToggleName"
-              aria-pressed="false" title="Show course names">
-              Name
-            </button>
-          </div>
           <button type="button" class="header-btn" id="flowSettingsBtn" title="Settings" aria-label="Settings">
             <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24">
               <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
@@ -782,8 +746,6 @@
                   </div>
                 </div>
 
-                <!-- Hidden checkbox to maintain backward compatibility with tests & logic -->
-                <input type="checkbox" id="singleCourseInClass" style="display: none;" />
 
                 <!-- Prerequisites Input with None toggle -->
                 <div class="form-group" style="margin-top: 6px;">

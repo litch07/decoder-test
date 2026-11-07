@@ -79,7 +79,7 @@ All extension persistence uses `chrome.storage.local`; there is no cloud account
 | `catalogDiagnostics` | Structural/cross-program/override review issues |
 | `welcomeDismissed` | Current first-use welcome state |
 | `onboardingDone` | Legacy onboarding value; retained in existing storage but no longer read/written |
-| `prereqShowNames` | Written by hidden popup toggle; not loaded as a visible startup option |
+| `prereqShowNames` | Legacy popup value; retained in existing storage but no longer read/written |
 
 Effective catalog:
 
@@ -129,7 +129,7 @@ Tooltips have viewport-aware positioning, delayed hover/immediate focus, keyboar
 
 `docs/` serves its own catalog, course details and prerequisite graph with six subject filter groups, search/sort, code/name toggling, share-link copying and GitHub correction drafts. It uses the synchronized shared module. It cannot read extension custom records, Trash or planner state.
 
-Website localStorage keys are `uiu_theme` and `uiu_prereq_names`. The visible name/code toggle is separate from the currently hidden popup toggle. Google Fonts loads externally. There is no offline service worker; serve over HTTP for reliable JSON fetches. Public links do not establish a student's selected curriculum.
+Website localStorage keys are `uiu_theme` and `uiu_prereq_names`. The visible name/code toggle applies only to the public explorer; popup roadmap cards show both code and name. Google Fonts loads externally. There is no offline service worker; serve over HTTP for reliable JSON fetches. Public links do not establish a student's selected curriculum.
 
 ## Security, privacy and verification
 

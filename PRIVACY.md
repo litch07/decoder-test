@@ -26,7 +26,7 @@ Active/permitted tab URLs are read to determine the website, enabled state and i
 | `catalogDiagnostics` | Validation and override review issues |
 | `welcomeDismissed` | Current first-use interface state |
 | `onboardingDone` | Legacy value that may remain in older profiles; no longer read/written |
-| `prereqShowNames` | Internal roadmap preference written by a currently hidden popup control |
+| `prereqShowNames` | Legacy popup preference; retained in existing storage but no longer read/written |
 
 There is no extension account or `chrome.storage.sync` integration. Legacy deletion keys are migrated to the current arrays. Storage is not an encrypted personal vault; access also depends on browser/profile and device security.
 

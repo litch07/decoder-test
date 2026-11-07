@@ -9,7 +9,7 @@
  *   4. CSS focus indicators: :focus-visible outlines in light and OLED dark palettes
  *   5. JS Focus Trap Engine: openModalSafely, closeModalSafely, trapModalFocus
  *   6. JS Escape Navigation: Hierarchical retreat through modals and panels
- *   7. JS Arrow Navigation: Tabs, Theme radio buttons, Prereq toggle, Filter row
+ *   7. JS Arrow Navigation: Tabs, Theme radio buttons, Filter row
  *   8. Functional unit tests: Focus wrap on Tab/Shift+Tab, Escape dismissal
  *   9. Zero-innerHTML security: 100% programmatic DOM manipulation
  */
@@ -134,10 +134,6 @@ assert('JS handles Arrow navigation for import tabs',
 assert('JS handles Arrow navigation for theme options radiogroup',
   popupJs.includes('themeOptionBtns.forEach') &&
   popupJs.includes('e.key === "ArrowRight" || e.key === "ArrowDown"'));
-
-assert('JS handles Arrow navigation for prerequisite code/name toggle',
-  popupJs.includes('els.prereqToggleCode?.addEventListener("keydown"') &&
-  popupJs.includes('els.prereqToggleName?.addEventListener("keydown"'));
 
 assert('JS handles Arrow navigation for filter buttons row',
   popupJs.includes('filterBtnsArr.forEach') &&

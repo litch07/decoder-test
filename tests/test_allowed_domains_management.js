@@ -164,7 +164,7 @@ assert.ok(popupJs.includes('domainSearchInput?.addEventListener("input"'), "popu
 assert.ok(popupJs.includes('domainSearchClearBtn?.addEventListener("click"'), "popup.js must handle search clear");
 assert.ok(popupJs.includes('domainSelectAll?.addEventListener("change"'), "popup.js must handle select all change");
 assert.ok(popupJs.includes('bulkRemoveDomainsBtn?.addEventListener("click"'), "popup.js must handle bulk remove click");
-assert.ok(popupJs.includes('pendingAction === "bulk-remove-domains"'), "modalConfirmBtn must handle bulk-remove-domains action");
+assert.ok(popupJs.includes('action === "bulk-remove-domains"'), "modalConfirmBtn must handle bulk-remove-domains action");
 assert.ok(popupJs.includes('chrome.permissions.remove'), "popup.js must revoke permissions on domain removal");
 
 console.log("  ✓ All required event handlers and modal confirmation branches verified in popup.js\n");
