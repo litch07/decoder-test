@@ -1,5 +1,5 @@
 /**
- * UIU Course Companion — Public Web Catalog & Prerequisite Explorer
+ * UIU Course Code Decoder — Public Web Catalog & Prerequisite Explorer
  * File: docs/app.js
  *
  * Implementation overview:

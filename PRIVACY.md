@@ -8,6 +8,8 @@ The extension reads accessible page text to match course codes and inserts decod
 
 Active/permitted tab URLs are read to determine the website, enabled state and injection eligibility. Page text and browsing history are not uploaded by an extension analytics service: no telemetry or analytics service is implemented.
 
+On UCAM's exam-routine page, a Sheet can request a hover card from its parent UCAM page. The browser passes the matched course code, its position and card display state between those frames. UCAM's extension script resolves the details from the local catalog.
+
 ## Local extension storage
 
 `chrome.storage.local` stores:

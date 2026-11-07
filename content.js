@@ -146,6 +146,7 @@
     }
 
     container.appendChild(content);
+    return content;
   }
 
   function clearInlineLayoutMarkers(doc) {
@@ -545,7 +546,7 @@
         border-left: 1px solid var(--cce-tip-border);
         border-top: 1px solid var(--cce-tip-border);
       }
-      .cce-tooltip-content { display: grid; gap: 9px; overflow-y: auto; }
+      .cce-tooltip-content { display: grid; gap: 9px; }
       .cce-tooltip-name { font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--cce-tip-text); }
       .cce-tooltip-details { display: grid; gap: 6px; }
       .cce-detail-row {
@@ -562,6 +563,7 @@
         .cce-global-tooltip { transition: none; }
       }
       .cce-chart-popup { width: 300px; }
+      .cce-chart-popup .cce-tooltip-content { overflow-y: auto; }
       .cce-chart-popup .cce-tooltip-content, .cce-chart-history {
         scrollbar-width: thin;
         scrollbar-color: var(--cce-tip-border) var(--cce-tip-bg);
@@ -715,73 +717,52 @@
   }
 
   // Keep the tooltip inside the viewport and its pointer aligned with the course.
-  function tooltipPosition(rect, width, height, viewportWidth, viewportHeight) {
-    const margin = 12;
-    const gap = 9;
-    const minReadable = 60;
-    const center = rect.left + rect.width / 2;
-    const left = Math.max(margin, Math.min(center - width / 2, viewportWidth - width - margin));
-
-    const spaceAbove = rect.top - gap - margin;
-    const spaceBelow = viewportHeight - rect.bottom - gap - margin;
-
-    const fitsAbove = spaceAbove >= height;
-    const fitsBelow = spaceBelow >= height;
-
-    let above;
-    if (fitsAbove && fitsBelow) {
-      // When it fits comfortably on both sides, prefer "above" so subsequent rows/content aren't obscured
-      above = true;
-    } else if (fitsAbove) {
-      above = true;
-    } else if (fitsBelow) {
-      // Fits below, but only place below if spaceBelow is actually readable (> minReadable)
-      // or if spaceAbove has less room
-      above = spaceBelow < minReadable && spaceAbove > spaceBelow;
-    } else {
-      // Neither fits completely: pick whichever side has more available room
-      above = spaceAbove >= spaceBelow;
+  function tooltipViewport(win, frameBounds) {
+    const viewport = win.visualViewport;
+    const left = viewport?.offsetLeft || 0;
+    const top = viewport?.offsetTop || 0;
+    const bounds = { left, top, right: left + (viewport?.width || win.innerWidth),
+      bottom: top + (viewport?.height || win.innerHeight) };
+    if (frameBounds) {
+      bounds.left = Math.max(bounds.left, frameBounds.left);
+      bounds.top = Math.max(bounds.top, frameBounds.top);
+      bounds.right = Math.min(bounds.right, frameBounds.right);
+      bounds.bottom = Math.min(bounds.bottom, frameBounds.bottom);
     }
-
-    const top = Math.max(margin, Math.min(
-      above ? rect.top - height - gap : rect.bottom + gap,
-      viewportHeight - height - margin
-    ));
-
-    return {
-      left,
-      top,
-      placement: above ? "above" : "below",
-      arrow: Math.max(12, Math.min(width - 12, center - left))
-    };
+    return bounds;
   }
 
-  function getEffectiveViewport(target, win, doc) {
-    let vWidth = (win.visualViewport && win.visualViewport.width) || win.innerWidth || 360;
-    let vHeight = (win.visualViewport && win.visualViewport.height) || win.innerHeight || 500;
-
-    if (doc && doc.documentElement && doc.documentElement.clientHeight) {
-      vHeight = Math.min(vHeight, doc.documentElement.clientHeight);
+  function readVisibleFrame(doc, win, callback) {
+    // The browser can measure clipping even when the embedding page is cross-origin.
+    const probe = doc.createElement("div");
+    probe.style.cssText = "all:initial;position:fixed;inset:0;visibility:hidden;pointer-events:none";
+    const observer = new win.IntersectionObserver(([entry]) => {
+      if (!probe.isConnected) return;
+      cancel();
+      callback(entry.intersectionRect);
+    });
+    function cancel() {
+      observer.disconnect();
+      probe.remove();
     }
+    (doc.documentElement || doc.body).appendChild(probe);
+    observer.observe(probe);
+    return cancel;
+  }
 
-    let parent = target && (target.parentElement || target.parentNode);
-    while (parent && parent !== doc.body && parent !== doc.documentElement) {
-      if (parent.nodeType === 1) {
-        const style = win.getComputedStyle ? win.getComputedStyle(parent) : null;
-        if (style) {
-          const overflowY = style.overflowY || style.overflow || "";
-          if (overflowY === "auto" || overflowY === "scroll" || overflowY === "hidden") {
-            const pRect = parent.getBoundingClientRect();
-            if (pRect.height > 0 && pRect.bottom > 0) {
-              vHeight = Math.min(vHeight, pRect.bottom);
-            }
-          }
-        }
-      }
-      parent = parent.parentElement || parent.parentNode;
-    }
-
-    return { width: Math.max(200, vWidth), height: Math.max(100, vHeight) };
+  function tooltipPosition(rect, width, height, viewport) {
+    const margin = 12;
+    const gap = 9;
+    const center = rect.left + rect.width / 2;
+    const left = Math.max(viewport.left + margin, Math.min(center - width / 2, viewport.right - width - margin));
+    const spaceAbove = rect.top - viewport.top - gap - margin;
+    const spaceBelow = viewport.bottom - rect.bottom - gap - margin;
+    const above = spaceAbove >= spaceBelow;
+    const top = Math.max(viewport.top + margin, Math.min(above ? rect.top - height - gap : rect.bottom + gap,
+      viewport.bottom - height - margin));
+    return { left, top, placement: above ? "above" : "below",
+      availableHeight: Math.max(spaceAbove, spaceBelow),
+      arrow: Math.max(12, Math.min(width - 12, center - left)) };
   }
 
   function attachTooltipListeners(doc, win) {
@@ -791,7 +772,9 @@
     globalTooltip.id = "cce-course-tooltip";
     globalTooltip.setAttribute("role", "tooltip");
     globalTooltip.setAttribute("aria-hidden", "true");
-    (doc.body || doc.documentElement).appendChild(globalTooltip);
+    // A fixed popover uses the viewport even when the host page transforms its layout.
+    if (globalTooltip.showPopover) globalTooltip.setAttribute("popover", "manual");
+    (doc.documentElement || doc.body).appendChild(globalTooltip);
     const selector = '.cce-tooltip-wrap, .cce-highlight, .cce-inline[data-cce-inline-details="1"]';
     let active = null;
     let hovered = null;
@@ -800,13 +783,40 @@
     let descriptionTarget = null;
     let showTimer;
     let hideTimer;
+    let cancelFrameRead;
+    let routineRequest;
+    let sheetTooltip;
+    const routineOrigin = "https://ucam.uiu.ac.bd";
+    const sheetOrigin = "https://docs.google.com";
+    const isRoutine = win.location?.origin === routineOrigin &&
+      /^\/Student\/ExamRoutineViewer\.aspx$/i.test(win.location.pathname);
+    const isPublishedSheet = win.location?.origin === sheetOrigin &&
+      /^\/spreadsheets\/.*\/pubhtml(?:\/sheet)?\/?$/.test(win.location.pathname);
+    let sheetRoot = win;
+    if (isPublishedSheet) {
+      while (sheetRoot.frameElement && sheetRoot.parent.location.origin === sheetOrigin) sheetRoot = sheetRoot.parent;
+    }
+    const routineHost = isPublishedSheet && sheetRoot.parent !== sheetRoot &&
+      sheetRoot.document.referrer.startsWith(routineOrigin + "/") ? sheetRoot.parent : null;
     let chartClickVersion = 0;
     let activePoint = null;
     let chartPoint = null;
     let chartSource = "";
     const courseTarget = node => node && node.closest ? node.closest(selector) : null;
 
-    function hide() {
+    function dismissRoutineTooltip(keepHovered) {
+      if (!routineRequest) return;
+      clearTimeout(routineRequest.timer);
+      window.removeEventListener("message", routineRequest.ready);
+      routineHost.postMessage({ type: "cce-routine-tooltip-hide", id: routineRequest.id, keepHovered }, routineOrigin);
+      routineRequest = null;
+    }
+
+    function hide(keepHovered) {
+      cancelFrameRead?.();
+      cancelFrameRead = null;
+      dismissRoutineTooltip(keepHovered === true);
+      sheetTooltip = null;
       chartClickVersion++;
       activePoint = null;
       chartPoint = null;
@@ -816,6 +826,7 @@
       clearTimeout(hideTimer);
       globalTooltip.classList.remove("cce-visible");
       globalTooltip.setAttribute("aria-hidden", "true");
+      if (globalTooltip.hidePopover && globalTooltip.matches(":popover-open")) globalTooltip.hidePopover();
       if (descriptionTarget) {
         const ids = (descriptionTarget.getAttribute("aria-describedby") || "").split(/\s+/)
           .filter(id => id && id !== globalTooltip.id);
@@ -826,59 +837,135 @@
       descriptionTarget = null;
     }
     function show(target) {
-      clearTimeout(hideTimer);
-      clearTimeout(showTimer);
       hide();
       const resolved = resolve(target.dataset.cceKey);
       if (!enabled || !target.isConnected || !resolved) return;
-      active = target;
-      globalTooltip.textContent = "";
-      globalTooltip.dataset.theme = themePreference;
       const data = buildExtendedData(resolved);
       const title = target.querySelector ? target.querySelector(".cce-inline-title") : null;
       const clipped = target.dataset.cceBounded === "1" && title && title.scrollHeight > title.clientHeight + 1;
-      const tooltipData = target.classList.contains("cce-inline")
-        ? inlineTooltipData(data, target.dataset.cceCompact === "1" || target.dataset.cceAlias === "1" || clipped) : data;
+      const fullDetails = target.dataset.cceCompact === "1" || target.dataset.cceAlias === "1" || !!clipped;
+      const tooltipData = target.classList.contains("cce-inline") ? inlineTooltipData(data, fullDetails) : data;
       if (!tooltipData.name && !tooltipData.credits && !tooltipData.exam && !tooltipData.prereq) return;
-      buildTooltipDom(tooltipData, globalTooltip);
-      if (globalTooltip.firstChild && globalTooltip.firstChild.style) {
-        globalTooltip.firstChild.style.maxHeight = "";
+      active = target;
+      if (win.top !== win && win.IntersectionObserver) {
+        cancelFrameRead = readVisibleFrame(doc, win, bounds => {
+          cancelFrameRead = null;
+          displayCourseTooltip(target, tooltipData, bounds, fullDetails);
+        });
+      } else {
+        displayCourseTooltip(target, tooltipData);
       }
-      const rect = target.getBoundingClientRect();
-      const viewport = getEffectiveViewport(target, win, doc);
-      const vWidth = viewport.width;
-      const vHeight = viewport.height;
-      const tipRect = globalTooltip.getBoundingClientRect();
-      const position = tooltipPosition(rect, tipRect.width, tipRect.height, vWidth, vHeight);
-      const availableSpace = (position.placement === "above" ? rect.top : vHeight - rect.bottom) - 47;
-      if (globalTooltip.firstChild && globalTooltip.firstChild.style) {
-        if (availableSpace > 0 && tipRect.height > availableSpace + 26) {
-          globalTooltip.firstChild.style.maxHeight = Math.max(40, availableSpace) + "px";
-          const adjustedRect = globalTooltip.getBoundingClientRect();
-          const adjustedPos = tooltipPosition(rect, adjustedRect.width, adjustedRect.height, vWidth, vHeight);
-          position.top = adjustedPos.top;
-          position.left = adjustedPos.left;
-          position.arrow = adjustedPos.arrow;
+    }
+    function displayCourseTooltip(target, tooltipData, frameBounds, fullDetails) {
+      if (!target.isConnected) return;
+      const anchor = target.querySelector(".cce-inline-code") || target;
+      const rect = anchor.getBoundingClientRect();
+      const viewport = tooltipViewport(win, frameBounds);
+      const useRoutine = routineHost && focused !== target && fullDetails !== undefined;
+      const handoff = useRoutine ? () => {
+        const id = crypto.randomUUID();
+        const ready = event => {
+          if (routineRequest?.id === id && event.isTrusted && event.origin === routineOrigin && event.source === routineHost &&
+            event.data?.type === "cce-routine-tooltip-ready" && event.data.id === id) {
+            clearTimeout(routineRequest.timer);
+            window.removeEventListener("message", ready);
+          }
+        };
+        // The enclosing Sheet script can also manage an inner frame's tooltip.
+        window.addEventListener("message", ready);
+        routineRequest = { id, ready, timer: setTimeout(() => {
+          dismissRoutineTooltip(false);
+          if (active === target) displayCourseTooltip(target, tooltipData, frameBounds);
+        }, 120) };
+        let left = rect.left;
+        let top = rect.top;
+        for (let child = win; child !== sheetRoot; child = child.parent) {
+          const frame = child.frameElement;
+          if (!frame) return;
+          const box = frame.getBoundingClientRect();
+          left += box.left + frame.clientLeft;
+          top += box.top + frame.clientTop;
         }
+        routineHost.postMessage({ type: "cce-routine-tooltip-show", id, code: target.dataset.cceKey, fullDetails,
+          left, top, width: rect.width, height: rect.height }, routineOrigin);
+      } : null;
+      if (!renderCourseTooltip(tooltipData, rect, viewport, handoff)) return;
+      descriptionTarget = focused === target && focusOwner ? focusOwner : target;
+      const ids = new Set((descriptionTarget.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+      ids.add(globalTooltip.id);
+      descriptionTarget.setAttribute("aria-describedby", [...ids].join(" "));
+    }
+    function renderCourseTooltip(tooltipData, rect, viewport, handoff) {
+      if (viewport.right <= viewport.left || viewport.bottom <= viewport.top) return false;
+      globalTooltip.textContent = "";
+      globalTooltip.dataset.theme = themePreference;
+      globalTooltip.style.maxWidth = Math.min(300, Math.max(0, viewport.right - viewport.left - 24)) + "px";
+      const content = buildTooltipDom(tooltipData, globalTooltip);
+      globalTooltip.showPopover?.();
+      const tipRect = globalTooltip.getBoundingClientRect();
+      let position = tooltipPosition(rect, tipRect.width, tipRect.height, viewport);
+      if (tipRect.height > position.availableHeight) {
+        if (handoff) {
+          globalTooltip.hidePopover?.();
+          handoff();
+          return false;
+        }
+        const chromeHeight = tipRect.height - content.getBoundingClientRect().height;
+        // Use the visible viewport if neither side can show even one line of details.
+        const available = position.availableHeight >= chromeHeight + 20
+          ? position.availableHeight : viewport.bottom - viewport.top - 24;
+        content.style.maxHeight = Math.max(0, available - chromeHeight) + "px";
+        content.style.overflowY = "auto";
+        const adjustedRect = globalTooltip.getBoundingClientRect();
+        position = tooltipPosition(rect, adjustedRect.width, adjustedRect.height, viewport);
       }
       globalTooltip.style.left = position.left + "px";
       globalTooltip.style.top = position.top + "px";
       globalTooltip.style.setProperty("--cce-arrow-left", position.arrow + "px");
       globalTooltip.dataset.placement = position.placement;
-      descriptionTarget = focused === target && focusOwner ? focusOwner : target;
-      const ids = new Set((descriptionTarget.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
-      ids.add(globalTooltip.id);
-      descriptionTarget.setAttribute("aria-describedby", [...ids].join(" "));
       globalTooltip.setAttribute("aria-hidden", "false");
       globalTooltip.classList.add("cce-visible");
+      return true;
     }
+    if (routineHost) win.addEventListener("pagehide", hide);
+    if (isRoutine) win.addEventListener("message", event => {
+      const message = event.data;
+      if (!event.isTrusted || event.origin !== sheetOrigin || !message || typeof message.id !== "string" || message.id.length !== 36) return;
+      if (message.type === "cce-routine-tooltip-hide") {
+        if (sheetTooltip?.source === event.source && sheetTooltip.id === message.id &&
+          !(message.keepHovered && globalTooltip.matches(":hover"))) hide();
+        return;
+      }
+      if (!enabled || message.type !== "cce-routine-tooltip-show" || typeof message.code !== "string") return;
+      let source = event.source;
+      while (source && source.parent !== win && source.parent !== source) source = source.parent;
+      const frame = [...doc.querySelectorAll("iframe")].find(el => el.contentWindow === source);
+      if (!frame || !Object.hasOwn(courses, message.code)) return;
+      const { left, top, width, height } = message;
+      if (![left, top, width, height].every(Number.isFinite) || width <= 0 || height <= 0 ||
+        left < 0 || top < 0 || left + width > frame.clientWidth + 1 || top + height > frame.clientHeight + 1) return;
+      const box = frame.getBoundingClientRect();
+      const x = box.left + frame.clientLeft + left;
+      const y = box.top + frame.clientTop + top;
+      const rect = { left: x, top: y, width, bottom: y + height };
+      const viewport = tooltipViewport(win);
+      if (x + width <= viewport.left || x >= viewport.right || rect.bottom <= viewport.top || y >= viewport.bottom) return;
+      const resolved = resolve(message.code);
+      if (!resolved) return;
+      const data = buildExtendedData(resolved);
+      hide();
+      if (renderCourseTooltip(mode === "inline" ? inlineTooltipData(data, message.fullDetails === true) : data, rect, viewport)) {
+        sheetTooltip = { source: event.source, id: message.id, frame };
+        event.source.postMessage({ type: "cce-routine-tooltip-ready", id: message.id }, sheetOrigin);
+      }
+    });
     function scheduleHide() {
       clearTimeout(showTimer);
       clearTimeout(hideTimer);
       if (activePoint) return;
       hideTimer = setTimeout(() => {
         if (focused) show(focused);
-        else hide();
+        else hide(true);
       }, 140);
     }
     doc.addEventListener("mouseover", e => {
@@ -888,7 +975,7 @@
       hovered = target;
       clearTimeout(showTimer);
       clearTimeout(hideTimer);
-      if (active && active !== target) hide();
+      if (sheetTooltip || (active && active !== target)) hide();
       showTimer = setTimeout(() => show(target), 220);
     });
     doc.addEventListener("mouseout", e => {
@@ -940,12 +1027,14 @@
       if (pin) activePoint = point;
       globalTooltip.classList.add("cce-chart-popup");
       globalTooltip.dataset.theme = themePreference;
+      globalTooltip.style.maxWidth = "";
+      globalTooltip.showPopover?.();
       content.history.style.maxHeight = Math.max(40, Math.floor(win.innerHeight * 0.35)) + "px";
       const historyHeight = content.history.getBoundingClientRect().height;
       content.details.style.maxHeight = Math.max(40, Math.min(280, win.innerHeight - historyHeight - 64)) + "px";
       const bounds = globalTooltip.getBoundingClientRect();
-      const chartVp = getEffectiveViewport(point, win, doc);
-      const position = tooltipPosition(point.getBoundingClientRect(), bounds.width, bounds.height, chartVp.width, chartVp.height);
+      const position = tooltipPosition(point.getBoundingClientRect(), bounds.width, bounds.height,
+        { left: 0, top: 0, right: win.innerWidth, bottom: win.innerHeight });
       globalTooltip.style.left = position.left + "px";
       globalTooltip.style.top = position.top + "px";
       globalTooltip.style.setProperty("--cce-arrow-left", position.arrow + "px");
@@ -959,6 +1048,7 @@
     }
     let chartHoverQueued = false;
     doc.addEventListener("mousemove", e => {
+      if (sheetTooltip && e.target !== sheetTooltip.frame && !globalTooltip.contains(e.target)) hide();
       const point = e.target.closest ? e.target.closest(".highcharts-point, .highcharts-tracker, .highcharts-series") : null;
       const chart = point && point.closest(".highcharts-container[data-cce-course-chart]");
       if (!enabled || !chart || activePoint || chartHoverQueued) return;

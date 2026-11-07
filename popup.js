@@ -2347,7 +2347,7 @@
 
     lines.push("");
     lines.push("---");
-    lines.push("*Exported via [UIU Course Companion](https://github.com/litch07/uiu-course-companion)*");
+    lines.push("*Exported via [UIU Course Code Decoder](https://github.com/litch07/uiu-course-companion)*");
     lines.push("");
 
     return lines.join("\n");

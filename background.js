@@ -16,7 +16,7 @@ async function loadAndStoreCourses(mutation, pruneIdenticalOverrides = false) {
   try {
     return await queueCatalogWrite(() => writeCatalog(mutation, pruneIdenticalOverrides));
   } catch (err) {
-    console.error("[CourseCompanion] Failed to save catalog:", err);
+    console.error("[CourseDecoder] Failed to save catalog:", err);
     return { ok: false };
   }
 }
@@ -306,7 +306,7 @@ async function reviewCatalogSync(previewOnly, candidate, expectedRevision) {
     
     return { success: true, lastSyncedAt: timestamp, stats: lastSyncResult };
   } catch (err) {
-    console.warn("[CourseCompanion] Sync failed:", err.message || err);
+    console.warn("[CourseDecoder] Sync failed:", err.message || err);
     return { success: false, error: err.message || "Failed to fetch remote courses" };
   }
 }
@@ -440,7 +440,7 @@ function syncRegisteredContentScripts() {
       if (current) await chrome.scripting.unregisterContentScripts({ ids: [registration.id] });
       if (registration.matches.length) await chrome.scripting.registerContentScripts([registration]);
     } catch (err) {
-      console.warn("[CourseCompanion] Failed to sync registered content scripts:", err);
+      console.warn("[CourseDecoder] Failed to sync registered content scripts:", err);
     }
   });
   return contentScriptRegistration;

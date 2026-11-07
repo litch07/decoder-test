@@ -4,9 +4,9 @@ Source snapshot: manifest **2.0.0**, reviewed **6 November 2026**.
 
 Read [EXTENSION_CURRENT_STATE.md](EXTENSION_CURRENT_STATE.md) for architecture, storage and data flow; [FEATURES.md](FEATURES.md) for implemented behavior; [CONTRIBUTING.md](CONTRIBUTING.md) for data validation and checks.
 
-The project is a Manifest V3 extension written in vanilla JavaScript, HTML and CSS, with a separate public explorer under `docs/`. No extension build step, CDN or package install is required. The master Node runner contains 24 suites.
+UIU Course Code Decoder is a Manifest V3 extension written in vanilla JavaScript, HTML and CSS, with a separate public explorer under `docs/`. The extension runs directly from source. The master Node runner contains 25 suites.
 
-For branding and release-repository migration, read [REBRAND_RELEASE_GUIDE.md](REBRAND_RELEASE_GUIDE.md). `decoder-test` remains staging; the main repository has been renamed to `litch07/uiu-course-companion`, and local production links now use that address. This checkout's Git remote still points to staging. Production transfer and deployment remain pending.
+See the [release guide](RELEASE_GUIDE.md) for packaging and store updates. This checkout uses `decoder-test` for staging. Production links point to `litch07/uiu-course-companion`.
 
 ## Working boundaries
 

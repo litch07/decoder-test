@@ -18,7 +18,7 @@ The extension is Manifest V3, using vanilla JavaScript, HTML and CSS. No build t
 | `docs/courses.json`, `docs/course-data.js` | Synchronized public copies of root data/module |
 | `scripts/sync_catalog.js` | Copy both shared files, or verify equality with `--check` |
 | `scripts/validate_catalog.js` | Validate root schema/graph and copies; print review warnings |
-| `tests/run_all.js` | Master runner, 24 suites |
+| `tests/run_all.js` | Master runner, 25 suites |
 | `tests/fixtures/` | Browser fixtures for specific rendering/integration scenarios |
 | `.github/workflows/` | Catalog validation and Pages deployment |
 | `assets/`, `icons/`, `dist/` | Documentation images, extension icons and existing distribution artifacts |
@@ -123,7 +123,7 @@ The manifest declares `storage`, `activeTab`, `scripting`, `tabs`, UIU/Google Do
 - SVG labels do not expand inline; Inline falls back to Highlight. Tooltip avoids highlight colors on chart labels.
 - Recognized Highcharts cards use native SVG text only as a course/attendance data source. The HTML card is the sole extension detail renderer; no SVG expansion or custom background sizing runs. Hover refreshes changed source data, click pins the card, and unmatched native chart items remain visible. Remaining/Absent/Present use blue/red/green, with bounded prerequisite scrolling so attendance remains visible.
 
-Tooltips have viewport-aware positioning, delayed hover/immediate focus, keyboard dismissal and outside/scroll/resize/blur cleanup. Scrolling inside a card preserves it. These paths are covered by targeted fixtures, not a guarantee for every third-party website.
+Tooltips use the visible viewport for placement and scroll long content when it cannot fit. The UCAM exam-routine page can render hover cards that need more room than its published Sheet frames provide. The extension validates the source frame, maps the code's position into UCAM coordinates and looks up the course locally. Keyboard focus and unacknowledged hover requests use the card within the Sheet. Escape, pointer departure, page scrolling, resize and loss of focus dismiss cards.
 
 ## Independent public explorer
 
@@ -142,4 +142,4 @@ node scripts/sync_catalog.js --check
 node tests/run_all.js
 ```
 
-The master has 24 suites, with production prerequisite integration checks included in the prerequisite suite. Browser fixtures are additional targeted checks. CI validates copies/schema and runs tests. Pages deployment uploads `docs/` and requires repository Pages enabled with GitHub Actions as its source. Local passes do not verify live UCAM, installed profile storage, Firefox, store publication, hosted revision or existing ZIP contents.
+The master has 25 suites, with production prerequisite integration checks included in the prerequisite suite. Browser fixtures add viewport, iframe and UI checks. CI validates copies and schema, then runs the test suite. Pages deployment uploads `docs/` and uses GitHub Actions as its publishing source. Verify browser packages and store updates separately from source checks.

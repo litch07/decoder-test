@@ -66,7 +66,7 @@ node scripts/sync_catalog.js --check
 node tests/run_all.js
 ```
 
-The master runner has 24 suites. It includes production prerequisite integration checks in `tests/prerequisite_integrity_checks.js`, through the prerequisite suite. Browser fixtures in `tests/fixtures/` are separate from a claim of live UCAM or installed-browser verification.
+The master runner has 25 suites, including prerequisite integration and popup regression checks. Browser fixtures in `tests/fixtures/` cover additional cases such as viewport placement and the nested UCAM Sheet hover card.
 
 For UI/content changes, inspect relevant fixtures and actual supported page layouts in Light/Dark themes, at the 360px popup width where applicable. Keep runtime DOM construction free of `.innerHTML`/`.insertAdjacentHTML`, preserve keyboard/focus behavior and avoid adding external runtime dependencies.
 

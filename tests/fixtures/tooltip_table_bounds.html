@@ -1,0 +1,125 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Tooltip placement in clipped routines</title>
+<!-- Serve on localhost or 127.0.0.1. The embedded copy uses the other hostname. -->
+<style>
+  body { margin: 0; font: 14px system-ui; }
+  #routine, #embed { width: 480px; height: 144px; overflow: auto; }
+  #embed { overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 0 12px; }
+  #upper, #lower { overflow: hidden; }
+  #spacer { height: 70px; }
+  #tail { height: 380px; }
+  iframe { display: block; width: 100%; height: 480px; border: 0; }
+</style>
+<div id="routine"><table><tbody>
+  <tr><td id="upper">CSE 4509</td></tr>
+  <tr><td id="spacer"></td></tr>
+  <tr><td id="lower">CSE 4509</td></tr>
+  <tr><td id="tail"></td></tr>
+</tbody></table></div>
+<div id="embed"></div>
+<pre id="results">Running checks…</pre>
+<script>
+  const params = new URLSearchParams(location.search);
+  const embedded = params.has('embedded');
+  const viewportEdges = params.has('viewport');
+  if (embedded || viewportEdges) {
+    document.getElementById('routine').style.height = 'auto';
+    document.querySelector('table').className = 'waffle';
+  }
+  const saved = {
+    courses: {'CSE 4509': {name: 'Operating Systems', credits: 3, examDay: 'Day 1', examSlot: 'T1',
+      prerequisiteNote: 'Check the applicable curriculum for Operating Systems laboratory and systems programming requirements.'}},
+    mode: 'tooltip', allowedSites: [location.hostname], showPrerequisites: true, showExamInfo: true
+  };
+  let update;
+  window.chrome = {runtime: {id: 'routine-tooltip-fixture'}, storage: {
+    local: {get(keys, callback) { callback(saved); }},
+    onChanged: {addListener(callback) { update = callback; }}
+  }};
+</script>
+<script src="../../content.js"></script>
+<script>
+  const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const results = document.getElementById('results');
+  const check = (condition, message) => { if (!condition) throw Error(message); };
+  async function waitForTooltip(tooltip) {
+    for (let i = 0; i < 50; i++) {
+      if (tooltip.classList.contains('cce-visible')) return;
+      await pause(20);
+    }
+    throw Error('Tooltip never opened');
+  }
+  (async () => {
+    const scope = viewportEdges ? 'Browser viewport' : embedded ? 'Cross-origin sheet' : 'Scrollable HTML table';
+    try {
+      if (embedded) check(window.frameElement === null && window.innerHeight >= 480, 'Expected a cross-origin frame taller than its visible area');
+      const tooltip = document.querySelector('.cce-global-tooltip');
+      if (embedded) {
+        document.querySelector('#upper [data-cce-key]').dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+        await pause(100);
+        check(!tooltip.classList.contains('cce-visible'), 'Escape cancels a pending frame measurement');
+      }
+      for (const mode of ['tooltip', 'highlight', 'inline']) {
+        update({mode: {newValue: mode}}, 'local');
+        for (const [row, placement] of [['lower', 'above'], ['upper', 'below']]) {
+          if (viewportEdges) {
+            // A page transform shifts the fixed-position origin of ordinary descendants.
+            document.body.style.transform = row === 'lower' ? 'translateY(80px)' : '';
+            document.documentElement.style.transform = row === 'upper' ? 'translateY(-80px)' : '';
+            document.getElementById('routine').style.paddingTop = row === 'upper' ? '90px' : '0';
+            document.getElementById('spacer').style.height = `${window.innerHeight - 140}px`;
+          } else if (!embedded) {
+            document.getElementById('routine').style.marginTop = row === 'lower' ? `${window.innerHeight - 144}px` : '0';
+          }
+          const target = document.querySelector(`#${row} [data-cce-key]`);
+          check(target, `Missing ${mode} target in ${row} row`);
+          document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+          target.dispatchEvent(viewportEdges || row === 'lower'
+            ? new MouseEvent('mouseover', {bubbles: true}) : new FocusEvent('focusin', {bubbles: true}));
+          await waitForTooltip(tooltip);
+          const bounds = tooltip.getBoundingClientRect();
+          const anchor = (target.querySelector('.cce-inline-code') || target).getBoundingClientRect();
+          const visibleBottom = embedded ? 144 : window.innerHeight;
+          const gap = placement === 'above' ? anchor.top - bounds.bottom : bounds.top - anchor.bottom;
+          check(tooltip.dataset.placement === placement && bounds.top >= 0 && bounds.bottom <= visibleBottom && gap >= 8 && gap <= 10,
+            `${scope} ${mode} ${row} expected ${placement} inside ${visibleBottom}px, got ${tooltip.dataset.placement} at ${bounds.top}–${bounds.bottom}`);
+          if (viewportEdges) {
+            const hit = document.elementFromPoint(anchor.left + anchor.width / 2, anchor.top + anchor.height / 2);
+            check(target.contains(hit), 'The open tooltip leaves the course code hoverable');
+          }
+          const details = tooltip.firstElementChild;
+          if (!embedded) {
+            check(!details.style.maxHeight && details.scrollHeight <= details.clientHeight,
+              `${scope} ${mode} shows the full card when it fits in the window`);
+          } else if (row === 'lower' && mode === 'tooltip') {
+            check(details.scrollHeight > details.clientHeight, `${scope} keeps long details scrollable`);
+          }
+        }
+      }
+      if (viewportEdges) {
+        results.textContent = 'PASS browser viewport top and bottom in all three modes';
+      } else if (embedded) {
+        parent.postMessage('PASS cross-origin sheet in all three modes', '*');
+      } else {
+        const url = new URL(location.href);
+        url.hostname = location.hostname === 'localhost' ? '127.0.0.1' : 'localhost';
+        url.search = 'embedded';
+        const frame = document.createElement('iframe');
+        frame.src = url.href;
+        window.addEventListener('message', event => {
+          if (event.origin === url.origin && event.source === frame.contentWindow) {
+            results.textContent = `${event.data}\nPASS scrollable HTML table in all three modes`;
+          }
+        });
+        document.getElementById('embed').appendChild(frame);
+      }
+    } catch (error) {
+      results.textContent = `FAIL ${error.message}`;
+      if (embedded) parent.postMessage(results.textContent, '*');
+    }
+  })();
+</script>

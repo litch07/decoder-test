@@ -107,7 +107,7 @@ assert.ok(JS.includes("settingsOriginView"), "popup.js tracks settingsOriginView
 
 // ── 6. Header Writing & Architectural Polish Checks ──────────────────────────
 assert.ok(HTML.includes('<p class="brand-tagline">Decode. Map. Plan.</p>'), "Home uses the compact tagline");
-assert.ok(HTML.includes('<p class="onboarding-tagline">Decode courses. Map prerequisites. Avoid exam clashes.</p>'), "Welcome retains the full tagline");
+assert.ok(HTML.includes('<p class="onboarding-tagline">Decode courses. Map prerequisites. Avoid exam clashes.</p>'), "Welcome uses the release tagline");
 assert.ok(HTML.includes('id="coursesPanelTitle">Course catalog<'), "Catalog header title is updated");
 assert.ok(HTML.includes("details-header-title-row"), "Details view features code-first header title row");
 assert.ok(HTML.includes('id="detailsCourseSubtitle"'), "Details view has dynamic subtitle element");

@@ -24,6 +24,7 @@ System, Light and Dark appearance are available. Focus styles, reduced-motion ha
 - SVG labels do not receive inline expansion. Inline falls back to Highlight for these labels; Tooltip keeps labels visually neutral apart from its mode treatment where supported.
 - Recognized Highcharts attendance popups use one structured HTML extension card, opened on hover and pinnable by click. Native SVG text is a data source rather than a second extension renderer; unmatched chart items retain their native popup. Remaining, absent and present counts use distinct colors. Long prerequisite details scroll without pushing the attendance summary out of the card.
 - Tooltips are positioned within the viewport and support focus, Escape and dismissal on outside interaction, page scrolling, resize or loss of focus. Scrolling inside the card preserves it.
+- On UCAM's exam routine, hover cards that outgrow the visible Sheet can open in the surrounding UCAM page. Keyboard focus opens the accessible card in the Sheet.
 
 DOM-based university pages and some published document/table layouts are supported on a best-effort basis. Canvas-only Google Sheets/Docs content, inaccessible frames and every third-party chart are not guaranteed to decode.
 

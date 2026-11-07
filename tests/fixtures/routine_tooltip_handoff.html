@@ -1,0 +1,102 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>UCAM routine tooltip handoff</title>
+<!-- Serve this fixture at the UCAM and published Sheet paths on separate origins.
+     For localhost, substitute those origins in the fixture and content.js responses. -->
+<style>
+  body { margin: 0; font: 14px system-ui; }
+  #embed { position: fixed; bottom: 0; width: 480px; height: 144px; overflow: hidden; }
+  iframe { display: block; width: 100%; height: 480px; border: 0; }
+  td { overflow: hidden; padding: 0 12px; }
+  #spacer { height: 50px; }
+</style>
+<div id="embed" hidden></div>
+<table class="waffle" hidden><tbody>
+  <tr><td id="english">ENG 1011</td></tr>
+  <tr><td id="spacer"></td></tr>
+  <tr><td id="design">CSE 4945</td></tr>
+</tbody></table>
+<pre id="results">Running checks…</pre>
+<script>
+  const params = new URLSearchParams(location.search);
+  const sheet = window.parent !== window;
+  const outerSheet = sheet && params.has('nested') && !params.has('inner');
+  const mode = params.get('mode') || 'tooltip';
+  const sheetOrigin = 'https://docs.google.com';
+  const routineOrigin = 'https://ucam.uiu.ac.bd';
+  const saved = {courses: {
+    'ENG 1011': {name: 'English I', credits: 3},
+    'CSE 4945': {name: 'UI: Concepts and Design', credits: 3}
+  }, mode, allowedSites: [location.hostname]};
+  window.chrome = {runtime: {id: 'routine-handoff-fixture'}, storage: {
+    local: {get(keys, callback) { callback(saved); }},
+    onChanged: {addListener() {}}
+  }};
+  document.querySelector(sheet && !outerSheet ? 'table' : '#embed').hidden = false;
+</script>
+<script src="/content.js"></script>
+<script>
+  const results = document.getElementById('results');
+  const tooltip = document.querySelector('.cce-global-tooltip');
+  const visible = () => tooltip.classList.contains('cce-visible');
+  const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const escape = () => document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+  const target = id => document.querySelector('#' + id + ' [data-cce-key]');
+  const hover = id => target(id).dispatchEvent(new MouseEvent('mouseover', {bubbles: true}));
+  const tellRoutine = step => top.postMessage({test: 'routine-handoff', step}, routineOrigin);
+  if (outerSheet) {
+    const frame = document.createElement('iframe');
+    frame.src = sheetOrigin + '/spreadsheets/d/test/pubhtml/sheet?inner&mode=' + mode;
+    document.getElementById('embed').style.top = '0';
+    document.getElementById('embed').style.height = '480px';
+    document.getElementById('embed').appendChild(frame);
+  } else if (sheet) {
+    (async () => {
+      await pause(150);
+      hover('english');
+      await pause(500);
+      const details = tooltip.firstElementChild;
+      tellRoutine(visible() && details.scrollHeight <= details.clientHeight ? 'short-fits' :
+        `short-failed (visible ${visible()}, content ${details?.scrollHeight}/${details?.clientHeight}, target ${target('english').outerHTML.slice(0, 260)})`);
+      escape();
+      hover('design');
+      await pause(400);
+      tellRoutine(visible() ? 'local design card at ' + target('design').getBoundingClientRect().top +
+        ' with max-height ' + tooltip.firstElementChild.style.maxHeight : 'delegated');
+      escape();
+      await pause(100);
+      target('design').dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+      await pause(100);
+      tellRoutine(visible() && target('design').getAttribute('aria-describedby') === tooltip.id ? 'keyboard-local' : 'keyboard-failed');
+    })();
+  } else {
+    const frame = document.createElement('iframe');
+    frame.src = sheetOrigin + '/spreadsheets/d/test/pubhtml?mode=' + mode + (params.has('nested') ? '&nested' : '');
+    const steps = [];
+    window.addEventListener('message', event => {
+      if (event.origin !== sheetOrigin || event.data?.test !== 'routine-handoff' ||
+          (event.source !== frame.contentWindow && event.source?.parent !== frame.contentWindow)) return;
+      const step = event.data.step;
+      const bounds = tooltip.getBoundingClientRect();
+      const details = tooltip.firstElementChild;
+      if ((step === 'short-fits' && !visible()) ||
+          (step === 'delegated' && visible() && tooltip.dataset.placement === 'above' &&
+            details.scrollHeight <= details.clientHeight && bounds.top < frame.getBoundingClientRect().top &&
+            bounds.top >= 0 && bounds.bottom <= window.innerHeight) ||
+          (step === 'keyboard-local' && !visible())) {
+        if (step === 'delegated') {
+          document.body.dispatchEvent(new MouseEvent('mousemove', {bubbles: true}));
+          if (visible()) {
+            results.textContent = 'FAIL ' + mode + ' outside pointer movement did not dismiss the card';
+            return;
+          }
+        }
+        steps.push(step);
+        if (steps.length === 3) results.textContent = 'PASS ' + mode + ' ' + steps.join(', ');
+      } else if (!results.textContent.startsWith('FAIL')) {
+        results.textContent = 'FAIL ' + mode + ' ' + step;
+      }
+    });
+    document.getElementById('embed').appendChild(frame);
+  }
+</script>

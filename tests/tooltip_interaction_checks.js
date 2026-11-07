@@ -18,6 +18,7 @@ function element(key) {
     removeAttribute: k => attrs.delete(k),
     isConnected: true,
     closest() { return key ? this : null; },
+    querySelector() { return null; },
     contains(node) { return node === this; },
     getBoundingClientRect: () => ({ left: 5, top: 90, bottom: 110, width: 70, height: 20 })
   };
@@ -39,14 +40,18 @@ const context = {
   enabled: true, themePreference: 'dark', refreshInlineTitles() {},
   resolve: key => key === 'unknown' ? null : ({ name: key }),
   buildExtendedData: data => data,
-  buildTooltipDom(data, node) { node.firstChild = { style: {} }; node.textContent = data.name; },
+  buildTooltipDom(data, node) {
+    node.textContent = data.name;
+    return { style: {}, getBoundingClientRect: () => ({ height: 54 }) };
+  },
   setTimeout(fn) { timers.set(++timerId, fn); return timerId; },
   clearTimeout(id) { timers.delete(id); }
 };
 vm.createContext(context);
-vm.runInContext(source.slice(source.indexOf('  function tooltipPosition('),
+vm.runInContext(source.slice(source.indexOf('  function tooltipViewport('),
   source.indexOf('  function injectStylesIntoDoc(')), context);
-const place = context.tooltipPosition;
+const place = (rect, width, height, right, bottom) =>
+  context.tooltipPosition(rect, width, height, { left: 0, top: 0, right, bottom });
 for (const viewport of [280, 360, 1000]) {
   for (const left of [0, viewport / 2, viewport - 20]) {
     for (const top of [0, 100, 470]) {

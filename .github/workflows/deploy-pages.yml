@@ -1,5 +1,5 @@
 # .github/workflows/deploy-pages.yml
-# Deploys the UIU Course Companion web catalog & documentation to GitHub Pages.
+# Deploys the UIU Course Code Decoder web catalog & documentation to GitHub Pages.
 
 name: Deploy GitHub Pages
 

@@ -88,6 +88,7 @@
       change({mode: 'tooltip'});
       check(frameDoc.querySelectorAll('.cce-inline').length === 0 && frameDoc.querySelectorAll('.cce-tooltip-wrap').length === 2, 'Mode changes replace frame output once');
       frameDoc.querySelector('.cce-tooltip-wrap').focus();
+      await waitFor(() => frameDoc.querySelector('.cce-global-tooltip').classList.contains('cce-visible'));
       check(frameDoc.querySelector('.cce-global-tooltip').classList.contains('cce-visible'), 'Frame tooltip remains keyboard accessible');
       change({allowedSites: []});
       check(!frameDoc.querySelector('[data-cce-key]') && !document.querySelector('[data-cce-key]'), 'Disabling cleans main and fallback frame output');
@@ -150,6 +151,42 @@
       change({mode: 'inline'});
       await loadAgain(document);
       check(reads === count && listeners.length === 1, 'Repeated injection after navigation/settings keeps one controller');
+      const routine = document.createElement('div');
+      routine.style.cssText = 'position:fixed;left:24px;top:24px;width:500px;height:144px;overflow:hidden';
+      const routineFrame = document.createElement('iframe');
+      routineFrame.style.height = '480px';
+      routineFrame.srcdoc = `<!doctype html><style>
+        body {font:14px system-ui} p {position:absolute;left:30px;margin:0}
+        #upper {top:12px} #lower {top:91px}
+      </style><p id="upper">CSE 3421</p><p id="lower">CSE 3421</p>`;
+      routine.appendChild(routineFrame);
+      document.body.appendChild(routine);
+      await waitFor(() => routineFrame.contentDocument.querySelector('#lower [data-cce-key]'));
+      const routineDoc = routineFrame.contentDocument;
+      const routineTip = routineDoc.querySelector('.cce-global-tooltip');
+      const visibleBottom = routine.getBoundingClientRect().bottom - routineFrame.getBoundingClientRect().top - routineFrame.clientTop;
+      for (const mode of ['tooltip', 'highlight', 'inline']) {
+        change({mode});
+        const lower = routineDoc.querySelector('#lower [data-cce-key]');
+        lower.dispatchEvent(new MouseEvent('mouseover', {bubbles: true}));
+        await waitFor(() => routineTip.classList.contains('cce-visible'));
+        const above = routineTip.getBoundingClientRect();
+        const lowerCode = lower.querySelector('.cce-inline-code') || lower;
+        check(routineTip.dataset.placement === 'above' && above.top >= 0 && above.bottom <= lowerCode.getBoundingClientRect().top - 8,
+          `${mode} hover opens above a course near the clipped frame edge`);
+        if (mode === 'tooltip') {
+          const details = routineTip.firstElementChild;
+          check(details.scrollHeight > details.clientHeight && above.bottom <= visibleBottom,
+            'Long details scroll within the visible frame');
+        }
+        const upper = routineDoc.querySelector('#upper [data-cce-key]');
+        upper.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        await waitFor(() => routineTip.classList.contains('cce-visible'));
+        const below = routineTip.getBoundingClientRect();
+        const upperCode = upper.querySelector('.cce-inline-code') || upper;
+        check(routineTip.dataset.placement === 'below' && below.top >= upperCode.getBoundingClientRect().bottom + 8 && below.bottom <= visibleBottom,
+          `${mode} keyboard focus opens below a course near the top edge`);
+      }
       document.getElementById('results').textContent = 'PASS ' + checks.length + '\n' + checks.join('\n');
       document.documentElement.dataset.result = 'pass';
     } catch (error) {

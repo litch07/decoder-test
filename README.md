@@ -1,10 +1,10 @@
-# UIU Course Companion
+# UIU Course Code Decoder
 
 Decode courses. Map prerequisites. Avoid exam clashes.
 
-A Manifest V3 Chrome extension for UIU students, with a separate web course explorer. The extension decodes course codes on enabled websites, manages a local course catalog and helps compare exam workloads. It does not register courses in UCAM.
+A browser extension for United International University students. Decode codes on enabled websites, follow prerequisite roadmaps, and check your personal exam plan for clashes.
 
-This documentation describes the repository source with manifest version **2.0.0**, reviewed on **6 November 2026**. It does not certify that a store listing, hosted site or packaged ZIP contains the same revision.
+This README describes the **2.0.0 source**. Check each browser store for the version it currently offers.
 
 Production repository: [litch07/uiu-course-companion](https://github.com/litch07/uiu-course-companion). `litch07/decoder-test` remains the staging repository; production deployment is separate from local source changes.
 
@@ -32,15 +32,22 @@ For example, `CSE 3421` decodes to **Software Engineering**. Slash-separated cod
 
 Normal HTML tables use compact inline formatting. Constrained grid cells may truncate inserted names, keeping full information available on hover/focus. These layout improvements deliberately exclude spreadsheet contexts. Canvas-only documents, inaccessible frames and arbitrary chart implementations are not universally supported. SVG chart labels do not expand inline; Inline uses a highlight treatment there.
 
+On UCAM's exam routine, a hover card that needs more room can use the space above or below the embedded Sheet on the UCAM page.
+
+## Install
+
+- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/uiu-course-code-decoder/dnahpleadipkgknggmeeljcnmhcodpgk?hl=en-US)
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/uiu-course-code-decoder/)
+
+To try this source in Chrome or Edge, download or clone the repository. Open `chrome://extensions/` or `edge://extensions/`, enable **Developer mode**, choose **Load unpacked**, and select the folder containing `manifest.json`. The extension runs directly from that folder.
+
 ## Use the extension
 
-1. Download or clone this repository. No build or dependency installation is required for the extension.
-2. Open `chrome://extensions`, enable **Developer mode**, select **Load unpacked**, and choose the folder containing `manifest.json`.
-3. Pin the extension, open a supported website and check its decoding switch. UCAM, eLMS and Google Docs are initially enabled in the site's allowlist; browser permission is also required.
-4. Choose a display mode. Use **Course catalog** to inspect data or **My courses & exams** to build a personal plan.
-5. Use Settings to review catalog updates, manage enabled websites or change appearance.
+1. Pin the extension, open a supported website and check its decoding switch. UCAM, eLMS and Google Docs are in the default allowlist. Browser access is also required.
+2. Choose a display mode. Use **Course catalog** to look up courses or **My courses & exams** to build a personal plan.
+3. Open **Settings** to review catalog updates, manage enabled websites or change appearance.
 
-Additional website access uses optional host permissions. Restricted browser pages cannot be decoded. Firefox metadata exists in the manifest, but this documentation does not claim a tested Firefox package or compatibility with every Chromium browser.
+Additional websites use optional host permissions. Decoding is available on supported webpage content. Check the store version when using Firefox and test the 2.0.0 package for that browser before release.
 
 ## Academic and planner limits
 
@@ -73,13 +80,13 @@ node scripts/sync_catalog.js --check
 node tests/run_all.js
 ```
 
-The master runner has **24 suites**. Catalog validation reports structural errors and review warnings; cross-program warnings do not automatically invalidate legitimate relationships.
+The master runner has **25 suites**. Catalog validation reports structural errors and flags cross-program relationships for review.
 
 - [Feature reference](FEATURES.md)
 - [Architecture and storage](EXTENSION_CURRENT_STATE.md)
 - [Contribution and data workflow](CONTRIBUTING.md)
 - [Implemented scope and future work](ROADMAP.md)
-- [Repository rename and release guide](REBRAND_RELEASE_GUIDE.md)
+- [Release guide](RELEASE_GUIDE.md)
 - [Screenshot maintenance](SCREENSHOTS_GUIDE.md)
 - [Developer entry point](context.md)
 
